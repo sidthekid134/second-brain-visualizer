@@ -1,0 +1,985 @@
+{
+  "snapshot_timestamp": "2025-07-09T00:58:42.696756",
+  "project_info": {
+    "id": "PR-87a93f92",
+    "name": "Test Documentation Update",
+    "description": "Testing the updated LLM instructions",
+    "status": "executing",
+    "created_at": "2025-07-08T23:28:37.204337",
+    "updated_at": "2025-07-09T00:58:42.200183"
+  },
+  "execution_status": {
+    "running": true,
+    "execution_running": false,
+    "completion_percentage": 90.9090909090909,
+    "budget_used": 0,
+    "budget_limit": 8000,
+    "total_stories": 11,
+    "total_agents": 12,
+    "total_messages": 85
+  },
+  "current_execution": {
+    "currently_running_stories": {},
+    "ready_stories": [],
+    "blocked_stories": [
+      {
+        "id": "ST-0e8e88b8",
+        "objective": "Document the project",
+        "status": "blocked",
+        "milestone": "Documentation",
+        "work_type": "base_work",
+        "priority": "medium",
+        "owner": null,
+        "dependencies": [
+          "ST-a31fb072"
+        ],
+        "dependents": [],
+        "acceptance_criteria": [
+          "All features are documented",
+          "Instructions for running the project are provided"
+        ],
+        "estimated_tokens": 150,
+        "actual_tokens": null,
+        "complexity_score": 2.0,
+        "created_at": "2025-07-08T23:28:37.205099",
+        "updated_at": "2025-07-08T23:28:37.205278",
+        "blocking_issues": [],
+        "implementation_notes": [
+          "Use markdown for documentation"
+        ]
+      }
+    ],
+    "completed_stories": [
+      {
+        "id": "ST-03418370",
+        "objective": "Set up the React project using Create React App or Vite",
+        "status": "done",
+        "milestone": "Project Setup",
+        "work_type": "base_work",
+        "priority": "high",
+        "owner": "engineer-Project Setup-1",
+        "dependencies": [],
+        "dependents": [
+          "ST-244ab023",
+          "ST-791a8351"
+        ],
+        "acceptance_criteria": [
+          "Project is created",
+          "Project runs without errors"
+        ],
+        "estimated_tokens": 100,
+        "actual_tokens": null,
+        "complexity_score": 2.0,
+        "created_at": "2025-07-08T23:28:37.204786",
+        "updated_at": "2025-07-09T00:58:26.045160",
+        "blocking_issues": [],
+        "implementation_notes": [
+          "Use npx create-react-app todo-app or npx create-vite todo-app --template react"
+        ]
+      },
+      {
+        "id": "ST-791a8351",
+        "objective": "Create the Header component with title and input form",
+        "status": "done",
+        "milestone": "Component Creation",
+        "work_type": "feature_work",
+        "priority": "high",
+        "owner": "engineer-Component Creation-1",
+        "dependencies": [
+          "ST-03418370"
+        ],
+        "dependents": [
+          "ST-55ca2c05"
+        ],
+        "acceptance_criteria": [
+          "Header component is created",
+          "Input form is functional"
+        ],
+        "estimated_tokens": 150,
+        "actual_tokens": null,
+        "complexity_score": 3.0,
+        "created_at": "2025-07-08T23:28:37.204880",
+        "updated_at": "2025-07-09T00:58:30.165294",
+        "blocking_issues": [],
+        "implementation_notes": [
+          "Use useState hook for the input form"
+        ]
+      },
+      {
+        "id": "ST-244ab023",
+        "objective": "Create the TodoList and TodoItem components",
+        "status": "done",
+        "milestone": "Component Creation",
+        "work_type": "feature_work",
+        "priority": "high",
+        "owner": "engineer-Component Creation-1",
+        "dependencies": [
+          "ST-03418370"
+        ],
+        "dependents": [
+          "ST-a1c0188f",
+          "ST-9f5ce049"
+        ],
+        "acceptance_criteria": [
+          "TodoList and TodoItem components are created",
+          "TodoItem is repeated for each todo"
+        ],
+        "estimated_tokens": 200,
+        "actual_tokens": null,
+        "complexity_score": 3.0,
+        "created_at": "2025-07-08T23:28:37.204909",
+        "updated_at": "2025-07-09T00:58:30.169445",
+        "blocking_issues": [],
+        "implementation_notes": [
+          "Use map function to repeat TodoItem for each todo"
+        ]
+      },
+      {
+        "id": "ST-55ca2c05",
+        "objective": "Implement the Add Todo feature",
+        "status": "done",
+        "milestone": "Feature Implementation",
+        "work_type": "feature_work",
+        "priority": "high",
+        "owner": "engineer-Feature Implementation-1",
+        "dependencies": [
+          "ST-791a8351"
+        ],
+        "dependents": [
+          "ST-76c83ce4"
+        ],
+        "acceptance_criteria": [
+          "New todos can be added",
+          "Input field is cleared after adding"
+        ],
+        "estimated_tokens": 200,
+        "actual_tokens": null,
+        "complexity_score": 3.0,
+        "created_at": "2025-07-08T23:28:37.204936",
+        "updated_at": "2025-07-09T00:58:35.449868",
+        "blocking_issues": [],
+        "implementation_notes": [
+          "Use useState hook to manage the todos state"
+        ]
+      },
+      {
+        "id": "ST-9f5ce049",
+        "objective": "Implement the Display Todos feature",
+        "status": "done",
+        "milestone": "Feature Implementation",
+        "work_type": "feature_work",
+        "priority": "high",
+        "owner": "engineer-Feature Implementation-1",
+        "dependencies": [
+          "ST-244ab023"
+        ],
+        "dependents": [
+          "ST-b4a88603",
+          "ST-3a2f9e4b"
+        ],
+        "acceptance_criteria": [
+          "All todos are displayed in a list format",
+          "Each todo displays a checkbox, text, and delete button"
+        ],
+        "estimated_tokens": 200,
+        "actual_tokens": null,
+        "complexity_score": 3.0,
+        "created_at": "2025-07-08T23:28:37.204961",
+        "updated_at": "2025-07-09T00:58:35.454317",
+        "blocking_issues": [],
+        "implementation_notes": [
+          "Use map function to display each todo"
+        ]
+      },
+      {
+        "id": "ST-3a2f9e4b",
+        "objective": "Implement the Mark Complete feature",
+        "status": "done",
+        "milestone": "Feature Implementation",
+        "work_type": "feature_work",
+        "priority": "high",
+        "owner": "engineer-Feature Implementation-1",
+        "dependencies": [
+          "ST-9f5ce049"
+        ],
+        "dependents": [],
+        "acceptance_criteria": [
+          "Todos can be marked as complete/incomplete",
+          "Completed todos show strikethrough text"
+        ],
+        "estimated_tokens": 150,
+        "actual_tokens": null,
+        "complexity_score": 3.0,
+        "created_at": "2025-07-08T23:28:37.204983",
+        "updated_at": "2025-07-09T00:58:40.335493",
+        "blocking_issues": [],
+        "implementation_notes": [
+          "Use useState hook to manage the completed state of each todo"
+        ]
+      },
+      {
+        "id": "ST-b4a88603",
+        "objective": "Implement the Delete Todo feature",
+        "status": "done",
+        "milestone": "Feature Implementation",
+        "work_type": "feature_work",
+        "priority": "high",
+        "owner": "engineer-Feature Implementation-1",
+        "dependencies": [
+          "ST-9f5ce049"
+        ],
+        "dependents": [],
+        "acceptance_criteria": [
+          "Todos can be deleted",
+          "Deleted todos are immediately removed from the list"
+        ],
+        "estimated_tokens": 150,
+        "actual_tokens": null,
+        "complexity_score": 3.0,
+        "created_at": "2025-07-08T23:28:37.205003",
+        "updated_at": "2025-07-09T00:58:40.339863",
+        "blocking_issues": [],
+        "implementation_notes": [
+          "Use filter function to remove the deleted todo from the todos state"
+        ]
+      },
+      {
+        "id": "ST-76c83ce4",
+        "objective": "Implement the Data Persistence feature",
+        "status": "done",
+        "milestone": "Feature Implementation",
+        "work_type": "feature_work",
+        "priority": "high",
+        "owner": "engineer-Feature Implementation-1",
+        "dependencies": [
+          "ST-55ca2c05"
+        ],
+        "dependents": [
+          "ST-a31fb072"
+        ],
+        "acceptance_criteria": [
+          "Todos are saved to localStorage on every change",
+          "Todos are loaded from localStorage on app start"
+        ],
+        "estimated_tokens": 200,
+        "actual_tokens": null,
+        "complexity_score": 3.0,
+        "created_at": "2025-07-08T23:28:37.205034",
+        "updated_at": "2025-07-09T00:58:40.344882",
+        "blocking_issues": [],
+        "implementation_notes": [
+          "Use useEffect hook to save/load todos to/from localStorage"
+        ]
+      },
+      {
+        "id": "ST-a1c0188f",
+        "objective": "Style the app",
+        "status": "done",
+        "milestone": "Styling",
+        "work_type": "feature_work",
+        "priority": "medium",
+        "owner": "engineer-Styling-1",
+        "dependencies": [
+          "ST-244ab023"
+        ],
+        "dependents": [],
+        "acceptance_criteria": [
+          "App has a clean, minimal design",
+          "App is responsive"
+        ],
+        "estimated_tokens": 200,
+        "actual_tokens": null,
+        "complexity_score": 2.0,
+        "created_at": "2025-07-08T23:28:37.205055",
+        "updated_at": "2025-07-09T00:58:35.458407",
+        "blocking_issues": [],
+        "implementation_notes": [
+          "Use plain CSS for styling"
+        ]
+      },
+      {
+        "id": "ST-a31fb072",
+        "objective": "Test the app",
+        "status": "done",
+        "milestone": "Testing",
+        "work_type": "testing_work",
+        "priority": "high",
+        "owner": "engineer-Testing-1",
+        "dependencies": [
+          "ST-76c83ce4"
+        ],
+        "dependents": [
+          "ST-0e8e88b8"
+        ],
+        "acceptance_criteria": [
+          "All features work as expected",
+          "No errors are thrown"
+        ],
+        "estimated_tokens": 200,
+        "actual_tokens": null,
+        "complexity_score": 3.0,
+        "created_at": "2025-07-08T23:28:37.205075",
+        "updated_at": "2025-07-09T00:58:42.202474",
+        "blocking_issues": [],
+        "implementation_notes": [
+          "Manually test all features",
+          "Check the console for errors"
+        ]
+      }
+    ],
+    "execution_sequence": {
+      "critical_path_progress": [
+        {
+          "position": 1,
+          "story_id": "ST-03418370",
+          "objective": "Set up the React project using Create React App or Vite",
+          "status": "done",
+          "is_current": false,
+          "is_completed": true
+        },
+        {
+          "position": 2,
+          "story_id": "ST-791a8351",
+          "objective": "Create the Header component with title and input form",
+          "status": "done",
+          "is_current": false,
+          "is_completed": true
+        },
+        {
+          "position": 3,
+          "story_id": "ST-55ca2c05",
+          "objective": "Implement the Add Todo feature",
+          "status": "done",
+          "is_current": false,
+          "is_completed": true
+        },
+        {
+          "position": 4,
+          "story_id": "ST-76c83ce4",
+          "objective": "Implement the Data Persistence feature",
+          "status": "done",
+          "is_current": false,
+          "is_completed": true
+        },
+        {
+          "position": 5,
+          "story_id": "ST-a31fb072",
+          "objective": "Test the app",
+          "status": "done",
+          "is_current": false,
+          "is_completed": true
+        },
+        {
+          "position": 6,
+          "story_id": "ST-0e8e88b8",
+          "objective": "Document the project",
+          "status": "blocked",
+          "is_current": false,
+          "is_completed": false
+        }
+      ],
+      "next_up": [],
+      "parallel_opportunities": [
+        [
+          "ST-03418370"
+        ],
+        [
+          "ST-791a8351",
+          "ST-244ab023"
+        ],
+        [
+          "ST-55ca2c05",
+          "ST-9f5ce049",
+          "ST-a1c0188f"
+        ],
+        [
+          "ST-76c83ce4",
+          "ST-3a2f9e4b",
+          "ST-b4a88603"
+        ],
+        [
+          "ST-a31fb072"
+        ],
+        [
+          "ST-0e8e88b8"
+        ]
+      ],
+      "current_phase": {
+        "current_phase": "planning",
+        "phase_progress": {
+          "base_work": {
+            "total": 2,
+            "completed": 1,
+            "in_progress": 0,
+            "completion_percentage": 50.0,
+            "is_active": false
+          },
+          "feature_work": {
+            "total": 8,
+            "completed": 8,
+            "in_progress": 0,
+            "completion_percentage": 100.0,
+            "is_active": false
+          },
+          "testing_work": {
+            "total": 1,
+            "completed": 1,
+            "in_progress": 0,
+            "completion_percentage": 100.0,
+            "is_active": false
+          }
+        }
+      }
+    }
+  },
+  "project_structure": {
+    "stories": [
+      {
+        "id": "ST-03418370",
+        "objective": "Set up the React project using Create React App or Vite",
+        "status": "done",
+        "milestone": "Project Setup",
+        "work_type": "base_work",
+        "priority": "high",
+        "owner": "engineer-Project Setup-1",
+        "dependencies": [],
+        "dependents": [
+          "ST-244ab023",
+          "ST-791a8351"
+        ],
+        "acceptance_criteria": [
+          "Project is created",
+          "Project runs without errors"
+        ],
+        "estimated_tokens": 100,
+        "actual_tokens": null,
+        "complexity_score": 2.0,
+        "created_at": "2025-07-08T23:28:37.204786",
+        "updated_at": "2025-07-09T00:58:26.045160",
+        "blocking_issues": [],
+        "implementation_notes": [
+          "Use npx create-react-app todo-app or npx create-vite todo-app --template react"
+        ]
+      },
+      {
+        "id": "ST-791a8351",
+        "objective": "Create the Header component with title and input form",
+        "status": "done",
+        "milestone": "Component Creation",
+        "work_type": "feature_work",
+        "priority": "high",
+        "owner": "engineer-Component Creation-1",
+        "dependencies": [
+          "ST-03418370"
+        ],
+        "dependents": [
+          "ST-55ca2c05"
+        ],
+        "acceptance_criteria": [
+          "Header component is created",
+          "Input form is functional"
+        ],
+        "estimated_tokens": 150,
+        "actual_tokens": null,
+        "complexity_score": 3.0,
+        "created_at": "2025-07-08T23:28:37.204880",
+        "updated_at": "2025-07-09T00:58:30.165294",
+        "blocking_issues": [],
+        "implementation_notes": [
+          "Use useState hook for the input form"
+        ]
+      },
+      {
+        "id": "ST-244ab023",
+        "objective": "Create the TodoList and TodoItem components",
+        "status": "done",
+        "milestone": "Component Creation",
+        "work_type": "feature_work",
+        "priority": "high",
+        "owner": "engineer-Component Creation-1",
+        "dependencies": [
+          "ST-03418370"
+        ],
+        "dependents": [
+          "ST-a1c0188f",
+          "ST-9f5ce049"
+        ],
+        "acceptance_criteria": [
+          "TodoList and TodoItem components are created",
+          "TodoItem is repeated for each todo"
+        ],
+        "estimated_tokens": 200,
+        "actual_tokens": null,
+        "complexity_score": 3.0,
+        "created_at": "2025-07-08T23:28:37.204909",
+        "updated_at": "2025-07-09T00:58:30.169445",
+        "blocking_issues": [],
+        "implementation_notes": [
+          "Use map function to repeat TodoItem for each todo"
+        ]
+      },
+      {
+        "id": "ST-55ca2c05",
+        "objective": "Implement the Add Todo feature",
+        "status": "done",
+        "milestone": "Feature Implementation",
+        "work_type": "feature_work",
+        "priority": "high",
+        "owner": "engineer-Feature Implementation-1",
+        "dependencies": [
+          "ST-791a8351"
+        ],
+        "dependents": [
+          "ST-76c83ce4"
+        ],
+        "acceptance_criteria": [
+          "New todos can be added",
+          "Input field is cleared after adding"
+        ],
+        "estimated_tokens": 200,
+        "actual_tokens": null,
+        "complexity_score": 3.0,
+        "created_at": "2025-07-08T23:28:37.204936",
+        "updated_at": "2025-07-09T00:58:35.449868",
+        "blocking_issues": [],
+        "implementation_notes": [
+          "Use useState hook to manage the todos state"
+        ]
+      },
+      {
+        "id": "ST-9f5ce049",
+        "objective": "Implement the Display Todos feature",
+        "status": "done",
+        "milestone": "Feature Implementation",
+        "work_type": "feature_work",
+        "priority": "high",
+        "owner": "engineer-Feature Implementation-1",
+        "dependencies": [
+          "ST-244ab023"
+        ],
+        "dependents": [
+          "ST-b4a88603",
+          "ST-3a2f9e4b"
+        ],
+        "acceptance_criteria": [
+          "All todos are displayed in a list format",
+          "Each todo displays a checkbox, text, and delete button"
+        ],
+        "estimated_tokens": 200,
+        "actual_tokens": null,
+        "complexity_score": 3.0,
+        "created_at": "2025-07-08T23:28:37.204961",
+        "updated_at": "2025-07-09T00:58:35.454317",
+        "blocking_issues": [],
+        "implementation_notes": [
+          "Use map function to display each todo"
+        ]
+      },
+      {
+        "id": "ST-3a2f9e4b",
+        "objective": "Implement the Mark Complete feature",
+        "status": "done",
+        "milestone": "Feature Implementation",
+        "work_type": "feature_work",
+        "priority": "high",
+        "owner": "engineer-Feature Implementation-1",
+        "dependencies": [
+          "ST-9f5ce049"
+        ],
+        "dependents": [],
+        "acceptance_criteria": [
+          "Todos can be marked as complete/incomplete",
+          "Completed todos show strikethrough text"
+        ],
+        "estimated_tokens": 150,
+        "actual_tokens": null,
+        "complexity_score": 3.0,
+        "created_at": "2025-07-08T23:28:37.204983",
+        "updated_at": "2025-07-09T00:58:40.335493",
+        "blocking_issues": [],
+        "implementation_notes": [
+          "Use useState hook to manage the completed state of each todo"
+        ]
+      },
+      {
+        "id": "ST-b4a88603",
+        "objective": "Implement the Delete Todo feature",
+        "status": "done",
+        "milestone": "Feature Implementation",
+        "work_type": "feature_work",
+        "priority": "high",
+        "owner": "engineer-Feature Implementation-1",
+        "dependencies": [
+          "ST-9f5ce049"
+        ],
+        "dependents": [],
+        "acceptance_criteria": [
+          "Todos can be deleted",
+          "Deleted todos are immediately removed from the list"
+        ],
+        "estimated_tokens": 150,
+        "actual_tokens": null,
+        "complexity_score": 3.0,
+        "created_at": "2025-07-08T23:28:37.205003",
+        "updated_at": "2025-07-09T00:58:40.339863",
+        "blocking_issues": [],
+        "implementation_notes": [
+          "Use filter function to remove the deleted todo from the todos state"
+        ]
+      },
+      {
+        "id": "ST-76c83ce4",
+        "objective": "Implement the Data Persistence feature",
+        "status": "done",
+        "milestone": "Feature Implementation",
+        "work_type": "feature_work",
+        "priority": "high",
+        "owner": "engineer-Feature Implementation-1",
+        "dependencies": [
+          "ST-55ca2c05"
+        ],
+        "dependents": [
+          "ST-a31fb072"
+        ],
+        "acceptance_criteria": [
+          "Todos are saved to localStorage on every change",
+          "Todos are loaded from localStorage on app start"
+        ],
+        "estimated_tokens": 200,
+        "actual_tokens": null,
+        "complexity_score": 3.0,
+        "created_at": "2025-07-08T23:28:37.205034",
+        "updated_at": "2025-07-09T00:58:40.344882",
+        "blocking_issues": [],
+        "implementation_notes": [
+          "Use useEffect hook to save/load todos to/from localStorage"
+        ]
+      },
+      {
+        "id": "ST-a1c0188f",
+        "objective": "Style the app",
+        "status": "done",
+        "milestone": "Styling",
+        "work_type": "feature_work",
+        "priority": "medium",
+        "owner": "engineer-Styling-1",
+        "dependencies": [
+          "ST-244ab023"
+        ],
+        "dependents": [],
+        "acceptance_criteria": [
+          "App has a clean, minimal design",
+          "App is responsive"
+        ],
+        "estimated_tokens": 200,
+        "actual_tokens": null,
+        "complexity_score": 2.0,
+        "created_at": "2025-07-08T23:28:37.205055",
+        "updated_at": "2025-07-09T00:58:35.458407",
+        "blocking_issues": [],
+        "implementation_notes": [
+          "Use plain CSS for styling"
+        ]
+      },
+      {
+        "id": "ST-a31fb072",
+        "objective": "Test the app",
+        "status": "done",
+        "milestone": "Testing",
+        "work_type": "testing_work",
+        "priority": "high",
+        "owner": "engineer-Testing-1",
+        "dependencies": [
+          "ST-76c83ce4"
+        ],
+        "dependents": [
+          "ST-0e8e88b8"
+        ],
+        "acceptance_criteria": [
+          "All features work as expected",
+          "No errors are thrown"
+        ],
+        "estimated_tokens": 200,
+        "actual_tokens": null,
+        "complexity_score": 3.0,
+        "created_at": "2025-07-08T23:28:37.205075",
+        "updated_at": "2025-07-09T00:58:42.202474",
+        "blocking_issues": [],
+        "implementation_notes": [
+          "Manually test all features",
+          "Check the console for errors"
+        ]
+      },
+      {
+        "id": "ST-0e8e88b8",
+        "objective": "Document the project",
+        "status": "blocked",
+        "milestone": "Documentation",
+        "work_type": "base_work",
+        "priority": "medium",
+        "owner": null,
+        "dependencies": [
+          "ST-a31fb072"
+        ],
+        "dependents": [],
+        "acceptance_criteria": [
+          "All features are documented",
+          "Instructions for running the project are provided"
+        ],
+        "estimated_tokens": 150,
+        "actual_tokens": null,
+        "complexity_score": 2.0,
+        "created_at": "2025-07-08T23:28:37.205099",
+        "updated_at": "2025-07-08T23:28:37.205278",
+        "blocking_issues": [],
+        "implementation_notes": [
+          "Use markdown for documentation"
+        ]
+      }
+    ],
+    "agents": [
+      {
+        "id": "conductor-1",
+        "name": "Project Conductor",
+        "type": "conductor",
+        "assigned_stories": [],
+        "completed_stories": [],
+        "token_usage": 0,
+        "created_at": "2025-07-09T00:58:22.593955",
+        "last_activity": "2025-07-09T00:58:37.698155",
+        "metadata": {}
+      },
+      {
+        "id": "manager-Documentation",
+        "name": "Manager for Documentation",
+        "type": "manager",
+        "assigned_stories": [],
+        "completed_stories": [],
+        "token_usage": 0,
+        "created_at": "2025-07-09T00:58:22.596769",
+        "last_activity": "2025-07-09T00:58:22.596770",
+        "metadata": {
+          "milestone": "Documentation"
+        }
+      },
+      {
+        "id": "manager-Feature Implementation",
+        "name": "Manager for Feature Implementation",
+        "type": "manager",
+        "assigned_stories": [],
+        "completed_stories": [],
+        "token_usage": 0,
+        "created_at": "2025-07-09T00:58:22.596856",
+        "last_activity": "2025-07-09T00:58:40.738148",
+        "metadata": {
+          "milestone": "Feature Implementation"
+        }
+      },
+      {
+        "id": "manager-Component Creation",
+        "name": "Manager for Component Creation",
+        "type": "manager",
+        "assigned_stories": [],
+        "completed_stories": [],
+        "token_usage": 0,
+        "created_at": "2025-07-09T00:58:22.596903",
+        "last_activity": "2025-07-09T00:58:31.728278",
+        "metadata": {
+          "milestone": "Component Creation"
+        }
+      },
+      {
+        "id": "manager-Testing",
+        "name": "Manager for Testing",
+        "type": "manager",
+        "assigned_stories": [],
+        "completed_stories": [],
+        "token_usage": 0,
+        "created_at": "2025-07-09T00:58:22.596940",
+        "last_activity": "2025-07-09T00:58:42.198003",
+        "metadata": {
+          "milestone": "Testing"
+        }
+      },
+      {
+        "id": "manager-Project Setup",
+        "name": "Manager for Project Setup",
+        "type": "manager",
+        "assigned_stories": [],
+        "completed_stories": [],
+        "token_usage": 0,
+        "created_at": "2025-07-09T00:58:22.596979",
+        "last_activity": "2025-07-09T00:58:28.707883",
+        "metadata": {
+          "milestone": "Project Setup"
+        }
+      },
+      {
+        "id": "manager-Styling",
+        "name": "Manager for Styling",
+        "type": "manager",
+        "assigned_stories": [],
+        "completed_stories": [],
+        "token_usage": 0,
+        "created_at": "2025-07-09T00:58:22.597015",
+        "last_activity": "2025-07-09T00:58:37.750435",
+        "metadata": {
+          "milestone": "Styling"
+        }
+      },
+      {
+        "id": "engineer-Project Setup-1",
+        "name": "Engineer engineer-Project Setup-1",
+        "type": "engineer",
+        "assigned_stories": [],
+        "completed_stories": [
+          "ST-03418370"
+        ],
+        "token_usage": 0,
+        "created_at": "2025-07-09T00:58:22.693996",
+        "last_activity": "2025-07-09T00:58:26.043515",
+        "metadata": {
+          "manager": "manager-Project Setup",
+          "milestone": "Project Setup"
+        }
+      },
+      {
+        "id": "engineer-Component Creation-1",
+        "name": "Engineer engineer-Component Creation-1",
+        "type": "engineer",
+        "assigned_stories": [],
+        "completed_stories": [
+          "ST-244ab023",
+          "ST-791a8351"
+        ],
+        "token_usage": 0,
+        "created_at": "2025-07-09T00:58:27.678675",
+        "last_activity": "2025-07-09T00:58:30.167823",
+        "metadata": {
+          "manager": "manager-Component Creation",
+          "milestone": "Component Creation"
+        }
+      },
+      {
+        "id": "engineer-Feature Implementation-1",
+        "name": "Engineer engineer-Feature Implementation-1",
+        "type": "engineer",
+        "assigned_stories": [],
+        "completed_stories": [
+          "ST-3a2f9e4b",
+          "ST-55ca2c05",
+          "ST-b4a88603",
+          "ST-9f5ce049",
+          "ST-76c83ce4"
+        ],
+        "token_usage": 0,
+        "created_at": "2025-07-09T00:58:31.710237",
+        "last_activity": "2025-07-09T00:58:40.343086",
+        "metadata": {
+          "manager": "manager-Feature Implementation",
+          "milestone": "Feature Implementation"
+        }
+      },
+      {
+        "id": "engineer-Styling-1",
+        "name": "Engineer engineer-Styling-1",
+        "type": "engineer",
+        "assigned_stories": [],
+        "completed_stories": [
+          "ST-a1c0188f"
+        ],
+        "token_usage": 0,
+        "created_at": "2025-07-09T00:58:31.731893",
+        "last_activity": "2025-07-09T00:58:35.456845",
+        "metadata": {
+          "manager": "manager-Styling",
+          "milestone": "Styling"
+        }
+      },
+      {
+        "id": "engineer-Testing-1",
+        "name": "Engineer engineer-Testing-1",
+        "type": "engineer",
+        "assigned_stories": [],
+        "completed_stories": [
+          "ST-a31fb072"
+        ],
+        "token_usage": 0,
+        "created_at": "2025-07-09T00:58:40.741657",
+        "last_activity": "2025-07-09T00:58:42.200699",
+        "metadata": {
+          "manager": "manager-Testing",
+          "milestone": "Testing"
+        }
+      }
+    ],
+    "milestones": {},
+    "dependency_analysis": {
+      "critical_path": [
+        "ST-03418370",
+        "ST-791a8351",
+        "ST-55ca2c05",
+        "ST-76c83ce4",
+        "ST-a31fb072",
+        "ST-0e8e88b8"
+      ],
+      "parallel_groups": [
+        [
+          "ST-03418370"
+        ],
+        [
+          "ST-791a8351",
+          "ST-244ab023"
+        ],
+        [
+          "ST-55ca2c05",
+          "ST-9f5ce049",
+          "ST-a1c0188f"
+        ],
+        [
+          "ST-76c83ce4",
+          "ST-3a2f9e4b",
+          "ST-b4a88603"
+        ],
+        [
+          "ST-a31fb072"
+        ],
+        [
+          "ST-0e8e88b8"
+        ]
+      ],
+      "base_work_stories": [
+        "ST-03418370",
+        "ST-0e8e88b8"
+      ],
+      "estimated_phases": 6,
+      "parallelization_score": 0.696969696969697,
+      "circular_dependencies": []
+    }
+  },
+  "statistics": {
+    "total_stories": 11,
+    "total_dependencies": 10,
+    "graph_density": 0.09090909090909091,
+    "average_dependencies_per_story": 0.9090909090909091,
+    "has_cycles": false,
+    "strongly_connected_components": 11,
+    "isolated_stories": 0,
+    "ready_stories": 0,
+    "completed_stories": 10,
+    "blocked_stories": 1,
+    "critical_path_length": 6,
+    "parallel_groups_count": 6,
+    "base_work_stories_count": 2,
+    "estimated_phases": 6,
+    "parallelization_score": 0.696969696969697,
+    "circular_dependencies_count": 0
+  },
+  "phase_completion": {
+    "base_work": 50.0,
+    "feature_work": 100.0,
+    "integration_work": 0.0,
+    "testing_work": 100.0,
+    "deployment_work": 0.0
+  }
+}
