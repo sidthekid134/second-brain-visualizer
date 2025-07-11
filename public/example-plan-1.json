@@ -1,19 +1,19 @@
 {
-    "id": "PR-87a93f92",
-    "name": "Test Documentation Update",
-    "description": "Testing the updated LLM instructions",
+    "id": "PR-4ccd9676",
+    "name": "Simple Todo App",
+    "description": "A basic todo application with web interface",
     "stories": {
-        "ST-03418370": {
-            "id": "ST-03418370",
-            "objective": "Set up the React project using Create React App or Vite",
+        "ST-ba482f06": {
+            "id": "ST-ba482f06",
+            "objective": "Project Setup",
             "acceptance_criteria": [
-                "Project is created",
-                "Project runs without errors"
+                "Project is initialized with necessary files and directories",
+                "FastAPI is set up",
+                "A 'Hello World' endpoint is created and working"
             ],
             "dependencies": [],
             "dependents": [
-                "ST-791a8351",
-                "ST-244ab023"
+                "ST-edb56b54"
             ],
             "enhanced_dependencies": [],
             "work_type": "base_work",
@@ -23,8 +23,16 @@
             "story_context": {
                 "design_system_components": [],
                 "tech_constraints": {},
-                "code_examples": [],
-                "file_structure": {},
+                "code_examples": [
+                    "Factory",
+                    "Observer",
+                    "Component"
+                ],
+                "file_structure": {
+                    "files": [
+                        "main.py"
+                    ]
+                },
                 "api_contracts": [],
                 "database_changes": [],
                 "testing_strategy": {},
@@ -32,889 +40,62 @@
                 "accessibility_requirements": []
             },
             "implementation_notes": [
-                "Use npx create-react-app todo-app or npx create-vite todo-app --template react"
+                "Use FastAPI for the backend",
+                "Create a basic 'Hello World' endpoint to test the setup"
             ],
             "blocking_issues": [],
             "owner": null,
             "status": "ready",
-            "created_at": "2025-07-08T23:28:37.204786",
-            "updated_at": "2025-07-08T23:28:37.205252",
+            "created_at": "2025-07-10T21:48:37.785186",
+            "updated_at": "2025-07-10T21:48:37.785348",
             "milestone": "Project Setup",
             "estimated_tokens": 100,
             "actual_tokens": null,
             "estimated_hours": null,
             "actual_hours": null,
-            "metadata": {
-                "design_system_doc": null,
-                "tech_constraints": null,
-                "code_example_library": null,
-                "enhanced": true,
-                "concepts": {
-                    "backend": [
-                        "view"
-                    ],
-                    "view": [
-                        "backend"
-                    ],
-                    "component": [
-                        "auth",
-                        "user"
-                    ],
-                    "auth": [
-                        "user",
-                        "component"
-                    ],
-                    "user": [
-                        "auth",
-                        "component",
-                        "interface"
-                    ],
-                    "interface": [
-                        "user"
-                    ],
-                    "api": [
-                        "database"
-                    ],
-                    "database": [
-                        "api"
-                    ]
-                }
-            }
+            "metadata": {}
         },
-        "ST-791a8351": {
-            "id": "ST-791a8351",
-            "objective": "Create the Header component with title and input form",
+        "ST-edb56b54": {
+            "id": "ST-edb56b54",
+            "objective": "Task Model Creation",
             "acceptance_criteria": [
-                "Header component is created",
-                "Input form is functional"
+                "Task model is created with necessary fields",
+                "Tasks can be created, read, updated, and deleted in memory"
             ],
             "dependencies": [
-                "ST-03418370"
+                "ST-ba482f06"
             ],
             "dependents": [
-                "ST-55ca2c05"
+                "ST-112ef4d8"
             ],
             "enhanced_dependencies": [
                 {
-                    "from_story_id": "ST-791a8351",
-                    "to_story_id": "ST-03418370",
+                    "from_story_id": "ST-edb56b54",
+                    "to_story_id": "ST-ba482f06",
                     "dependency_type": "technical",
                     "criticality": "high",
-                    "description": "Header component depends on the project setup",
+                    "description": "The project setup must be completed before the Task model can be created",
                     "estimated_delay_hours": null,
-                    "created_at": "2025-07-08T23:28:37.205142"
-                }
-            ],
-            "work_type": "feature_work",
-            "priority": "high",
-            "complexity_score": 3.0,
-            "risk_level": "low",
-            "story_context": {
-                "design_system_components": [
-                    "Header"
-                ],
-                "tech_constraints": {},
-                "code_examples": [],
-                "file_structure": {},
-                "api_contracts": [],
-                "database_changes": [],
-                "testing_strategy": {},
-                "performance_requirements": [],
-                "accessibility_requirements": []
-            },
-            "implementation_notes": [
-                "Use useState hook for the input form"
-            ],
-            "blocking_issues": [],
-            "owner": null,
-            "status": "blocked",
-            "created_at": "2025-07-08T23:28:37.204880",
-            "updated_at": "2025-07-08T23:28:37.205259",
-            "milestone": "Component Creation",
-            "estimated_tokens": 150,
-            "actual_tokens": null,
-            "estimated_hours": null,
-            "actual_hours": null,
-            "metadata": {
-                "design_system_doc": null,
-                "tech_constraints": null,
-                "code_example_library": null,
-                "enhanced": true,
-                "concepts": {
-                    "backend": [
-                        "view"
-                    ],
-                    "view": [
-                        "backend"
-                    ],
-                    "component": [
-                        "auth",
-                        "user"
-                    ],
-                    "auth": [
-                        "user",
-                        "component"
-                    ],
-                    "user": [
-                        "auth",
-                        "component",
-                        "interface"
-                    ],
-                    "interface": [
-                        "user"
-                    ],
-                    "api": [
-                        "database"
-                    ],
-                    "database": [
-                        "api"
-                    ]
-                }
-            }
-        },
-        "ST-244ab023": {
-            "id": "ST-244ab023",
-            "objective": "Create the TodoList and TodoItem components",
-            "acceptance_criteria": [
-                "TodoList and TodoItem components are created",
-                "TodoItem is repeated for each todo"
-            ],
-            "dependencies": [
-                "ST-03418370"
-            ],
-            "dependents": [
-                "ST-9f5ce049",
-                "ST-a1c0188f"
-            ],
-            "enhanced_dependencies": [
-                {
-                    "from_story_id": "ST-244ab023",
-                    "to_story_id": "ST-03418370",
-                    "dependency_type": "technical",
-                    "criticality": "high",
-                    "description": "TodoList and TodoItem components depend on the project setup",
-                    "estimated_delay_hours": null,
-                    "created_at": "2025-07-08T23:28:37.205156"
-                }
-            ],
-            "work_type": "feature_work",
-            "priority": "high",
-            "complexity_score": 3.0,
-            "risk_level": "low",
-            "story_context": {
-                "design_system_components": [
-                    "TodoList",
-                    "TodoItem"
-                ],
-                "tech_constraints": {},
-                "code_examples": [],
-                "file_structure": {},
-                "api_contracts": [],
-                "database_changes": [],
-                "testing_strategy": {},
-                "performance_requirements": [],
-                "accessibility_requirements": []
-            },
-            "implementation_notes": [
-                "Use map function to repeat TodoItem for each todo"
-            ],
-            "blocking_issues": [],
-            "owner": null,
-            "status": "blocked",
-            "created_at": "2025-07-08T23:28:37.204909",
-            "updated_at": "2025-07-08T23:28:37.205261",
-            "milestone": "Component Creation",
-            "estimated_tokens": 200,
-            "actual_tokens": null,
-            "estimated_hours": null,
-            "actual_hours": null,
-            "metadata": {
-                "design_system_doc": null,
-                "tech_constraints": null,
-                "code_example_library": null,
-                "enhanced": true,
-                "concepts": {
-                    "backend": [
-                        "view"
-                    ],
-                    "view": [
-                        "backend"
-                    ],
-                    "component": [
-                        "auth",
-                        "user"
-                    ],
-                    "auth": [
-                        "user",
-                        "component"
-                    ],
-                    "user": [
-                        "auth",
-                        "component",
-                        "interface"
-                    ],
-                    "interface": [
-                        "user"
-                    ],
-                    "api": [
-                        "database"
-                    ],
-                    "database": [
-                        "api"
-                    ]
-                }
-            }
-        },
-        "ST-55ca2c05": {
-            "id": "ST-55ca2c05",
-            "objective": "Implement the Add Todo feature",
-            "acceptance_criteria": [
-                "New todos can be added",
-                "Input field is cleared after adding"
-            ],
-            "dependencies": [
-                "ST-791a8351"
-            ],
-            "dependents": [
-                "ST-76c83ce4"
-            ],
-            "enhanced_dependencies": [
-                {
-                    "from_story_id": "ST-55ca2c05",
-                    "to_story_id": "ST-791a8351",
-                    "dependency_type": "feature",
-                    "criticality": "high",
-                    "description": "Add Todo feature depends on the Header component",
-                    "estimated_delay_hours": null,
-                    "created_at": "2025-07-08T23:28:37.205165"
-                }
-            ],
-            "work_type": "feature_work",
-            "priority": "high",
-            "complexity_score": 3.0,
-            "risk_level": "low",
-            "story_context": {
-                "design_system_components": [],
-                "tech_constraints": {},
-                "code_examples": [],
-                "file_structure": {},
-                "api_contracts": [],
-                "database_changes": [],
-                "testing_strategy": {},
-                "performance_requirements": [],
-                "accessibility_requirements": []
-            },
-            "implementation_notes": [
-                "Use useState hook to manage the todos state"
-            ],
-            "blocking_issues": [],
-            "owner": null,
-            "status": "blocked",
-            "created_at": "2025-07-08T23:28:37.204936",
-            "updated_at": "2025-07-08T23:28:37.205263",
-            "milestone": "Feature Implementation",
-            "estimated_tokens": 200,
-            "actual_tokens": null,
-            "estimated_hours": null,
-            "actual_hours": null,
-            "metadata": {
-                "design_system_doc": null,
-                "tech_constraints": null,
-                "code_example_library": null,
-                "enhanced": true,
-                "concepts": {
-                    "backend": [
-                        "view"
-                    ],
-                    "view": [
-                        "backend"
-                    ],
-                    "component": [
-                        "auth",
-                        "user"
-                    ],
-                    "auth": [
-                        "user",
-                        "component"
-                    ],
-                    "user": [
-                        "auth",
-                        "component",
-                        "interface"
-                    ],
-                    "interface": [
-                        "user"
-                    ],
-                    "api": [
-                        "database"
-                    ],
-                    "database": [
-                        "api"
-                    ]
-                }
-            }
-        },
-        "ST-9f5ce049": {
-            "id": "ST-9f5ce049",
-            "objective": "Implement the Display Todos feature",
-            "acceptance_criteria": [
-                "All todos are displayed in a list format",
-                "Each todo displays a checkbox, text, and delete button"
-            ],
-            "dependencies": [
-                "ST-244ab023"
-            ],
-            "dependents": [
-                "ST-3a2f9e4b",
-                "ST-b4a88603"
-            ],
-            "enhanced_dependencies": [
-                {
-                    "from_story_id": "ST-9f5ce049",
-                    "to_story_id": "ST-244ab023",
-                    "dependency_type": "feature",
-                    "criticality": "high",
-                    "description": "Display Todos feature depends on the TodoList and TodoItem components",
-                    "estimated_delay_hours": null,
-                    "created_at": "2025-07-08T23:28:37.205172"
-                }
-            ],
-            "work_type": "feature_work",
-            "priority": "high",
-            "complexity_score": 3.0,
-            "risk_level": "low",
-            "story_context": {
-                "design_system_components": [],
-                "tech_constraints": {},
-                "code_examples": [],
-                "file_structure": {},
-                "api_contracts": [],
-                "database_changes": [],
-                "testing_strategy": {},
-                "performance_requirements": [],
-                "accessibility_requirements": []
-            },
-            "implementation_notes": [
-                "Use map function to display each todo"
-            ],
-            "blocking_issues": [],
-            "owner": null,
-            "status": "blocked",
-            "created_at": "2025-07-08T23:28:37.204961",
-            "updated_at": "2025-07-08T23:28:37.205265",
-            "milestone": "Feature Implementation",
-            "estimated_tokens": 200,
-            "actual_tokens": null,
-            "estimated_hours": null,
-            "actual_hours": null,
-            "metadata": {
-                "design_system_doc": null,
-                "tech_constraints": null,
-                "code_example_library": null,
-                "enhanced": true,
-                "concepts": {
-                    "backend": [
-                        "view"
-                    ],
-                    "view": [
-                        "backend"
-                    ],
-                    "component": [
-                        "auth",
-                        "user"
-                    ],
-                    "auth": [
-                        "user",
-                        "component"
-                    ],
-                    "user": [
-                        "auth",
-                        "component",
-                        "interface"
-                    ],
-                    "interface": [
-                        "user"
-                    ],
-                    "api": [
-                        "database"
-                    ],
-                    "database": [
-                        "api"
-                    ]
-                }
-            }
-        },
-        "ST-3a2f9e4b": {
-            "id": "ST-3a2f9e4b",
-            "objective": "Implement the Mark Complete feature",
-            "acceptance_criteria": [
-                "Todos can be marked as complete/incomplete",
-                "Completed todos show strikethrough text"
-            ],
-            "dependencies": [
-                "ST-9f5ce049"
-            ],
-            "dependents": [],
-            "enhanced_dependencies": [
-                {
-                    "from_story_id": "ST-3a2f9e4b",
-                    "to_story_id": "ST-9f5ce049",
-                    "dependency_type": "feature",
-                    "criticality": "high",
-                    "description": "Mark Complete feature depends on the Display Todos feature",
-                    "estimated_delay_hours": null,
-                    "created_at": "2025-07-08T23:28:37.205180"
-                }
-            ],
-            "work_type": "feature_work",
-            "priority": "high",
-            "complexity_score": 3.0,
-            "risk_level": "low",
-            "story_context": {
-                "design_system_components": [],
-                "tech_constraints": {},
-                "code_examples": [],
-                "file_structure": {},
-                "api_contracts": [],
-                "database_changes": [],
-                "testing_strategy": {},
-                "performance_requirements": [],
-                "accessibility_requirements": []
-            },
-            "implementation_notes": [
-                "Use useState hook to manage the completed state of each todo"
-            ],
-            "blocking_issues": [],
-            "owner": null,
-            "status": "blocked",
-            "created_at": "2025-07-08T23:28:37.204983",
-            "updated_at": "2025-07-08T23:28:37.205267",
-            "milestone": "Feature Implementation",
-            "estimated_tokens": 150,
-            "actual_tokens": null,
-            "estimated_hours": null,
-            "actual_hours": null,
-            "metadata": {
-                "design_system_doc": null,
-                "tech_constraints": null,
-                "code_example_library": null,
-                "enhanced": true,
-                "concepts": {
-                    "backend": [
-                        "view"
-                    ],
-                    "view": [
-                        "backend"
-                    ],
-                    "component": [
-                        "auth",
-                        "user"
-                    ],
-                    "auth": [
-                        "user",
-                        "component"
-                    ],
-                    "user": [
-                        "auth",
-                        "component",
-                        "interface"
-                    ],
-                    "interface": [
-                        "user"
-                    ],
-                    "api": [
-                        "database"
-                    ],
-                    "database": [
-                        "api"
-                    ]
-                }
-            }
-        },
-        "ST-b4a88603": {
-            "id": "ST-b4a88603",
-            "objective": "Implement the Delete Todo feature",
-            "acceptance_criteria": [
-                "Todos can be deleted",
-                "Deleted todos are immediately removed from the list"
-            ],
-            "dependencies": [
-                "ST-9f5ce049"
-            ],
-            "dependents": [],
-            "enhanced_dependencies": [
-                {
-                    "from_story_id": "ST-b4a88603",
-                    "to_story_id": "ST-9f5ce049",
-                    "dependency_type": "feature",
-                    "criticality": "high",
-                    "description": "Delete Todo feature depends on the Display Todos feature",
-                    "estimated_delay_hours": null,
-                    "created_at": "2025-07-08T23:28:37.205187"
-                }
-            ],
-            "work_type": "feature_work",
-            "priority": "high",
-            "complexity_score": 3.0,
-            "risk_level": "low",
-            "story_context": {
-                "design_system_components": [],
-                "tech_constraints": {},
-                "code_examples": [],
-                "file_structure": {},
-                "api_contracts": [],
-                "database_changes": [],
-                "testing_strategy": {},
-                "performance_requirements": [],
-                "accessibility_requirements": []
-            },
-            "implementation_notes": [
-                "Use filter function to remove the deleted todo from the todos state"
-            ],
-            "blocking_issues": [],
-            "owner": null,
-            "status": "blocked",
-            "created_at": "2025-07-08T23:28:37.205003",
-            "updated_at": "2025-07-08T23:28:37.205269",
-            "milestone": "Feature Implementation",
-            "estimated_tokens": 150,
-            "actual_tokens": null,
-            "estimated_hours": null,
-            "actual_hours": null,
-            "metadata": {
-                "design_system_doc": null,
-                "tech_constraints": null,
-                "code_example_library": null,
-                "enhanced": true,
-                "concepts": {
-                    "backend": [
-                        "view"
-                    ],
-                    "view": [
-                        "backend"
-                    ],
-                    "component": [
-                        "auth",
-                        "user"
-                    ],
-                    "auth": [
-                        "user",
-                        "component"
-                    ],
-                    "user": [
-                        "auth",
-                        "component",
-                        "interface"
-                    ],
-                    "interface": [
-                        "user"
-                    ],
-                    "api": [
-                        "database"
-                    ],
-                    "database": [
-                        "api"
-                    ]
-                }
-            }
-        },
-        "ST-76c83ce4": {
-            "id": "ST-76c83ce4",
-            "objective": "Implement the Data Persistence feature",
-            "acceptance_criteria": [
-                "Todos are saved to localStorage on every change",
-                "Todos are loaded from localStorage on app start"
-            ],
-            "dependencies": [
-                "ST-55ca2c05"
-            ],
-            "dependents": [
-                "ST-a31fb072"
-            ],
-            "enhanced_dependencies": [
-                {
-                    "from_story_id": "ST-76c83ce4",
-                    "to_story_id": "ST-55ca2c05",
-                    "dependency_type": "feature",
-                    "criticality": "high",
-                    "description": "Data Persistence feature depends on the Add Todo feature",
-                    "estimated_delay_hours": null,
-                    "created_at": "2025-07-08T23:28:37.205194"
-                }
-            ],
-            "work_type": "feature_work",
-            "priority": "high",
-            "complexity_score": 3.0,
-            "risk_level": "low",
-            "story_context": {
-                "design_system_components": [],
-                "tech_constraints": {},
-                "code_examples": [],
-                "file_structure": {},
-                "api_contracts": [],
-                "database_changes": [],
-                "testing_strategy": {},
-                "performance_requirements": [],
-                "accessibility_requirements": []
-            },
-            "implementation_notes": [
-                "Use useEffect hook to save/load todos to/from localStorage"
-            ],
-            "blocking_issues": [],
-            "owner": null,
-            "status": "blocked",
-            "created_at": "2025-07-08T23:28:37.205034",
-            "updated_at": "2025-07-08T23:28:37.205272",
-            "milestone": "Feature Implementation",
-            "estimated_tokens": 200,
-            "actual_tokens": null,
-            "estimated_hours": null,
-            "actual_hours": null,
-            "metadata": {
-                "design_system_doc": null,
-                "tech_constraints": null,
-                "code_example_library": null,
-                "enhanced": true,
-                "concepts": {
-                    "backend": [
-                        "view"
-                    ],
-                    "view": [
-                        "backend"
-                    ],
-                    "component": [
-                        "auth",
-                        "user"
-                    ],
-                    "auth": [
-                        "user",
-                        "component"
-                    ],
-                    "user": [
-                        "auth",
-                        "component",
-                        "interface"
-                    ],
-                    "interface": [
-                        "user"
-                    ],
-                    "api": [
-                        "database"
-                    ],
-                    "database": [
-                        "api"
-                    ]
-                }
-            }
-        },
-        "ST-a1c0188f": {
-            "id": "ST-a1c0188f",
-            "objective": "Style the app",
-            "acceptance_criteria": [
-                "App has a clean, minimal design",
-                "App is responsive"
-            ],
-            "dependencies": [
-                "ST-244ab023"
-            ],
-            "dependents": [],
-            "enhanced_dependencies": [
-                {
-                    "from_story_id": "ST-a1c0188f",
-                    "to_story_id": "ST-244ab023",
-                    "dependency_type": "feature",
-                    "criticality": "medium",
-                    "description": "Styling depends on the component creation",
-                    "estimated_delay_hours": null,
-                    "created_at": "2025-07-08T23:28:37.205202"
-                }
-            ],
-            "work_type": "feature_work",
-            "priority": "medium",
-            "complexity_score": 2.0,
-            "risk_level": "low",
-            "story_context": {
-                "design_system_components": [],
-                "tech_constraints": {},
-                "code_examples": [],
-                "file_structure": {},
-                "api_contracts": [],
-                "database_changes": [],
-                "testing_strategy": {},
-                "performance_requirements": [],
-                "accessibility_requirements": []
-            },
-            "implementation_notes": [
-                "Use plain CSS for styling"
-            ],
-            "blocking_issues": [],
-            "owner": null,
-            "status": "blocked",
-            "created_at": "2025-07-08T23:28:37.205055",
-            "updated_at": "2025-07-08T23:28:37.205274",
-            "milestone": "Styling",
-            "estimated_tokens": 200,
-            "actual_tokens": null,
-            "estimated_hours": null,
-            "actual_hours": null,
-            "metadata": {
-                "design_system_doc": null,
-                "tech_constraints": null,
-                "code_example_library": null,
-                "enhanced": true,
-                "concepts": {
-                    "backend": [
-                        "view"
-                    ],
-                    "view": [
-                        "backend"
-                    ],
-                    "component": [
-                        "auth",
-                        "user"
-                    ],
-                    "auth": [
-                        "user",
-                        "component"
-                    ],
-                    "user": [
-                        "auth",
-                        "component",
-                        "interface"
-                    ],
-                    "interface": [
-                        "user"
-                    ],
-                    "api": [
-                        "database"
-                    ],
-                    "database": [
-                        "api"
-                    ]
-                }
-            }
-        },
-        "ST-a31fb072": {
-            "id": "ST-a31fb072",
-            "objective": "Test the app",
-            "acceptance_criteria": [
-                "All features work as expected",
-                "No errors are thrown"
-            ],
-            "dependencies": [
-                "ST-76c83ce4"
-            ],
-            "dependents": [
-                "ST-0e8e88b8"
-            ],
-            "enhanced_dependencies": [
-                {
-                    "from_story_id": "ST-a31fb072",
-                    "to_story_id": "ST-76c83ce4",
-                    "dependency_type": "feature",
-                    "criticality": "high",
-                    "description": "Testing depends on all feature completion",
-                    "estimated_delay_hours": null,
-                    "created_at": "2025-07-08T23:28:37.205210"
-                }
-            ],
-            "work_type": "testing_work",
-            "priority": "high",
-            "complexity_score": 3.0,
-            "risk_level": "low",
-            "story_context": {
-                "design_system_components": [],
-                "tech_constraints": {},
-                "code_examples": [],
-                "file_structure": {},
-                "api_contracts": [],
-                "database_changes": [],
-                "testing_strategy": {},
-                "performance_requirements": [],
-                "accessibility_requirements": []
-            },
-            "implementation_notes": [
-                "Manually test all features",
-                "Check the console for errors"
-            ],
-            "blocking_issues": [],
-            "owner": null,
-            "status": "blocked",
-            "created_at": "2025-07-08T23:28:37.205075",
-            "updated_at": "2025-07-08T23:28:37.205276",
-            "milestone": "Testing",
-            "estimated_tokens": 200,
-            "actual_tokens": null,
-            "estimated_hours": null,
-            "actual_hours": null,
-            "metadata": {
-                "design_system_doc": null,
-                "tech_constraints": null,
-                "code_example_library": null,
-                "enhanced": true,
-                "concepts": {
-                    "backend": [
-                        "view"
-                    ],
-                    "view": [
-                        "backend"
-                    ],
-                    "component": [
-                        "auth",
-                        "user"
-                    ],
-                    "auth": [
-                        "user",
-                        "component"
-                    ],
-                    "user": [
-                        "auth",
-                        "component",
-                        "interface"
-                    ],
-                    "interface": [
-                        "user"
-                    ],
-                    "api": [
-                        "database"
-                    ],
-                    "database": [
-                        "api"
-                    ]
-                }
-            }
-        },
-        "ST-0e8e88b8": {
-            "id": "ST-0e8e88b8",
-            "objective": "Document the project",
-            "acceptance_criteria": [
-                "All features are documented",
-                "Instructions for running the project are provided"
-            ],
-            "dependencies": [
-                "ST-a31fb072"
-            ],
-            "dependents": [],
-            "enhanced_dependencies": [
-                {
-                    "from_story_id": "ST-0e8e88b8",
-                    "to_story_id": "ST-a31fb072",
-                    "dependency_type": "feature",
-                    "criticality": "medium",
-                    "description": "Documentation depends on testing completion",
-                    "estimated_delay_hours": null,
-                    "created_at": "2025-07-08T23:28:37.205218"
+                    "created_at": "2025-07-10T21:48:37.785310"
                 }
             ],
             "work_type": "base_work",
-            "priority": "medium",
-            "complexity_score": 2.0,
+            "priority": "high",
+            "complexity_score": 2.5,
             "risk_level": "low",
             "story_context": {
                 "design_system_components": [],
                 "tech_constraints": {},
-                "code_examples": [],
-                "file_structure": {},
+                "code_examples": [
+                    "Factory",
+                    "Observer",
+                    "Component"
+                ],
+                "file_structure": {
+                    "files": [
+                        "main.py"
+                    ]
+                },
                 "api_contracts": [],
                 "database_changes": [],
                 "testing_strategy": {},
@@ -922,119 +103,283 @@
                 "accessibility_requirements": []
             },
             "implementation_notes": [
-                "Use markdown for documentation"
+                "Use Python's dataclasses for the Task model",
+                "Store tasks in a list in memory"
             ],
             "blocking_issues": [],
             "owner": null,
             "status": "blocked",
-            "created_at": "2025-07-08T23:28:37.205099",
-            "updated_at": "2025-07-08T23:28:37.205278",
-            "milestone": "Documentation",
+            "created_at": "2025-07-10T21:48:37.785240",
+            "updated_at": "2025-07-10T21:48:37.785358",
+            "milestone": "Core Features Implementation",
             "estimated_tokens": 150,
             "actual_tokens": null,
             "estimated_hours": null,
             "actual_hours": null,
-            "metadata": {
-                "design_system_doc": null,
-                "tech_constraints": null,
-                "code_example_library": null,
-                "enhanced": true,
-                "concepts": {
-                    "backend": [
-                        "view"
-                    ],
-                    "view": [
-                        "backend"
-                    ],
-                    "component": [
-                        "auth",
-                        "user"
-                    ],
-                    "auth": [
-                        "user",
-                        "component"
-                    ],
-                    "user": [
-                        "auth",
-                        "component",
-                        "interface"
-                    ],
-                    "interface": [
-                        "user"
-                    ],
-                    "api": [
-                        "database"
-                    ],
-                    "database": [
-                        "api"
-                    ]
+            "metadata": {}
+        },
+        "ST-112ef4d8": {
+            "id": "ST-112ef4d8",
+            "objective": "Task API Endpoints",
+            "acceptance_criteria": [
+                "API endpoints for creating, reading, updating, and deleting tasks are working"
+            ],
+            "dependencies": [
+                "ST-edb56b54"
+            ],
+            "dependents": [
+                "ST-1e6add78"
+            ],
+            "enhanced_dependencies": [
+                {
+                    "from_story_id": "ST-112ef4d8",
+                    "to_story_id": "ST-edb56b54",
+                    "dependency_type": "technical",
+                    "criticality": "high",
+                    "description": "The Task model must be created before the API endpoints can be created",
+                    "estimated_delay_hours": null,
+                    "created_at": "2025-07-10T21:48:37.785320"
                 }
-            }
+            ],
+            "work_type": "base_work",
+            "priority": "high",
+            "complexity_score": 3.0,
+            "risk_level": "low",
+            "story_context": {
+                "design_system_components": [],
+                "tech_constraints": {},
+                "code_examples": [
+                    "Factory",
+                    "Observer",
+                    "Component"
+                ],
+                "file_structure": {
+                    "files": [
+                        "main.py"
+                    ]
+                },
+                "api_contracts": [],
+                "database_changes": [],
+                "testing_strategy": {},
+                "performance_requirements": [],
+                "accessibility_requirements": []
+            },
+            "implementation_notes": [
+                "Use FastAPI's routing to create the endpoints",
+                "Use the Task model for request and response bodies"
+            ],
+            "blocking_issues": [],
+            "owner": null,
+            "status": "blocked",
+            "created_at": "2025-07-10T21:48:37.785253",
+            "updated_at": "2025-07-10T21:48:37.785359",
+            "milestone": "API Development",
+            "estimated_tokens": 200,
+            "actual_tokens": null,
+            "estimated_hours": null,
+            "actual_hours": null,
+            "metadata": {}
+        },
+        "ST-1e6add78": {
+            "id": "ST-1e6add78",
+            "objective": "User Interface Design",
+            "acceptance_criteria": [
+                "User interface is designed and implemented",
+                "Interface includes a task list view, an add task form, and complete/delete buttons for each task",
+                "Interface is responsive and mobile-friendly"
+            ],
+            "dependencies": [
+                "ST-112ef4d8"
+            ],
+            "dependents": [
+                "ST-8141c418"
+            ],
+            "enhanced_dependencies": [
+                {
+                    "from_story_id": "ST-1e6add78",
+                    "to_story_id": "ST-112ef4d8",
+                    "dependency_type": "feature",
+                    "criticality": "medium",
+                    "description": "The API endpoints must be created before the user interface can be designed",
+                    "estimated_delay_hours": null,
+                    "created_at": "2025-07-10T21:48:37.785325"
+                }
+            ],
+            "work_type": "base_work",
+            "priority": "high",
+            "complexity_score": 3.5,
+            "risk_level": "low",
+            "story_context": {
+                "design_system_components": [],
+                "tech_constraints": {},
+                "code_examples": [
+                    "Factory",
+                    "Observer",
+                    "Component"
+                ],
+                "file_structure": {
+                    "files": [
+                        "index.html",
+                        "styles.css",
+                        "app.js"
+                    ]
+                },
+                "api_contracts": [],
+                "database_changes": [],
+                "testing_strategy": {},
+                "performance_requirements": [],
+                "accessibility_requirements": []
+            },
+            "implementation_notes": [
+                "Use HTML, CSS, and JavaScript for the user interface",
+                "Make sure the design is clean and responsive"
+            ],
+            "blocking_issues": [],
+            "owner": null,
+            "status": "blocked",
+            "created_at": "2025-07-10T21:48:37.785270",
+            "updated_at": "2025-07-10T21:48:37.785360",
+            "milestone": "User Interface Design",
+            "estimated_tokens": 250,
+            "actual_tokens": null,
+            "estimated_hours": null,
+            "actual_hours": null,
+            "metadata": {}
+        },
+        "ST-8141c418": {
+            "id": "ST-8141c418",
+            "objective": "Integration of Frontend and Backend",
+            "acceptance_criteria": [
+                "Frontend interacts with backend through API endpoints",
+                "Tasks can be created, read, updated, and deleted through the user interface"
+            ],
+            "dependencies": [
+                "ST-1e6add78"
+            ],
+            "dependents": [
+                "ST-8867732b"
+            ],
+            "enhanced_dependencies": [
+                {
+                    "from_story_id": "ST-8141c418",
+                    "to_story_id": "ST-1e6add78",
+                    "dependency_type": "integration",
+                    "criticality": "high",
+                    "description": "The user interface must be designed before the frontend and backend can be integrated",
+                    "estimated_delay_hours": null,
+                    "created_at": "2025-07-10T21:48:37.785329"
+                }
+            ],
+            "work_type": "base_work",
+            "priority": "high",
+            "complexity_score": 3.0,
+            "risk_level": "low",
+            "story_context": {
+                "design_system_components": [],
+                "tech_constraints": {},
+                "code_examples": [
+                    "Factory",
+                    "Observer",
+                    "Component"
+                ],
+                "file_structure": {
+                    "files": [
+                        "app.js"
+                    ]
+                },
+                "api_contracts": [],
+                "database_changes": [],
+                "testing_strategy": {},
+                "performance_requirements": [],
+                "accessibility_requirements": []
+            },
+            "implementation_notes": [
+                "Use JavaScript's fetch API to interact with the backend",
+                "Make sure the frontend updates when tasks are created, updated, or deleted"
+            ],
+            "blocking_issues": [],
+            "owner": null,
+            "status": "blocked",
+            "created_at": "2025-07-10T21:48:37.785283",
+            "updated_at": "2025-07-10T21:48:37.785360",
+            "milestone": "Core Features Implementation",
+            "estimated_tokens": 200,
+            "actual_tokens": null,
+            "estimated_hours": null,
+            "actual_hours": null,
+            "metadata": {}
+        },
+        "ST-8867732b": {
+            "id": "ST-8867732b",
+            "objective": "Testing and Deployment",
+            "acceptance_criteria": [
+                "Application is thoroughly tested",
+                "Application is deployed and accessible online"
+            ],
+            "dependencies": [
+                "ST-8141c418"
+            ],
+            "dependents": [],
+            "enhanced_dependencies": [
+                {
+                    "from_story_id": "ST-8867732b",
+                    "to_story_id": "ST-8141c418",
+                    "dependency_type": "technical",
+                    "criticality": "high",
+                    "description": "The frontend and backend must be integrated before the application can be tested and deployed",
+                    "estimated_delay_hours": null,
+                    "created_at": "2025-07-10T21:48:37.785333"
+                }
+            ],
+            "work_type": "base_work",
+            "priority": "high",
+            "complexity_score": 2.0,
+            "risk_level": "low",
+            "story_context": {
+                "design_system_components": [],
+                "tech_constraints": {},
+                "code_examples": [
+                    "Factory",
+                    "Observer",
+                    "Component"
+                ],
+                "file_structure": {
+                    "files": [
+                        "main.py",
+                        "test_main.py"
+                    ]
+                },
+                "api_contracts": [],
+                "database_changes": [],
+                "testing_strategy": {},
+                "performance_requirements": [],
+                "accessibility_requirements": []
+            },
+            "implementation_notes": [
+                "Use FastAPI's test client for backend testing",
+                "Use a suitable hosting platform for deployment"
+            ],
+            "blocking_issues": [],
+            "owner": null,
+            "status": "blocked",
+            "created_at": "2025-07-10T21:48:37.785293",
+            "updated_at": "2025-07-10T21:48:37.785361",
+            "milestone": "Testing and Deployment",
+            "estimated_tokens": 100,
+            "actual_tokens": null,
+            "estimated_hours": null,
+            "actual_hours": null,
+            "metadata": {}
         }
     },
     "agents": {},
     "messages": [],
-    "created_at": "2025-07-08T23:28:37.204337",
-    "updated_at": "2025-07-08T23:28:37.205220",
+    "created_at": "2025-07-10T21:48:37.784902",
+    "updated_at": "2025-07-10T21:48:37.785334",
     "status": "planning",
-    "budget_limit": 8000,
+    "budget_limit": 1000,
     "budget_used": 0,
     "milestones": {},
-    "dependency_analysis": {
-        "total_dependencies": 10,
-        "circular_dependencies": [],
-        "critical_path": [
-            "ST-03418370",
-            "ST-791a8351",
-            "ST-55ca2c05",
-            "ST-76c83ce4",
-            "ST-a31fb072",
-            "ST-0e8e88b8"
-        ],
-        "parallel_groups": [
-            [
-                "ST-03418370"
-            ],
-            [
-                "ST-791a8351",
-                "ST-244ab023"
-            ],
-            [
-                "ST-55ca2c05",
-                "ST-9f5ce049",
-                "ST-a1c0188f"
-            ],
-            [
-                "ST-76c83ce4",
-                "ST-3a2f9e4b",
-                "ST-b4a88603"
-            ],
-            [
-                "ST-a31fb072"
-            ],
-            [
-                "ST-0e8e88b8"
-            ]
-        ],
-        "base_work_stories": [
-            "ST-03418370",
-            "ST-0e8e88b8"
-        ],
-        "dependency_depth": {
-            "ST-03418370": 0,
-            "ST-791a8351": 1,
-            "ST-244ab023": 1,
-            "ST-55ca2c05": 2,
-            "ST-9f5ce049": 2,
-            "ST-3a2f9e4b": 3,
-            "ST-b4a88603": 3,
-            "ST-76c83ce4": 3,
-            "ST-a1c0188f": 2,
-            "ST-a31fb072": 4,
-            "ST-0e8e88b8": 5
-        },
-        "estimated_phases": 6,
-        "parallelization_score": 0.696969696969697
-    },
+    "dependency_analysis": null,
     "context_constraints": {}
 }

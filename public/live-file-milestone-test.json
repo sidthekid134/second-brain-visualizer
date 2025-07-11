@@ -1,25 +1,53 @@
 {
-  "snapshot_timestamp": "2025-07-10T22:20:26.603407",
+  "snapshot_timestamp": "2025-07-10T22:19:34.915083",
   "project_info": {
     "id": "PR-4ccd9676",
     "name": "Simple Todo App",
     "description": "A basic todo application with web interface",
-    "status": "completed",
+    "status": "executing",
     "created_at": "2025-07-10T21:48:37.784902",
-    "updated_at": "2025-07-10T22:20:25.831407"
+    "updated_at": "2025-07-10T22:19:33.919519"
   },
   "execution_status": {
     "running": true,
     "execution_running": false,
-    "completion_percentage": 100.0,
+    "completion_percentage": 83.33333333333334,
     "budget_used": 0,
     "budget_limit": 1000,
     "total_stories": 6,
-    "total_agents": 11,
-    "total_messages": 75
+    "total_agents": 12,
+    "total_messages": 62
   },
   "current_execution": {
-    "currently_running_stories": {},
+    "currently_running_stories": {
+      "ST-8867732b": {
+        "id": "ST-8867732b",
+        "objective": "Testing and Deployment",
+        "status": "in_progress",
+        "milestone": "Testing and Deployment",
+        "work_type": "base_work",
+        "priority": "high",
+        "owner": "engineer-Testing and Deployment-1",
+        "dependencies": [
+          "ST-8141c418"
+        ],
+        "dependents": [],
+        "acceptance_criteria": [
+          "Application is thoroughly tested",
+          "Application is deployed and accessible online"
+        ],
+        "estimated_tokens": 100,
+        "actual_tokens": null,
+        "complexity_score": 2.0,
+        "created_at": "2025-07-10T21:48:37.785293",
+        "updated_at": "2025-07-10T22:19:33.911759",
+        "blocking_issues": [],
+        "implementation_notes": [
+          "Use FastAPI's test client for backend testing",
+          "Use a suitable hosting platform for deployment"
+        ]
+      }
+    },
     "ready_stories": [],
     "blocked_stories": [],
     "completed_stories": [
@@ -44,7 +72,7 @@
         "actual_tokens": null,
         "complexity_score": 2.0,
         "created_at": "2025-07-10T21:48:37.785186",
-        "updated_at": "2025-07-10T22:20:09.838486",
+        "updated_at": "2025-07-10T22:19:21.955927",
         "blocking_issues": [],
         "implementation_notes": [
           "Use FastAPI for the backend",
@@ -73,7 +101,7 @@
         "actual_tokens": null,
         "complexity_score": 2.5,
         "created_at": "2025-07-10T21:48:37.785240",
-        "updated_at": "2025-07-10T22:20:12.908915",
+        "updated_at": "2025-07-10T22:19:23.193911",
         "blocking_issues": [],
         "implementation_notes": [
           "Use Python's dataclasses for the Task model",
@@ -101,7 +129,7 @@
         "actual_tokens": null,
         "complexity_score": 3.0,
         "created_at": "2025-07-10T21:48:37.785253",
-        "updated_at": "2025-07-10T22:20:16.761235",
+        "updated_at": "2025-07-10T22:19:25.136552",
         "blocking_issues": [],
         "implementation_notes": [
           "Use FastAPI's routing to create the endpoints",
@@ -131,7 +159,7 @@
         "actual_tokens": null,
         "complexity_score": 3.5,
         "created_at": "2025-07-10T21:48:37.785270",
-        "updated_at": "2025-07-10T22:20:19.945880",
+        "updated_at": "2025-07-10T22:19:29.616657",
         "blocking_issues": [],
         "implementation_notes": [
           "Use HTML, CSS, and JavaScript for the user interface",
@@ -145,7 +173,7 @@
         "milestone": "Core Features Implementation",
         "work_type": "base_work",
         "priority": "high",
-        "owner": "engineer-Core Features Implementation-1",
+        "owner": "engineer-Core Features Implementation-2",
         "dependencies": [
           "ST-1e6add78"
         ],
@@ -160,38 +188,11 @@
         "actual_tokens": null,
         "complexity_score": 3.0,
         "created_at": "2025-07-10T21:48:37.785283",
-        "updated_at": "2025-07-10T22:20:22.622090",
+        "updated_at": "2025-07-10T22:19:32.251040",
         "blocking_issues": [],
         "implementation_notes": [
           "Use JavaScript's fetch API to interact with the backend",
           "Make sure the frontend updates when tasks are created, updated, or deleted"
-        ]
-      },
-      {
-        "id": "ST-8867732b",
-        "objective": "Testing and Deployment",
-        "status": "done",
-        "milestone": "Testing and Deployment",
-        "work_type": "base_work",
-        "priority": "high",
-        "owner": "engineer-Testing and Deployment-1",
-        "dependencies": [
-          "ST-8141c418"
-        ],
-        "dependents": [],
-        "acceptance_criteria": [
-          "Application is thoroughly tested",
-          "Application is deployed and accessible online"
-        ],
-        "estimated_tokens": 100,
-        "actual_tokens": null,
-        "complexity_score": 2.0,
-        "created_at": "2025-07-10T21:48:37.785293",
-        "updated_at": "2025-07-10T22:20:25.837186",
-        "blocking_issues": [],
-        "implementation_notes": [
-          "Use FastAPI's test client for backend testing",
-          "Use a suitable hosting platform for deployment"
         ]
       }
     ],
@@ -220,7 +221,7 @@
         "actual_tokens": null,
         "complexity_score": 2.0,
         "created_at": "2025-07-10T21:48:37.785186",
-        "updated_at": "2025-07-10T22:20:09.838486",
+        "updated_at": "2025-07-10T22:19:21.955927",
         "blocking_issues": [],
         "implementation_notes": [
           "Use FastAPI for the backend",
@@ -249,7 +250,7 @@
         "actual_tokens": null,
         "complexity_score": 2.5,
         "created_at": "2025-07-10T21:48:37.785240",
-        "updated_at": "2025-07-10T22:20:12.908915",
+        "updated_at": "2025-07-10T22:19:23.193911",
         "blocking_issues": [],
         "implementation_notes": [
           "Use Python's dataclasses for the Task model",
@@ -277,7 +278,7 @@
         "actual_tokens": null,
         "complexity_score": 3.0,
         "created_at": "2025-07-10T21:48:37.785253",
-        "updated_at": "2025-07-10T22:20:16.761235",
+        "updated_at": "2025-07-10T22:19:25.136552",
         "blocking_issues": [],
         "implementation_notes": [
           "Use FastAPI's routing to create the endpoints",
@@ -307,7 +308,7 @@
         "actual_tokens": null,
         "complexity_score": 3.5,
         "created_at": "2025-07-10T21:48:37.785270",
-        "updated_at": "2025-07-10T22:20:19.945880",
+        "updated_at": "2025-07-10T22:19:29.616657",
         "blocking_issues": [],
         "implementation_notes": [
           "Use HTML, CSS, and JavaScript for the user interface",
@@ -321,7 +322,7 @@
         "milestone": "Core Features Implementation",
         "work_type": "base_work",
         "priority": "high",
-        "owner": "engineer-Core Features Implementation-1",
+        "owner": "engineer-Core Features Implementation-2",
         "dependencies": [
           "ST-1e6add78"
         ],
@@ -336,7 +337,7 @@
         "actual_tokens": null,
         "complexity_score": 3.0,
         "created_at": "2025-07-10T21:48:37.785283",
-        "updated_at": "2025-07-10T22:20:22.622090",
+        "updated_at": "2025-07-10T22:19:32.251040",
         "blocking_issues": [],
         "implementation_notes": [
           "Use JavaScript's fetch API to interact with the backend",
@@ -346,7 +347,7 @@
       {
         "id": "ST-8867732b",
         "objective": "Testing and Deployment",
-        "status": "done",
+        "status": "in_progress",
         "milestone": "Testing and Deployment",
         "work_type": "base_work",
         "priority": "high",
@@ -363,7 +364,7 @@
         "actual_tokens": null,
         "complexity_score": 2.0,
         "created_at": "2025-07-10T21:48:37.785293",
-        "updated_at": "2025-07-10T22:20:25.837186",
+        "updated_at": "2025-07-10T22:19:33.911759",
         "blocking_issues": [],
         "implementation_notes": [
           "Use FastAPI's test client for backend testing",
@@ -379,22 +380,9 @@
         "assigned_stories": [],
         "completed_stories": [],
         "token_usage": 0,
-        "created_at": "2025-07-10T22:20:06.470515",
-        "last_activity": "2025-07-10T22:20:25.831946",
+        "created_at": "2025-07-10T22:19:18.785813",
+        "last_activity": "2025-07-10T22:19:33.899103",
         "metadata": {}
-      },
-      {
-        "id": "manager-User Interface Design",
-        "name": "Manager for User Interface Design",
-        "type": "manager",
-        "assigned_stories": [],
-        "completed_stories": [],
-        "token_usage": 0,
-        "created_at": "2025-07-10T22:20:06.481371",
-        "last_activity": "2025-07-10T22:20:19.936390",
-        "metadata": {
-          "milestone": "User Interface Design"
-        }
       },
       {
         "id": "manager-API Development",
@@ -403,10 +391,23 @@
         "assigned_stories": [],
         "completed_stories": [],
         "token_usage": 0,
-        "created_at": "2025-07-10T22:20:06.481966",
-        "last_activity": "2025-07-10T22:20:16.751641",
+        "created_at": "2025-07-10T22:19:18.796894",
+        "last_activity": "2025-07-10T22:19:25.126589",
         "metadata": {
           "milestone": "API Development"
+        }
+      },
+      {
+        "id": "manager-User Interface Design",
+        "name": "Manager for User Interface Design",
+        "type": "manager",
+        "assigned_stories": [],
+        "completed_stories": [],
+        "token_usage": 0,
+        "created_at": "2025-07-10T22:19:18.797541",
+        "last_activity": "2025-07-10T22:19:29.605469",
+        "metadata": {
+          "milestone": "User Interface Design"
         }
       },
       {
@@ -416,23 +417,10 @@
         "assigned_stories": [],
         "completed_stories": [],
         "token_usage": 0,
-        "created_at": "2025-07-10T22:20:06.482524",
-        "last_activity": "2025-07-10T22:20:09.819764",
+        "created_at": "2025-07-10T22:19:18.798157",
+        "last_activity": "2025-07-10T22:19:21.919440",
         "metadata": {
           "milestone": "Project Setup"
-        }
-      },
-      {
-        "id": "manager-Core Features Implementation",
-        "name": "Manager for Core Features Implementation",
-        "type": "manager",
-        "assigned_stories": [],
-        "completed_stories": [],
-        "token_usage": 0,
-        "created_at": "2025-07-10T22:20:06.483286",
-        "last_activity": "2025-07-10T22:20:22.612316",
-        "metadata": {
-          "milestone": "Core Features Implementation"
         }
       },
       {
@@ -442,10 +430,23 @@
         "assigned_stories": [],
         "completed_stories": [],
         "token_usage": 0,
-        "created_at": "2025-07-10T22:20:06.484004",
-        "last_activity": "2025-07-10T22:20:25.819242",
+        "created_at": "2025-07-10T22:19:18.798998",
+        "last_activity": "2025-07-10T22:19:33.912746",
         "metadata": {
           "milestone": "Testing and Deployment"
+        }
+      },
+      {
+        "id": "manager-Core Features Implementation",
+        "name": "Manager for Core Features Implementation",
+        "type": "manager",
+        "assigned_stories": [],
+        "completed_stories": [],
+        "token_usage": 0,
+        "created_at": "2025-07-10T22:19:18.799694",
+        "last_activity": "2025-07-10T22:19:32.237450",
+        "metadata": {
+          "milestone": "Core Features Implementation"
         }
       },
       {
@@ -457,8 +458,8 @@
           "ST-ba482f06"
         ],
         "token_usage": 0,
-        "created_at": "2025-07-10T22:20:06.585493",
-        "last_activity": "2025-07-10T22:20:09.833239",
+        "created_at": "2025-07-10T22:19:18.903286",
+        "last_activity": "2025-07-10T22:19:21.949993",
         "metadata": {
           "manager": "manager-Project Setup",
           "milestone": "Project Setup"
@@ -470,12 +471,11 @@
         "type": "engineer",
         "assigned_stories": [],
         "completed_stories": [
-          "ST-8141c418",
           "ST-edb56b54"
         ],
         "token_usage": 0,
-        "created_at": "2025-07-10T22:20:11.576180",
-        "last_activity": "2025-07-10T22:20:22.615822",
+        "created_at": "2025-07-10T22:19:21.924441",
+        "last_activity": "2025-07-10T22:19:23.192156",
         "metadata": {
           "manager": "manager-Core Features Implementation",
           "milestone": "Core Features Implementation"
@@ -490,8 +490,8 @@
           "ST-112ef4d8"
         ],
         "token_usage": 0,
-        "created_at": "2025-07-10T22:20:15.594634",
-        "last_activity": "2025-07-10T22:20:16.755408",
+        "created_at": "2025-07-10T22:19:23.895766",
+        "last_activity": "2025-07-10T22:19:25.130590",
         "metadata": {
           "manager": "manager-API Development",
           "milestone": "API Development"
@@ -506,24 +506,40 @@
           "ST-1e6add78"
         ],
         "token_usage": 0,
-        "created_at": "2025-07-10T22:20:18.584821",
-        "last_activity": "2025-07-10T22:20:19.939882",
+        "created_at": "2025-07-10T22:19:27.915209",
+        "last_activity": "2025-07-10T22:19:29.610031",
         "metadata": {
           "manager": "manager-User Interface Design",
           "milestone": "User Interface Design"
         }
       },
       {
-        "id": "engineer-Testing and Deployment-1",
-        "name": "Engineer engineer-Testing and Deployment-1",
+        "id": "engineer-Core Features Implementation-2",
+        "name": "Engineer engineer-Core Features Implementation-2",
         "type": "engineer",
         "assigned_stories": [],
         "completed_stories": [
-          "ST-8867732b"
+          "ST-8141c418"
         ],
         "token_usage": 0,
-        "created_at": "2025-07-10T22:20:24.623963",
-        "last_activity": "2025-07-10T22:20:25.822944",
+        "created_at": "2025-07-10T22:19:30.948324",
+        "last_activity": "2025-07-10T22:19:32.241628",
+        "metadata": {
+          "manager": "manager-Core Features Implementation",
+          "milestone": "Core Features Implementation"
+        }
+      },
+      {
+        "id": "engineer-Testing and Deployment-1",
+        "name": "Engineer engineer-Testing and Deployment-1",
+        "type": "engineer",
+        "assigned_stories": [
+          "ST-8867732b"
+        ],
+        "completed_stories": [],
+        "token_usage": 0,
+        "created_at": "2025-07-10T22:19:33.899845",
+        "last_activity": "2025-07-10T22:19:33.920164",
         "metadata": {
           "manager": "manager-Testing and Deployment",
           "milestone": "Testing and Deployment"
@@ -531,19 +547,6 @@
       }
     ],
     "milestones": {
-      "User Interface Design": {
-        "name": "User Interface Design",
-        "status": "completed",
-        "manager_id": "manager-User Interface Design",
-        "total_stories": 1,
-        "completed_stories": 2,
-        "stories": [
-          "ST-1e6add78"
-        ],
-        "started_at": "2025-07-10T22:20:06.481377",
-        "completed_at": "2025-07-10T22:20:19.939227",
-        "engineers_used": 1
-      },
       "API Development": {
         "name": "API Development",
         "status": "completed",
@@ -553,8 +556,21 @@
         "stories": [
           "ST-112ef4d8"
         ],
-        "started_at": "2025-07-10T22:20:06.481969",
-        "completed_at": "2025-07-10T22:20:16.754779",
+        "started_at": "2025-07-10T22:19:18.796902",
+        "completed_at": "2025-07-10T22:19:25.129995",
+        "engineers_used": 1
+      },
+      "User Interface Design": {
+        "name": "User Interface Design",
+        "status": "completed",
+        "manager_id": "manager-User Interface Design",
+        "total_stories": 1,
+        "completed_stories": 2,
+        "stories": [
+          "ST-1e6add78"
+        ],
+        "started_at": "2025-07-10T22:19:18.797544",
+        "completed_at": "2025-07-10T22:19:29.609166",
         "engineers_used": 1
       },
       "Project Setup": {
@@ -566,9 +582,21 @@
         "stories": [
           "ST-ba482f06"
         ],
-        "started_at": "2025-07-10T22:20:06.482526",
-        "completed_at": "2025-07-10T22:20:09.832659",
+        "started_at": "2025-07-10T22:19:18.798160",
+        "completed_at": "2025-07-10T22:19:21.949198",
         "engineers_used": 1
+      },
+      "Testing and Deployment": {
+        "name": "Testing and Deployment",
+        "status": "in_progress",
+        "manager_id": "manager-Testing and Deployment",
+        "total_stories": 1,
+        "completed_stories": 0,
+        "stories": [
+          "ST-8867732b"
+        ],
+        "started_at": "2025-07-10T22:19:18.799002",
+        "completed_at": null
       },
       "Core Features Implementation": {
         "name": "Core Features Implementation",
@@ -580,22 +608,9 @@
           "ST-edb56b54",
           "ST-8141c418"
         ],
-        "started_at": "2025-07-10T22:20:06.483292",
-        "completed_at": "2025-07-10T22:20:22.615141",
-        "engineers_used": 1
-      },
-      "Testing and Deployment": {
-        "name": "Testing and Deployment",
-        "status": "completed",
-        "manager_id": "manager-Testing and Deployment",
-        "total_stories": 1,
-        "completed_stories": 2,
-        "stories": [
-          "ST-8867732b"
-        ],
-        "started_at": "2025-07-10T22:20:06.484008",
-        "completed_at": "2025-07-10T22:20:25.822289",
-        "engineers_used": 1
+        "started_at": "2025-07-10T22:19:18.799697",
+        "completed_at": "2025-07-10T22:19:32.240788",
+        "engineers_used": 2
       }
     },
     "dependency_analysis": {}
@@ -609,11 +624,11 @@
     "strongly_connected_components": 6,
     "isolated_stories": 0,
     "ready_stories": 0,
-    "completed_stories": 6,
+    "completed_stories": 5,
     "blocked_stories": 0
   },
   "phase_completion": {
-    "base_work": 100.0,
+    "base_work": 83.33333333333334,
     "feature_work": 0.0,
     "integration_work": 0.0,
     "testing_work": 0.0,

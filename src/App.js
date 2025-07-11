@@ -4,6 +4,7 @@ import FileUpload from './components/FileUpload';
 import ProjectSidebar from './components/ProjectSidebar';
 import DependencyGraph from './components/DependencyGraph';
 import TestGraph from './components/TestGraph';
+import { normalizeProjectData, getSchemaDisplayInfo } from './utils/schemaUtils';
 
 const AppContainer = styled.div`
   display: flex;
@@ -109,6 +110,40 @@ const TestButton = styled.button`
   }
 `;
 
+const DataSourceSelector = styled.div`
+  display: flex;
+  gap: 0.5rem;
+  margin-top: 0.5rem;
+  align-items: center;
+`;
+
+const DataSourceButton = styled.button`
+  background: ${props => props.$active ? '#007bff' : '#6c757d'};
+  color: white;
+  border: none;
+  padding: 0.35rem 0.7rem;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 0.8rem;
+  transition: background-color 0.2s;
+
+  &:hover {
+    background: ${props => props.$active ? '#0056b3' : '#5a6268'};
+  }
+`;
+
+const SchemaIndicator = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.25rem 0.5rem;
+  border-radius: 12px;
+  font-size: 0.75rem;
+  background: ${props => props.$schemaType === 'live-file' ? '#e7f3ff' : '#fff3e0'};
+  color: ${props => props.$schemaType === 'live-file' ? '#0056b3' : '#bf6900'};
+  border: 1px solid ${props => props.$schemaType === 'live-file' ? '#b3d9ff' : '#ffd699'};
+`;
+
 const GraphContainer = styled.div`
   flex: 1;
   position: relative;
@@ -132,46 +167,64 @@ const StatItem = styled.div`
 
 function App() {
     const [projectData, setProjectData] = useState(null);
+    const [rawProjectData, setRawProjectData] = useState(null); // Store raw data before normalization
     const [selectedStory, setSelectedStory] = useState(null);
     const [isLoading, setIsLoading] = useState(false);
     const [autoReloadEnabled, setAutoReloadEnabled] = useState(false);
     const [showTestGraph, setShowTestGraph] = useState(false);
+    const [dataSource, setDataSource] = useState('live-file'); // 'live-file' | 'example' | 'custom'
 
-    // Function to load the project plan
-    const loadProjectPlan = useCallback(async () => {
+    // Function to load project data from a specific source
+    const loadProjectData = useCallback(async (source = dataSource) => {
         setIsLoading(true);
         try {
-            const response = await fetch(`/live-file.json?t=${Date.now()}`);
+            const filename = source === 'live-file' ? 'live-file.json' : 'example-plan-1.json';
+            const response = await fetch(`/${filename}?t=${Date.now()}`);
             if (!response.ok) {
                 throw new Error(`HTTP error! status: ${response.status}`);
             }
-            const data = await response.json();
-            setProjectData(data);
+            const rawData = await response.json();
+            setRawProjectData(rawData);
+
+            // Normalize the data regardless of schema
+            const normalizedData = normalizeProjectData(rawData);
+            setProjectData(normalizedData);
         } catch (error) {
-            console.error('Error loading project plan:', error);
+            console.error('Error loading project data:', error);
+            // Show user-friendly error message
+            setProjectData(null);
+            setRawProjectData(null);
         } finally {
             setIsLoading(false);
         }
-    }, []);
+    }, [dataSource]);
 
-    // Auto-reload effect
+    // Auto-reload effect (only for live-file)
     useEffect(() => {
-        if (autoReloadEnabled) {
-            const interval = setInterval(loadProjectPlan, 2000);
+        if (autoReloadEnabled && dataSource === 'live-file') {
+            const interval = setInterval(() => loadProjectData('live-file'), 2000);
             return () => clearInterval(interval);
         }
-    }, [autoReloadEnabled, loadProjectPlan]);
+    }, [autoReloadEnabled, dataSource, loadProjectData]);
 
-    // Initial load
+    // Load data when data source changes
     useEffect(() => {
-        loadProjectPlan();
-    }, [loadProjectPlan]);
+        loadProjectData(dataSource);
+    }, [dataSource, loadProjectData]);
 
     const handleFileUpload = useCallback((data) => {
         try {
             const parsedData = JSON.parse(data);
-            setProjectData(parsedData);
+            setRawProjectData(parsedData);
+
+            // Normalize the uploaded data
+            const normalizedData = normalizeProjectData(parsedData);
+            setProjectData(normalizedData);
             setSelectedStory(null);
+            setDataSource('custom');
+
+            // Disable auto-reload when custom data is uploaded
+            setAutoReloadEnabled(false);
         } catch (error) {
             console.error('Error parsing JSON:', error);
             alert('Invalid JSON file. Please check the format.');
@@ -179,8 +232,12 @@ function App() {
     }, []);
 
     const toggleAutoReload = useCallback(() => {
+        if (dataSource !== 'live-file') {
+            alert('Auto-reload is only available for the live-file data source');
+            return;
+        }
         setAutoReloadEnabled(prev => !prev);
-    }, []);
+    }, [dataSource]);
 
     const toggleTestGraph = useCallback(() => {
         setShowTestGraph(prev => !prev);
@@ -188,6 +245,15 @@ function App() {
 
     const handleStorySelect = useCallback((story) => {
         setSelectedStory(story);
+    }, []);
+
+    const handleDataSourceChange = useCallback((source) => {
+        setDataSource(source);
+        setSelectedStory(null);
+        // Disable auto-reload when switching away from live-file
+        if (source !== 'live-file') {
+            setAutoReloadEnabled(false);
+        }
     }, []);
 
     const getExecutionStatus = () => {
@@ -202,6 +268,7 @@ function App() {
     };
 
     const executionStatus = getExecutionStatus();
+    const schemaInfo = getSchemaDisplayInfo(projectData);
 
     return (
         <AppContainer>
@@ -228,22 +295,33 @@ function App() {
                                         <StatItem>
                                             📝 Stories: {executionStatus.totalStories}
                                         </StatItem>
-                                        <StatItem>
-                                            🤖 Agents: {executionStatus.totalAgents}
-                                        </StatItem>
-                                        <StatItem>
-                                            💬 Messages: {executionStatus.totalMessages}
-                                        </StatItem>
+                                        {executionStatus.totalAgents > 0 && (
+                                            <StatItem>
+                                                🤖 Agents: {executionStatus.totalAgents}
+                                            </StatItem>
+                                        )}
+                                        {executionStatus.totalMessages > 0 && (
+                                            <StatItem>
+                                                💬 Messages: {executionStatus.totalMessages}
+                                            </StatItem>
+                                        )}
                                     </ProjectStats>
                                 </>
                             )}
                         </ProjectInfo>
                         <StatusIndicators>
+                            {schemaInfo && (
+                                <SchemaIndicator $schemaType={schemaInfo.schemaType}>
+                                    <span>📋</span>
+                                    <span>{schemaInfo.schemaLabel}</span>
+                                </SchemaIndicator>
+                            )}
                             <StatusBadge $active={autoReloadEnabled}>
                                 <span>Auto-reload: {autoReloadEnabled ? 'ON' : 'OFF'}</span>
                                 <ToggleButton
                                     $active={autoReloadEnabled}
                                     onClick={toggleAutoReload}
+                                    disabled={dataSource !== 'live-file'}
                                 >
                                     {autoReloadEnabled ? 'Disable' : 'Enable'}
                                 </ToggleButton>
@@ -251,7 +329,7 @@ function App() {
                             {isLoading && (
                                 <LoadingIndicator>
                                     <span>🔄</span>
-                                    <span>Checking for updates...</span>
+                                    <span>Loading data...</span>
                                 </LoadingIndicator>
                             )}
                             <TestButton onClick={toggleTestGraph}>
@@ -259,9 +337,38 @@ function App() {
                             </TestButton>
                         </StatusIndicators>
                     </HeaderTop>
+
+                    <DataSourceSelector>
+                        <span style={{ fontSize: '0.9rem', color: '#666', marginRight: '0.5rem' }}>
+                            Data Source:
+                        </span>
+                        <DataSourceButton
+                            $active={dataSource === 'live-file'}
+                            onClick={() => handleDataSourceChange('live-file')}
+                        >
+                            Live File (Complex Schema)
+                        </DataSourceButton>
+                        <DataSourceButton
+                            $active={dataSource === 'example'}
+                            onClick={() => handleDataSourceChange('example')}
+                        >
+                            Example Plan (Simple Schema)
+                        </DataSourceButton>
+                        <DataSourceButton
+                            $active={dataSource === 'custom'}
+                            disabled={true}
+                        >
+                            Custom Upload {dataSource === 'custom' && '✓'}
+                        </DataSourceButton>
+                    </DataSourceSelector>
+
                     <FileUpload onFileUpload={handleFileUpload} />
+
                     <div style={{ fontSize: '0.9rem', color: '#666', marginTop: '0.5rem' }}>
-                        💡 <strong>Real-time monitoring:</strong> Enable auto-reload above to automatically check for updates to <code>public/live-file.json</code> every 2 seconds.
+                        💡 <strong>Schema Support:</strong> This visualizer supports both simple project schemas (stories in root) and complex execution schemas (live monitoring data).
+                        {schemaInfo?.supportsRealtime && dataSource === 'live-file' && (
+                            <span> Real-time monitoring is enabled for this format.</span>
+                        )}
                     </div>
                 </Header>
                 <GraphContainer>

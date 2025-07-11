@@ -109,8 +109,12 @@ const milestoneColors = {
 const getStatusColor = (status) => {
     switch (status) {
         case 'done': return '#d4edda';      // Light green background for completed
-        case 'pending': return '#cce5ff';    // Light blue background for pending
-        case 'failed': return '#fff3cd';     // Light yellow background for failed
+        case 'in_progress': return '#cce5ff';    // Light blue background for in progress
+        case 'pending': return '#e7f3ff';    // Lighter blue background for pending
+        case 'ready': return '#e8f5e8';      // Light green background for ready
+        case 'blocked': return '#e9ecef';    // Light grey background for blocked
+        case 'failed': return '#f8d7da';     // Light red background for failed
+        case 'error': return '#f8d7da';      // Light red background for error
         default: return '#f8f9fa';
     }
 };
@@ -118,8 +122,12 @@ const getStatusColor = (status) => {
 const getStatusTextColor = (status) => {
     switch (status) {
         case 'done': return '#155724';      // Dark green text for completed
-        case 'pending': return '#004085';    // Dark blue text for pending
-        case 'failed': return '#856404';     // Dark yellow text for failed
+        case 'in_progress': return '#004085';    // Dark blue text for in progress
+        case 'pending': return '#0056b3';    // Medium blue text for pending
+        case 'ready': return '#2e7d32';      // Dark green text for ready
+        case 'blocked': return '#6c757d';    // Dark grey text for blocked
+        case 'failed': return '#721c24';     // Dark red text for failed
+        case 'error': return '#721c24';      // Dark red text for error
         default: return '#333';
     }
 };
@@ -127,8 +135,12 @@ const getStatusTextColor = (status) => {
 const getBorderColor = (status) => {
     switch (status) {
         case 'done': return '#2ecc71';      // Bright green for completed
-        case 'pending': return '#3498db';    // Bright blue for pending
-        case 'failed': return status === 'critical_fail' ? '#e74c3c' : '#f1c40f';  // Red for critical fail, yellow for regular fail
+        case 'in_progress': return '#3498db';    // Bright blue for in progress
+        case 'pending': return '#74b9ff';    // Lighter blue for pending
+        case 'ready': return '#00b894';      // Teal green for ready
+        case 'blocked': return '#95a5a6';    // Grey for blocked
+        case 'failed': return '#e74c3c';     // Bright red for failed
+        case 'error': return '#e74c3c';      // Bright red for error
         default: return '#95a5a6';          // Gray for unknown status
     }
 };
@@ -291,6 +303,7 @@ const DependencyGraph = ({ projectData, selectedStory, onStorySelect }) => {
 
     // Process the data into nodes and edges
     useMemo(() => {
+        // Handle normalized data structure
         if (!projectData?.project_structure?.stories) {
             setNodes([]);
             setEdges([]);
@@ -316,15 +329,19 @@ const DependencyGraph = ({ projectData, selectedStory, onStorySelect }) => {
         // Create edges from dependencies
         const newEdges = [];
         stories.forEach(story => {
-            if (story.dependencies) {
+            if (story.dependencies && Array.isArray(story.dependencies)) {
                 story.dependencies.forEach(dependencyId => {
-                    newEdges.push({
-                        id: `${dependencyId}-${story.id}`,
-                        source: dependencyId,
-                        target: story.id,
-                        type: 'smoothstep',
-                        animated: false
-                    });
+                    // Only create edge if the dependency exists in our stories
+                    const dependencyExists = stories.some(s => s.id === dependencyId);
+                    if (dependencyExists) {
+                        newEdges.push({
+                            id: `${dependencyId}-${story.id}`,
+                            source: dependencyId,
+                            target: story.id,
+                            type: 'smoothstep',
+                            animated: false
+                        });
+                    }
                 });
             }
         });
@@ -347,6 +364,30 @@ const DependencyGraph = ({ projectData, selectedStory, onStorySelect }) => {
                     color: '#666'
                 }}>
                     No project data loaded
+                </div>
+            </GraphContainer>
+        );
+    }
+
+    const stories = projectData.project_structure?.stories || [];
+    const schemaInfo = projectData.schema_type;
+
+    if (stories.length === 0) {
+        return (
+            <GraphContainer>
+                <div style={{
+                    display: 'flex',
+                    flexDirection: 'column',
+                    justifyContent: 'center',
+                    alignItems: 'center',
+                    height: '100%',
+                    color: '#666',
+                    gap: '1rem'
+                }}>
+                    <div>No stories found in this project</div>
+                    <div style={{ fontSize: '0.9rem' }}>
+                        Schema: {schemaInfo === 'live-file' ? 'Live Execution Format' : 'Simple Project Format'}
+                    </div>
                 </div>
             </GraphContainer>
         );

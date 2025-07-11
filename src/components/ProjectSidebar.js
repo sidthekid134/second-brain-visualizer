@@ -74,19 +74,25 @@ const StoryStatus = styled.span`
   text-transform: uppercase;
   background: ${props => {
         switch (props.$status) {
-            case 'ready': return '#d4edda';
-            case 'blocked': return '#f8d7da';
-            case 'in_progress': return '#fff3cd';
-            case 'done': return '#d1ecf1';
+            case 'ready': return '#e8f5e8';
+            case 'blocked': return '#e9ecef';
+            case 'in_progress': return '#cce5ff';
+            case 'pending': return '#e7f3ff';
+            case 'done': return '#d4edda';
+            case 'failed': return '#f8d7da';
+            case 'error': return '#f8d7da';
             default: return '#f8f9fa';
         }
     }};
   color: ${props => {
         switch (props.$status) {
-            case 'ready': return '#155724';
-            case 'blocked': return '#721c24';
-            case 'in_progress': return '#856404';
-            case 'done': return '#0c5460';
+            case 'ready': return '#2e7d32';
+            case 'blocked': return '#6c757d';
+            case 'in_progress': return '#004085';
+            case 'pending': return '#0056b3';
+            case 'done': return '#155724';
+            case 'failed': return '#721c24';
+            case 'error': return '#721c24';
             default: return '#333';
         }
     }};
@@ -145,93 +151,171 @@ const ProjectSidebar = ({ projectData, selectedStory, onStorySelect }) => {
         );
     }
 
-    const { project_info, execution_status, current_execution, project_structure } = projectData;
+    const { project_info, execution_status, current_execution, project_structure, phase_completion, statistics } = projectData;
     const stories = project_structure?.stories || [];
-    const currentPhase = current_execution?.current_phase;
+    const schemaType = projectData.schema_type;
 
     return (
         <SidebarContainer>
             <Section>
                 <SectionTitle>Project Overview</SectionTitle>
                 <InfoItem>
+                    <Label>Schema:</Label>
+                    <Value>{schemaType === 'live-file' ? 'Live Execution' : 'Simple Project'}</Value>
+                </InfoItem>
+                <InfoItem>
                     <Label>ID:</Label>
-                    <Value>{project_info.id}</Value>
+                    <Value>{project_info?.id || 'N/A'}</Value>
                 </InfoItem>
                 <InfoItem>
                     <Label>Name:</Label>
-                    <Value>{project_info.name}</Value>
+                    <Value>{project_info?.name || 'Unnamed Project'}</Value>
                 </InfoItem>
                 <InfoItem>
                     <Label>Status:</Label>
-                    <Value>{project_info.status}</Value>
+                    <Value>{project_info?.status || 'Unknown'}</Value>
                 </InfoItem>
-                <InfoItem>
-                    <Label>Budget:</Label>
-                    <Value>{execution_status.budget_used} / {execution_status.budget_limit} tokens</Value>
-                </InfoItem>
-                <InfoItem>
-                    <Label>Stories:</Label>
-                    <Value>{execution_status.total_stories}</Value>
-                </InfoItem>
+                {execution_status && (
+                    <>
+                        <InfoItem>
+                            <Label>Budget:</Label>
+                            <Value>{execution_status.budget_used || 0} / {execution_status.budget_limit || 0} tokens</Value>
+                        </InfoItem>
+                        <InfoItem>
+                            <Label>Stories:</Label>
+                            <Value>{execution_status.total_stories || stories.length}</Value>
+                        </InfoItem>
+                        {execution_status.total_agents > 0 && (
+                            <InfoItem>
+                                <Label>Agents:</Label>
+                                <Value>{execution_status.total_agents}</Value>
+                            </InfoItem>
+                        )}
+                        {execution_status.total_messages > 0 && (
+                            <InfoItem>
+                                <Label>Messages:</Label>
+                                <Value>{execution_status.total_messages}</Value>
+                            </InfoItem>
+                        )}
+                    </>
+                )}
                 <InfoItem>
                     <Label>Created:</Label>
-                    <Value>{new Date(project_info.created_at).toLocaleDateString()}</Value>
+                    <Value>{project_info?.created_at ? new Date(project_info.created_at).toLocaleDateString() : 'N/A'}</Value>
                 </InfoItem>
             </Section>
 
-            {currentPhase && (
+            {/* Phase Progress - Support both formats */}
+            {((current_execution?.current_phase?.phase_progress) || phase_completion) && (
                 <Section>
                     <SectionTitle>Phase Progress</SectionTitle>
                     <PhaseProgress>
-                        {Object.entries(currentPhase.phase_progress).map(([phase, data]) => (
-                            <PhaseItem key={phase}>
-                                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.8rem' }}>
-                                    <span>{phase.replace('_', ' ').toUpperCase()}</span>
-                                    <span>{data.completion_percentage.toFixed(1)}%</span>
-                                </div>
-                                <PhaseBar>
-                                    <PhaseBarFill
-                                        $progress={data.completion_percentage}
-                                        $active={data.is_active}
-                                    />
-                                </PhaseBar>
-                            </PhaseItem>
-                        ))}
+                        {(() => {
+                            // Handle live-file format
+                            if (current_execution?.current_phase?.phase_progress) {
+                                return Object.entries(current_execution.current_phase.phase_progress).map(([phase, data]) => (
+                                    <PhaseItem key={phase}>
+                                        <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.8rem' }}>
+                                            <span>{phase.replace('_', ' ').toUpperCase()}</span>
+                                            <span>{data.completion_percentage.toFixed(1)}%</span>
+                                        </div>
+                                        <PhaseBar>
+                                            <PhaseBarFill
+                                                $progress={data.completion_percentage}
+                                                $active={data.is_active}
+                                            />
+                                        </PhaseBar>
+                                    </PhaseItem>
+                                ));
+                            }
+
+                            // Handle simple format
+                            if (phase_completion) {
+                                return Object.entries(phase_completion).map(([phase, percentage]) => (
+                                    <PhaseItem key={phase}>
+                                        <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.8rem' }}>
+                                            <span>{phase.replace('_', ' ').toUpperCase()}</span>
+                                            <span>{percentage.toFixed(1)}%</span>
+                                        </div>
+                                        <PhaseBar>
+                                            <PhaseBarFill
+                                                $progress={percentage}
+                                                $active={percentage > 0 && percentage < 100}
+                                            />
+                                        </PhaseBar>
+                                    </PhaseItem>
+                                ));
+                            }
+
+                            return null;
+                        })()}
                     </PhaseProgress>
                 </Section>
             )}
 
-            {project_structure.dependency_analysis && (
+            {/* Enhanced Statistics Section */}
+            {(statistics || project_structure?.dependency_analysis) && (
                 <Section>
-                    <SectionTitle>Dependency Analysis</SectionTitle>
-                    <InfoItem>
-                        <Label>Total Dependencies:</Label>
-                        <Value>{project_structure.dependency_analysis.total_dependencies}</Value>
-                    </InfoItem>
-                    <InfoItem>
-                        <Label>Estimated Phases:</Label>
-                        <Value>{project_structure.dependency_analysis.estimated_phases}</Value>
-                    </InfoItem>
-                    <InfoItem>
-                        <Label>Parallelization Score:</Label>
-                        <Value>{(project_structure.dependency_analysis.parallelization_score * 100).toFixed(1)}%</Value>
-                    </InfoItem>
+                    <SectionTitle>Analysis</SectionTitle>
 
-                    {project_structure.dependency_analysis.critical_path && (
+                    {statistics && (
                         <>
-                            <Label>Critical Path:</Label>
-                            <CriticalPath>
-                                {project_structure.dependency_analysis.critical_path.map(storyId => (
-                                    <PathItem key={storyId}>{storyId}</PathItem>
-                                ))}
-                            </CriticalPath>
+                            <InfoItem>
+                                <Label>Completed:</Label>
+                                <Value>{statistics.completed_stories || 0} / {statistics.total_stories || stories.length}</Value>
+                            </InfoItem>
+                            <InfoItem>
+                                <Label>Ready:</Label>
+                                <Value>{statistics.ready_stories || 0}</Value>
+                            </InfoItem>
+                            <InfoItem>
+                                <Label>Blocked:</Label>
+                                <Value>{statistics.blocked_stories || 0}</Value>
+                            </InfoItem>
+                            {statistics.graph_density !== undefined && (
+                                <InfoItem>
+                                    <Label>Avg Dependencies:</Label>
+                                    <Value>{statistics.graph_density.toFixed(2)}</Value>
+                                </InfoItem>
+                            )}
+                        </>
+                    )}
+
+                    {project_structure?.dependency_analysis && (
+                        <>
+                            {project_structure.dependency_analysis.estimated_phases && (
+                                <InfoItem>
+                                    <Label>Estimated Phases:</Label>
+                                    <Value>{project_structure.dependency_analysis.estimated_phases}</Value>
+                                </InfoItem>
+                            )}
+                            {project_structure.dependency_analysis.parallelization_score !== undefined && (
+                                <InfoItem>
+                                    <Label>Parallelization:</Label>
+                                    <Value>{(project_structure.dependency_analysis.parallelization_score * 100).toFixed(1)}%</Value>
+                                </InfoItem>
+                            )}
+                            {project_structure.dependency_analysis.critical_path && project_structure.dependency_analysis.critical_path.length > 0 && (
+                                <>
+                                    <Label>Critical Path ({project_structure.dependency_analysis.critical_path.length} stories):</Label>
+                                    <CriticalPath>
+                                        {project_structure.dependency_analysis.critical_path.slice(0, 5).map(storyId => (
+                                            <PathItem key={storyId}>{storyId}</PathItem>
+                                        ))}
+                                        {project_structure.dependency_analysis.critical_path.length > 5 && (
+                                            <PathItem>+{project_structure.dependency_analysis.critical_path.length - 5} more</PathItem>
+                                        )}
+                                    </CriticalPath>
+                                </>
+                            )}
                         </>
                     )}
                 </Section>
             )}
 
+            {/* Stories Section with better status handling */}
             <Section>
-                <SectionTitle>Stories</SectionTitle>
+                <SectionTitle>Stories ({stories.length})</SectionTitle>
                 <StoryList>
                     {stories.map(story => (
                         <StoryItem
@@ -240,9 +324,21 @@ const ProjectSidebar = ({ projectData, selectedStory, onStorySelect }) => {
                             onClick={() => onStorySelect(story)}
                         >
                             <StoryId>{story.id}</StoryId>
-                            <StoryTitle>{story.objective}</StoryTitle>
+                            <StoryTitle>{story.objective || 'No objective'}</StoryTitle>
                             <div>
-                                <StoryStatus $status={story.status}>{story.status}</StoryStatus>
+                                <StoryStatus $status={story.status || 'unknown'}>
+                                    {story.status || 'unknown'}
+                                </StoryStatus>
+                                {story.priority && (
+                                    <span style={{
+                                        marginLeft: '0.5rem',
+                                        fontSize: '0.7rem',
+                                        color: story.priority === 'high' ? '#d73527' : story.priority === 'medium' ? '#f57c00' : '#388e3c',
+                                        fontWeight: 'bold'
+                                    }}>
+                                        {story.priority.toUpperCase()}
+                                    </span>
+                                )}
                                 {story.milestone && (
                                     <span style={{ marginLeft: '0.5rem', fontSize: '0.7rem', color: '#666' }}>
                                         {story.milestone}
@@ -254,6 +350,7 @@ const ProjectSidebar = ({ projectData, selectedStory, onStorySelect }) => {
                 </StoryList>
             </Section>
 
+            {/* Enhanced Selected Story Section */}
             {selectedStory && (
                 <Section>
                     <SectionTitle>Selected Story</SectionTitle>
@@ -263,20 +360,38 @@ const ProjectSidebar = ({ projectData, selectedStory, onStorySelect }) => {
                     </InfoItem>
                     <InfoItem>
                         <Label>Objective:</Label>
-                        <Value>{selectedStory.objective}</Value>
+                        <Value style={{ fontSize: '0.85rem', lineHeight: '1.3' }}>
+                            {selectedStory.objective || 'No objective specified'}
+                        </Value>
                     </InfoItem>
-                    <InfoItem>
-                        <Label>Priority:</Label>
-                        <Value>{selectedStory.priority}</Value>
-                    </InfoItem>
-                    <InfoItem>
-                        <Label>Complexity:</Label>
-                        <Value>{selectedStory.complexity_score}/5</Value>
-                    </InfoItem>
-                    <InfoItem>
-                        <Label>Work Type:</Label>
-                        <Value>{selectedStory.work_type}</Value>
-                    </InfoItem>
+                    {selectedStory.status && (
+                        <InfoItem>
+                            <Label>Status:</Label>
+                            <Value>
+                                <StoryStatus $status={selectedStory.status}>
+                                    {selectedStory.status}
+                                </StoryStatus>
+                            </Value>
+                        </InfoItem>
+                    )}
+                    {selectedStory.priority && (
+                        <InfoItem>
+                            <Label>Priority:</Label>
+                            <Value>{selectedStory.priority}</Value>
+                        </InfoItem>
+                    )}
+                    {selectedStory.complexity_score && (
+                        <InfoItem>
+                            <Label>Complexity:</Label>
+                            <Value>{selectedStory.complexity_score}/5</Value>
+                        </InfoItem>
+                    )}
+                    {selectedStory.work_type && (
+                        <InfoItem>
+                            <Label>Work Type:</Label>
+                            <Value>{selectedStory.work_type.replace('_', ' ')}</Value>
+                        </InfoItem>
+                    )}
                     <InfoItem>
                         <Label>Dependencies:</Label>
                         <Value>{selectedStory.dependencies?.length || 0}</Value>
@@ -285,13 +400,25 @@ const ProjectSidebar = ({ projectData, selectedStory, onStorySelect }) => {
                         <Label>Dependents:</Label>
                         <Value>{selectedStory.dependents?.length || 0}</Value>
                     </InfoItem>
+                    {selectedStory.milestone && (
+                        <InfoItem>
+                            <Label>Milestone:</Label>
+                            <Value>{selectedStory.milestone}</Value>
+                        </InfoItem>
+                    )}
+                    {selectedStory.owner && (
+                        <InfoItem>
+                            <Label>Owner:</Label>
+                            <Value>{selectedStory.owner}</Value>
+                        </InfoItem>
+                    )}
 
-                    {selectedStory.acceptance_criteria && (
+                    {selectedStory.acceptance_criteria && selectedStory.acceptance_criteria.length > 0 && (
                         <>
                             <Label>Acceptance Criteria:</Label>
                             <ul style={{ margin: '0.5rem 0', paddingLeft: '1rem' }}>
                                 {selectedStory.acceptance_criteria.map((criteria, index) => (
-                                    <li key={index} style={{ fontSize: '0.8rem', margin: '0.25rem 0' }}>
+                                    <li key={index} style={{ fontSize: '0.8rem', margin: '0.25rem 0', lineHeight: '1.3' }}>
                                         {criteria}
                                     </li>
                                 ))}
@@ -299,12 +426,12 @@ const ProjectSidebar = ({ projectData, selectedStory, onStorySelect }) => {
                         </>
                     )}
 
-                    {selectedStory.implementation_notes && (
+                    {selectedStory.implementation_notes && selectedStory.implementation_notes.length > 0 && (
                         <>
                             <Label>Implementation Notes:</Label>
                             <ul style={{ margin: '0.5rem 0', paddingLeft: '1rem' }}>
                                 {selectedStory.implementation_notes.map((note, index) => (
-                                    <li key={index} style={{ fontSize: '0.8rem', margin: '0.25rem 0' }}>
+                                    <li key={index} style={{ fontSize: '0.8rem', margin: '0.25rem 0', lineHeight: '1.3' }}>
                                         {note}
                                     </li>
                                 ))}
