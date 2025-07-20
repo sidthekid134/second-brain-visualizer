@@ -9,8 +9,30 @@ const initialState = {
     loading: false,
     error: null,
     selectedNode: null,
-    editMode: false
+    editMode: true
 };
+
+// Helper function to compute dependents dynamically from dependencies
+function computeDependents(stories) {
+    const storyMap = new Map(stories.map(story => [story.id, { ...story }]));
+
+    // Initialize empty dependents for all stories
+    storyMap.forEach(story => {
+        story.dependents = [];
+    });
+
+    // Compute dependents from dependencies
+    storyMap.forEach(story => {
+        story.dependencies.forEach(depId => {
+            const dependencyStory = storyMap.get(depId);
+            if (dependencyStory && !dependencyStory.dependents.includes(story.id)) {
+                dependencyStory.dependents.push(story.id);
+            }
+        });
+    });
+
+    return Array.from(storyMap.values());
+}
 
 // Helper function to ensure dependency integrity
 function ensureDependencyIntegrity(stories) {
@@ -19,45 +41,15 @@ function ensureDependencyIntegrity(stories) {
     return stories.map(story => {
         // Clean up invalid dependencies
         const validDependencies = story.dependencies.filter(depId => storyMap.has(depId));
-        const validDependents = story.dependents.filter(depId => storyMap.has(depId));
 
         // Remove duplicates
         const uniqueDependencies = [...new Set(validDependencies)];
-        const uniqueDependents = [...new Set(validDependents)];
 
         return {
             ...story,
-            dependencies: uniqueDependencies,
-            dependents: uniqueDependents
+            dependencies: uniqueDependencies
         };
     });
-}
-
-// Helper function to validate and fix bidirectional dependencies
-function validateBidirectionalDependencies(stories) {
-    const storyMap = new Map(stories.map(story => [story.id, { ...story }]));
-
-    // First pass: ensure all dependencies have corresponding dependents
-    stories.forEach(story => {
-        story.dependencies.forEach(depId => {
-            const dependencyStory = storyMap.get(depId);
-            if (dependencyStory && !dependencyStory.dependents.includes(story.id)) {
-                dependencyStory.dependents = [...dependencyStory.dependents, story.id];
-            }
-        });
-    });
-
-    // Second pass: ensure all dependents have corresponding dependencies
-    stories.forEach(story => {
-        story.dependents.forEach(depId => {
-            const dependentStory = storyMap.get(depId);
-            if (dependentStory && !dependentStory.dependencies.includes(story.id)) {
-                dependentStory.dependencies = [...dependentStory.dependencies, story.id];
-            }
-        });
-    });
-
-    return Array.from(storyMap.values());
 }
 
 function planReducer(state, action) {
@@ -105,53 +97,6 @@ function planReducer(state, action) {
                             } : milestone
                         )
                     }
-                }
-            };
-
-        case 'ADD_MILESTONE':
-            if (!state.planData) return state;
-            return {
-                ...state,
-                planData: {
-                    ...state.planData,
-                    project: {
-                        ...state.planData.project,
-                        milestones: [...state.planData.project.milestones, action.payload]
-                    }
-                }
-            };
-
-        case 'DELETE_MILESTONE':
-            if (!state.planData) return state;
-
-            const milestoneIdToDelete = action.payload;
-
-            // Remove milestone from project
-            const updatedMilestonesAfterDelete = state.planData.project.milestones.filter(
-                milestone => milestone.id !== milestoneIdToDelete
-            );
-
-            // Update stories that were assigned to this milestone
-            const updatedStoriesAfterMilestoneDelete = state.planData.stories.map(story => {
-                if (story.milestone === milestoneIdToDelete) {
-                    return {
-                        ...story,
-                        milestone: '', // Unassign from milestone
-                        updated_at: new Date().toISOString()
-                    };
-                }
-                return story;
-            });
-
-            return {
-                ...state,
-                planData: {
-                    ...state.planData,
-                    project: {
-                        ...state.planData.project,
-                        milestones: updatedMilestonesAfterDelete
-                    },
-                    stories: updatedStoriesAfterMilestoneDelete
                 }
             };
 
@@ -214,15 +159,13 @@ function planReducer(state, action) {
             // Remove the story and clean up all dependencies
             const remainingStories = state.planData.stories.filter(story => story.id !== storyIdToDelete);
 
-            // Clean up all references to the deleted story
+            // Clean up all references to the deleted story from dependencies
             const cleanedStories = remainingStories.map(story => {
-                const hadReference = story.dependencies.includes(storyIdToDelete) ||
-                    story.dependents.includes(storyIdToDelete);
+                const hadReference = story.dependencies.includes(storyIdToDelete);
 
                 return {
                     ...story,
                     dependencies: story.dependencies.filter(id => id !== storyIdToDelete),
-                    dependents: story.dependents.filter(id => id !== storyIdToDelete),
                     updated_at: hadReference ? new Date().toISOString() : story.updated_at
                 };
             });
@@ -247,35 +190,17 @@ function planReducer(state, action) {
                     return {
                         ...story,
                         dependencies: [...new Set(action.payload.dependencies)], // Remove duplicates
-                        dependents: [...new Set(action.payload.dependents)], // Remove duplicates
                         updated_at: new Date().toISOString()
                     };
                 }
                 return story;
             });
 
-            // Validate bidirectional dependencies
-            const validatedStories = validateBidirectionalDependencies(updatedStoriesWithDeps);
-
             return {
                 ...state,
                 planData: {
                     ...state.planData,
-                    stories: ensureDependencyIntegrity(validatedStories)
-                }
-            };
-
-        case 'VALIDATE_AND_FIX_DEPENDENCIES':
-            if (!state.planData) return state;
-
-            console.log('Validating and fixing dependencies...');
-            const fixedStories = validateBidirectionalDependencies(state.planData.stories);
-
-            return {
-                ...state,
-                planData: {
-                    ...state.planData,
-                    stories: ensureDependencyIntegrity(fixedStories)
+                    stories: ensureDependencyIntegrity(updatedStoriesWithDeps)
                 }
             };
 
@@ -293,26 +218,15 @@ function planReducer(state, action) {
 export function PlanProvider({ children }) {
     const [state, dispatch] = useReducer(planReducer, initialState);
 
-    // Load initial data
+    // Load initial plan data from public directory
     useEffect(() => {
         loadPlanData();
     }, []);
 
-    // Validate dependencies periodically in development mode
-    useEffect(() => {
-        if (process.env.NODE_ENV === 'development' && state.planData) {
-            const validateInterval = setInterval(() => {
-                dispatch({ type: 'VALIDATE_AND_FIX_DEPENDENCIES' });
-            }, 30000); // Every 30 seconds
-
-            return () => clearInterval(validateInterval);
-        }
-    }, [state.planData]);
-
     const loadPlanData = async () => {
         dispatch({ type: 'SET_LOADING', payload: true });
         try {
-            // Load plan data dynamically from public directory
+            // Load plan data from public directory
             const response = await fetch('/plan-data.json');
             if (!response.ok) {
                 throw new Error(`Failed to load plan data: ${response.status}`);
@@ -325,21 +239,39 @@ export function PlanProvider({ children }) {
         }
     };
 
+    // Helper function to get computed dependents for a story
+    const getDependentsForStory = (storyId) => {
+        if (!state.planData?.stories) return [];
 
+        return state.planData.stories
+            .filter(story => story.dependencies.includes(storyId))
+            .map(story => story.id);
+    };
 
+    // Helper function to get story with computed dependents
+    const getStoryWithDependents = (storyId) => {
+        const story = state.planData?.stories.find(s => s.id === storyId);
+        if (!story) return null;
 
+        return {
+            ...story,
+            dependents: getDependentsForStory(storyId)
+        };
+    };
 
-    const savePlan = async (planData) => {
-        // In a real app, this would save to a backend
-        dispatch({ type: 'SET_PLAN_DATA', payload: planData });
-        localStorage.setItem('planData', JSON.stringify(planData));
+    // Helper function to get all stories with computed dependents
+    const getStoriesWithDependents = () => {
+        if (!state.planData?.stories) return [];
+        return computeDependents(state.planData.stories);
     };
 
     const value = {
         ...state,
         dispatch,
         loadPlanData,
-        savePlan
+        getDependentsForStory,
+        getStoryWithDependents,
+        getStoriesWithDependents
     };
 
     return (
@@ -352,7 +284,7 @@ export function PlanProvider({ children }) {
 export function usePlan() {
     const context = useContext(PlanContext);
     if (!context) {
-        throw new Error('usePlan must be used within a PlanProvider');
+        throw new Error('usePlan must be used within PlanProvider');
     }
     return context;
 } 

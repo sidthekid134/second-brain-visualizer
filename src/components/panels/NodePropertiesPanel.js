@@ -1,23 +1,163 @@
-import React, { useState, useEffect } from 'react';
-import styled from 'styled-components';
+import React, { useState, useEffect, useRef } from 'react';
+import { createPortal } from 'react-dom';
+import styled, { keyframes } from 'styled-components';
 import { usePlan } from '../../context/PlanContext';
-import { getStatusColor, getStatusIcon } from '../../utils/flowUtils';
+import { getStatusColor, getStatusIcon, getComplexityColor } from '../../utils/flowUtils';
 import { renderSchemaField, getNestedValue, setNestedValue } from '../../utils/schemaRenderer';
+
+const fadeIn = keyframes`
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+`;
+
+const slideIn = keyframes`
+  from { transform: translateX(100%); }
+  to { transform: translateX(0); }
+`;
 
 const PanelContainer = styled.div`
   height: 100%;
   display: flex;
   flex-direction: column;
-  background: white;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  animation: ${slideIn} 0.3s ease-out;
 `;
 
 const PanelHeader = styled.div`
   padding: 20px;
-  border-bottom: 1px solid #e5e7eb;
-  background: #f8fafc;
+  background: rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(10px);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.2);
 `;
 
-const PanelTitle = styled.h3`
+const HeaderTop = styled.div`
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+`;
+
+const PanelTitle = styled.h2`
+  margin: 0;
+  font-size: 1.3rem;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+`;
+
+const NodeTypeChip = styled.span`
+  background: rgba(255, 255, 255, 0.25);
+  color: white;
+  padding: 4px 10px;
+  border-radius: 16px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  backdrop-filter: blur(10px);
+`;
+
+const QuickActions = styled.div`
+  display: flex;
+  gap: 6px;
+`;
+
+const ActionButton = styled.button`
+  background: ${props => props.variant === 'primary' ? 'rgba(16, 185, 129, 0.9)' :
+        props.variant === 'danger' ? 'rgba(239, 68, 68, 0.9)' :
+            'rgba(255, 255, 255, 0.2)'};
+  color: white;
+  border: none;
+  padding: 6px 12px;
+  border-radius: 6px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  cursor: pointer;
+  backdrop-filter: blur(10px);
+  transition: all 0.2s ease;
+
+  &:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+  }
+
+  &:active {
+    transform: translateY(0);
+  }
+`;
+
+const CompactStatusRow = styled.div`
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+`;
+
+const StatusBadge = styled.div`
+  background: ${props => getStatusColor(props.status)}CC;
+  color: white;
+  padding: 4px 12px;
+  border-radius: 14px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  backdrop-filter: blur(10px);
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.2);
+`;
+
+const CompactMetrics = styled.div`
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  font-size: 0.7rem;
+  color: rgba(255, 255, 255, 0.9);
+`;
+
+const MetricItem = styled.span`
+  background: rgba(255, 255, 255, 0.1);
+  padding: 2px 8px;
+  border-radius: 8px;
+  backdrop-filter: blur(10px);
+  white-space: nowrap;
+`;
+
+const PanelContent = styled.div`
+  flex: 1;
+  padding: 0;
+  overflow-y: auto;
+  overflow-x: visible;
+  background: white;
+  color: #1f2937;
+`;
+
+const Section = styled.div`
+  margin-bottom: 0;
+  border-bottom: 1px solid #f3f4f6;
+  animation: ${fadeIn} 0.4s ease-out;
+  animation-delay: ${props => props.delay || '0s'};
+  animation-fill-mode: both;
+`;
+
+const SectionHeader = styled.div`
+  background: ${props => props.expanded ? '#f8fafc' : 'white'};
+  padding: 20px 24px;
+  cursor: pointer;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  transition: all 0.2s ease;
+  border-left: 4px solid ${props => props.expanded ? '#3b82f6' : 'transparent'};
+
+  &:hover {
+    background: #f8fafc;
+  }
+`;
+
+const SectionTitle = styled.h3`
   margin: 0;
   font-size: 1rem;
   font-weight: 600;
@@ -27,204 +167,200 @@ const PanelTitle = styled.h3`
   gap: 8px;
 `;
 
-const NodeType = styled.span`
-  background: #3b82f6;
-  color: white;
-  padding: 2px 8px;
+const SectionIcon = styled.span`
+  font-size: 1.2rem;
+`;
+
+const ExpandIcon = styled.span`
+  font-size: 1rem;
+  transition: transform 0.2s ease;
+  transform: ${props => props.expanded ? 'rotate(180deg)' : 'rotate(0deg)'};
+  color: #6b7280;
+`;
+
+const SectionContent = styled.div`
+  padding: ${props => props.expanded ? '0 24px 24px 24px' : '0'};
+  max-height: ${props => props.expanded ? '1000px' : '0'};
+  overflow: ${props => props.expanded ? 'visible' : 'hidden'};
+  transition: all 0.3s ease;
+`;
+
+const PropertyGrid = styled.div`
+  display: grid;
+  gap: 20px;
+  grid-template-columns: 1fr;
+`;
+
+const PropertyCard = styled.div`
+  background: #f9fafb;
+  border: 1px solid #e5e7eb;
   border-radius: 12px;
-  font-size: 0.7rem;
-  font-weight: 500;
-  text-transform: uppercase;
-`;
+  padding: 16px;
+  transition: all 0.2s ease;
 
-const PanelContent = styled.div`
-  flex: 1;
-  padding: 20px;
-  overflow-y: auto;
-`;
-
-const PropertySection = styled.div`
-  margin-bottom: 24px;
-`;
-
-const SectionTitle = styled.h4`
-  margin: 0 0 12px 0;
-  font-size: 0.9rem;
-  font-weight: 600;
-  color: #374151;
-  border-bottom: 1px solid #e5e7eb;
-  padding-bottom: 6px;
-`;
-
-const PropertyRow = styled.div`
-  margin-bottom: 16px;
+  &:hover {
+    border-color: #d1d5db;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+  }
 `;
 
 const PropertyLabel = styled.label`
   display: block;
-  font-size: 0.8rem;
-  font-weight: 500;
-  color: #6b7280;
-  margin-bottom: 4px;
-`;
-
-const PropertyValue = styled.div`
-  font-size: 0.9rem;
-  color: #1f2937;
-  padding: 8px 12px;
-  background: #f9fafb;
-  border: 1px solid #e5e7eb;
-  border-radius: 6px;
-  min-height: 20px;
-`;
-
-const StatusBadge = styled.div`
-  display: inline-flex;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #374151;
+  margin-bottom: 8px;
+  display: flex;
   align-items: center;
   gap: 6px;
-  background: ${props => getStatusColor(props.status)};
-  color: white;
-  padding: 6px 12px;
-  border-radius: 16px;
-  font-size: 0.8rem;
-  font-weight: 600;
 `;
 
-const ListItem = styled.div`
-  padding: 6px 0;
-  border-bottom: 1px solid #f3f4f6;
-  font-size: 0.85rem;
-  color: #4b5563;
+const PropertyDescription = styled.div`
+  font-size: 0.75rem;
+  color: #6b7280;
+  margin-top: 4px;
+  font-style: italic;
+`;
+
+const ReadOnlyValue = styled.div`
+  font-size: 0.9rem;
+  color: #1f2937;
+  padding: 12px 16px;
+  background: white;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  min-height: 20px;
   display: flex;
-  justify-content: space-between;
   align-items: center;
-
-  &:last-child {
-    border-bottom: none;
-  }
-`;
-
-const RemoveButton = styled.button`
-  background: #ef4444;
-  color: white;
-  border: none;
-  padding: 2px 6px;
-  border-radius: 4px;
-  font-size: 0.6rem;
-  cursor: pointer;
-  
-  &:hover {
-    background: #dc2626;
-  }
-`;
-
-const EmptyState = styled.div`
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  height: 300px;
-  color: #9ca3af;
-  text-align: center;
-`;
-
-const EmptyIcon = styled.div`
-  font-size: 3rem;
-  margin-bottom: 16px;
-  opacity: 0.5;
+  gap: 8px;
 `;
 
 const EditInput = styled.input`
   width: 100%;
-  padding: 8px 12px;
-  border: 1px solid #d1d5db;
-  border-radius: 6px;
+  padding: 12px 16px;
+  border: 2px solid #e5e7eb;
+  border-radius: 8px;
   font-size: 0.9rem;
   background: white;
+  transition: all 0.2s ease;
 
   &:focus {
     outline: none;
     border-color: #3b82f6;
     box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+  }
+
+  &:hover {
+    border-color: #d1d5db;
   }
 `;
 
 const EditTextarea = styled.textarea`
   width: 100%;
-  padding: 8px 12px;
-  border: 1px solid #d1d5db;
-  border-radius: 6px;
+  padding: 12px 16px;
+  border: 2px solid #e5e7eb;
+  border-radius: 8px;
   font-size: 0.9rem;
   background: white;
-  min-height: 80px;
+  min-height: 100px;
   resize: vertical;
+  transition: all 0.2s ease;
 
   &:focus {
     outline: none;
     border-color: #3b82f6;
     box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
   }
-`;
 
-const EditNumber = styled.input`
-  width: 100%;
-  padding: 8px 12px;
-  border: 1px solid #d1d5db;
-  border-radius: 6px;
-  font-size: 0.9rem;
-  background: white;
-
-  &:focus {
-    outline: none;
-    border-color: #3b82f6;
-    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+  &:hover {
+    border-color: #d1d5db;
   }
 `;
 
 const SelectInput = styled.select`
   width: 100%;
-  padding: 8px 12px;
-  border: 1px solid #d1d5db;
-  border-radius: 6px;
+  padding: 12px 16px;
+  border: 2px solid #e5e7eb;
+  border-radius: 8px;
   font-size: 0.9rem;
   background: white;
+  transition: all 0.2s ease;
 
   &:focus {
     outline: none;
     border-color: #3b82f6;
     box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
   }
-`;
 
-const ArrayInput = styled.div`
-  border: 1px solid #d1d5db;
-  border-radius: 6px;
-  background: white;
-  padding: 8px;
-`;
-
-const ArrayItem = styled.div`
-  display: flex;
-  gap: 8px;
-  margin-bottom: 8px;
-  align-items: center;
-`;
-
-const AddButton = styled.button`
-  background: #10b981;
-  color: white;
-  border: none;
-  padding: 4px 8px;
-  border-radius: 4px;
-  font-size: 0.7rem;
-  cursor: pointer;
-  
   &:hover {
-    background: #059669;
+    border-color: #d1d5db;
   }
 `;
 
-const SaveButton = styled.button`
+const ListContainer = styled.div`
+  background: white;
+  border: 2px solid #e5e7eb;
+  border-radius: 8px;
+  overflow: hidden;
+`;
+
+const ListItem = styled.div`
+  padding: 12px 16px;
+  border-bottom: 1px solid #f3f4f6;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  transition: all 0.2s ease;
+
+  &:last-child {
+    border-bottom: none;
+  }
+
+  &:hover {
+    background: #f9fafb;
+  }
+`;
+
+const ListItemContent = styled.div`
+  flex: 1;
+  font-size: 0.9rem;
+  color: #374151;
+`;
+
+const RemoveButton = styled.button`
+  background: #fef2f2;
+  color: #dc2626;
+  border: 1px solid #fecaca;
+  padding: 4px 8px;
+  border-radius: 6px;
+  font-size: 0.7rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  
+  &:hover {
+    background: #dc2626;
+    color: white;
+  }
+`;
+
+const AddItemContainer = styled.div`
+  padding: 12px 16px;
+  background: #f9fafb;
+  border-top: 1px solid #e5e7eb;
+  display: flex;
+  gap: 8px;
+  align-items: center;
+`;
+
+const AddInput = styled.input`
+  flex: 1;
+  padding: 8px 12px;
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
+  font-size: 0.85rem;
+`;
+
+const AddButton = styled.button`
   background: #10b981;
   color: white;
   border: none;
@@ -233,55 +369,266 @@ const SaveButton = styled.button`
   font-size: 0.8rem;
   font-weight: 500;
   cursor: pointer;
-  margin-top: 12px;
-
+  transition: all 0.2s ease;
+  
   &:hover {
     background: #059669;
   }
+`;
+
+const ProgressBarContainer = styled.div`
+  margin-top: 8px;
+`;
+
+const ProgressBarTrack = styled.div`
+  width: 100%;
+  height: 8px;
+  background: #e5e7eb;
+  border-radius: 4px;
+  overflow: hidden;
+`;
+
+const ProgressBarFill = styled.div`
+  height: 100%;
+  background: linear-gradient(90deg, ${props => getStatusColor(props.status)}, ${props => getStatusColor(props.status)}CC);
+  width: ${props => props.progress}%;
+  transition: width 0.3s ease;
+  border-radius: 4px;
+`;
+
+const ProgressText = styled.div`
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.75rem;
+  color: #6b7280;
+  margin-bottom: 4px;
+`;
+
+const EmptyState = styled.div`
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 400px;
+  color: rgba(255, 255, 255, 0.8);
+  text-align: center;
+  animation: ${fadeIn} 0.6s ease-out;
+`;
+
+const EmptyIcon = styled.div`
+  font-size: 4rem;
+  margin-bottom: 24px;
+  opacity: 0.6;
+`;
+
+const EmptyTitle = styled.h3`
+  font-size: 1.2rem;
+  font-weight: 600;
+  margin-bottom: 8px;
+`;
+
+const EmptyDescription = styled.p`
+  font-size: 0.9rem;
+  opacity: 0.8;
+  max-width: 240px;
+`;
+
+const ComplexityIndicator = styled.div`
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  background: ${props => getComplexityColor(props.score)}22;
+  color: ${props => getComplexityColor(props.score)};
+  padding: 4px 8px;
+  border-radius: 12px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  border: 1px solid ${props => getComplexityColor(props.score)}44;
+`;
+
+const TokenDisplay = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.85rem;
+  color: #6b7280;
+`;
+
+const TokenBar = styled.div`
+  flex: 1;
+  height: 4px;
+  background: #e5e7eb;
+  border-radius: 2px;
+  overflow: hidden;
+  position: relative;
+`;
+
+const TokenProgress = styled.div`
+  height: 100%;
+  background: linear-gradient(90deg, #10b981, #059669);
+  width: ${props => Math.min((props.actual / props.estimated) * 100, 100)}%;
+  transition: width 0.3s ease;
+`;
+
+const AutocompleteContainer = styled.div`
+  position: relative;
+  flex: 1;
+`;
+
+const AutocompleteInput = styled.input`
+  width: 100%;
+  padding: 8px 12px;
+  border: 2px solid #e5e7eb;
+  border-radius: 6px;
+  font-size: 0.85rem;
+  transition: all 0.2s ease;
 
   &:focus {
     outline: none;
-    box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.2);
+    border-color: #3b82f6;
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+    border-radius: 6px 6px 0 0;
+  }
+
+  &:hover {
+    border-color: #d1d5db;
   }
 `;
 
+const AutocompleteDropdown = styled.div`
+  position: fixed;
+  top: ${props => props.top || 0}px;
+  left: ${props => props.left || 0}px;
+  width: ${props => props.width || 200}px;
+  background: white;
+  border: 2px solid #3b82f6;
+  border-top: none;
+  border-radius: 0 0 6px 6px;
+  max-height: 200px;
+  overflow-y: auto;
+  z-index: 999999;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+`;
+
+const AutocompleteOption = styled.div`
+  padding: 10px 12px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  border-bottom: 1px solid #f3f4f6;
+
+  &:hover {
+    background: #f8fafc;
+  }
+
+  &:last-child {
+    border-bottom: none;
+  }
+`;
+
+const OptionTitle = styled.div`
+  font-size: 0.85rem;
+  color: #1f2937;
+  font-weight: 500;
+`;
+
+const OptionId = styled.div`
+  font-size: 0.7rem;
+  color: #6b7280;
+  font-family: 'Monaco', 'Menlo', monospace;
+`;
+
+const DependencyItem = styled.div`
+  padding: 12px 16px;
+  border-bottom: 1px solid #f3f4f6;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  transition: all 0.2s ease;
+
+  &:last-child {
+    border-bottom: none;
+  }
+
+  &:hover {
+    background: #f9fafb;
+  }
+`;
+
+const DependencyContent = styled.div`
+  flex: 1;
+`;
+
+const DependencyTitle = styled.div`
+  font-size: 0.9rem;
+  color: #374151;
+  font-weight: 500;
+  margin-bottom: 2px;
+`;
+
+const DependencyId = styled.div`
+  font-size: 0.7rem;
+  color: #6b7280;
+  font-family: 'Monaco', 'Menlo', monospace;
+`;
+
+const StatusIndicator = styled.span`
+  background: ${props => getStatusColor(props.status)}22;
+  color: ${props => getStatusColor(props.status)};
+  padding: 2px 6px;
+  border-radius: 8px;
+  font-size: 0.6rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  margin-left: 8px;
+`;
+
 function NodePropertiesPanel({ selectedNode }) {
-    const { dispatch, editMode, uiSchema, planData } = usePlan();
+    const { dispatch, editMode, uiSchema, planData, getDependentsForStory } = usePlan();
     const [editData, setEditData] = useState({});
     const [isEditing, setIsEditing] = useState(false);
+    const [expandedSections, setExpandedSections] = useState({
+        basic: true,
+        assignment: false,
+        criteria: false,
+        dependencies: false,
+        notes: false,
+        execution: false
+    });
+    const [newItemInputs, setNewItemInputs] = useState({});
+    const [autocompleteStates, setAutocompleteStates] = useState({});
+    const [dropdownPositions, setDropdownPositions] = useState({});
+    const inputRefs = useRef({});
 
     useEffect(() => {
         if (selectedNode) {
             setEditData(selectedNode.data || {});
             setIsEditing(false);
+            // Auto-expand relevant sections based on content
+            const hasContent = {
+                basic: true,
+                assignment: selectedNode.data?.owner_id || selectedNode.data?.complexity_score,
+                criteria: selectedNode.data?.acceptance_criteria?.length > 0,
+                dependencies: selectedNode.data?.dependencies?.length > 0 || getDependentsForStory(selectedNode.data?.id)?.length > 0,
+                notes: selectedNode.data?.implementation_notes?.length > 0,
+                execution: selectedNode.data?.execution?.history?.length > 0
+            };
+            setExpandedSections(hasContent);
         }
-    }, [selectedNode]);
+    }, [selectedNode, getDependentsForStory]);
 
-    if (!selectedNode) {
-        return (
-            <PanelContainer>
-                <PanelHeader>
-                    <PanelTitle>Properties</PanelTitle>
-                </PanelHeader>
-                <PanelContent>
-                    <EmptyState>
-                        <EmptyIcon>🎯</EmptyIcon>
-                        <div>Select a story to view its properties</div>
-                    </EmptyState>
-                </PanelContent>
-            </PanelContainer>
-        );
-    }
-
-    const { data } = selectedNode;
-    const isStory = data.type === 'story';
+    const toggleSection = (sectionId) => {
+        setExpandedSections(prev => ({
+            ...prev,
+            [sectionId]: !prev[sectionId]
+        }));
+    };
 
     const handleSave = () => {
-        if (isStory) {
+        if (selectedNode.data.type === 'story') {
             dispatch({
                 type: 'UPDATE_STORY',
                 payload: {
-                    id: data.id,
+                    id: selectedNode.data.id,
                     updates: editData
                 }
             });
@@ -289,11 +636,242 @@ function NodePropertiesPanel({ selectedNode }) {
         setIsEditing(false);
     };
 
+    const handleFieldChange = (fieldKey, value) => {
+        if (fieldKey.includes('.')) {
+            setEditData(prevData => setNestedValue(prevData, fieldKey, value));
+        } else {
+            setEditData(prevData => ({ ...prevData, [fieldKey]: value }));
+        }
+    };
+
+    const handleArrayAdd = (fieldKey, value) => {
+        if (!value.trim()) return;
+
+        const currentArray = getNestedValue(editData, fieldKey) || [];
+        const newArray = [...currentArray, value.trim()];
+        handleFieldChange(fieldKey, newArray);
+        setNewItemInputs(prev => ({ ...prev, [fieldKey]: '' }));
+    };
+
+    const handleArrayRemove = (fieldKey, index) => {
+        const currentArray = getNestedValue(editData, fieldKey) || [];
+        const newArray = currentArray.filter((_, i) => i !== index);
+        handleFieldChange(fieldKey, newArray);
+    };
+
+    const calculateDropdownPosition = (fieldKey) => {
+        const input = inputRefs.current[fieldKey];
+        if (!input) return;
+
+        const rect = input.getBoundingClientRect();
+        setDropdownPositions(prev => ({
+            ...prev,
+            [fieldKey]: {
+                top: rect.bottom,
+                left: rect.left,
+                width: rect.width
+            }
+        }));
+    };
+
+    const PortalDropdown = ({ fieldKey, children }) => {
+        const position = dropdownPositions[fieldKey];
+        if (!position) return null;
+
+        return createPortal(
+            <AutocompleteDropdown
+                top={position.top}
+                left={position.left}
+                width={position.width}
+            >
+                {children}
+            </AutocompleteDropdown>,
+            document.body
+        );
+    };
+
+    const getStoryById = (storyId) => {
+        return planData?.stories?.find(story => story.id === storyId);
+    };
+
+    const getAvailableStories = (fieldKey, currentDependencies = []) => {
+        const currentStoryId = data.id;
+        return planData?.stories?.filter(story =>
+            story.id !== currentStoryId &&
+            !currentDependencies.includes(story.id)
+        ) || [];
+    };
 
 
 
+    const handleAutocompleteChange = (fieldKey, value) => {
+        setAutocompleteStates(prev => ({
+            ...prev,
+            [fieldKey]: {
+                ...prev[fieldKey],
+                inputValue: value,
+                showDropdown: true // Always show when typing
+            }
+        }));
+    };
 
-    // Get the schema definition for this entity type
+    const handleDependencyAdd = (fieldKey, storyId) => {
+        if (!storyId) return; // Don't add undefined/null story IDs
+
+        const currentArray = getNestedValue(editData, fieldKey) || [];
+        if (!currentArray.includes(storyId)) {
+            const newArray = [...currentArray, storyId];
+            handleFieldChange(fieldKey, newArray);
+        }
+        setAutocompleteStates(prev => ({
+            ...prev,
+            [fieldKey]: {
+                inputValue: '',
+                showDropdown: false
+            }
+        }));
+    };
+
+    const handleDependencyRemove = (fieldKey, storyId) => {
+        const currentArray = getNestedValue(editData, fieldKey) || [];
+        const newArray = currentArray.filter(id => id !== storyId);
+        handleFieldChange(fieldKey, newArray);
+    };
+
+    const renderStoryMultiselect = (fieldDef) => {
+        const fieldValue = getNestedValue(isEditing ? editData : data, fieldDef.key) || [];
+        const isReadonly = fieldDef.readonly || !editMode || !isEditing;
+        const autocompleteState = autocompleteStates[fieldDef.key] || { inputValue: '', showDropdown: false };
+
+        const availableStories = getAvailableStories(fieldDef.key, fieldValue);
+        const searchTerm = (autocompleteState.inputValue || '').toLowerCase();
+        const filteredStories = availableStories.filter(story => {
+            const objective = (story?.objective || '').toLowerCase();
+            const storyId = (story?.id || '').toLowerCase();
+            return objective.includes(searchTerm) || storyId.includes(searchTerm);
+        });
+
+        return (
+            <PropertyCard key={fieldDef.key}>
+                <PropertyLabel>
+                    {fieldDef.label}
+                    {fieldDef.required && <span style={{ color: '#ef4444' }}>*</span>}
+                </PropertyLabel>
+                <ListContainer>
+                    {fieldValue.length === 0 ? (
+                        <ListItem style={{ justifyContent: 'center', fontStyle: 'italic', color: '#9ca3af' }}>
+                            No {fieldDef.label.toLowerCase()} set
+                        </ListItem>
+                    ) : (
+                        fieldValue.map((storyId) => {
+                            const story = getStoryById(storyId);
+                            return (
+                                <DependencyItem key={storyId}>
+                                    <DependencyContent>
+                                        <DependencyTitle>
+                                            {story?.objective || `Unknown Story (${storyId})`}
+                                            {story?.status && (
+                                                <StatusIndicator status={story.status}>
+                                                    {story.status}
+                                                </StatusIndicator>
+                                            )}
+                                        </DependencyTitle>
+                                        <DependencyId>{storyId}</DependencyId>
+                                    </DependencyContent>
+                                    {!isReadonly && (
+                                        <RemoveButton onClick={() => handleDependencyRemove(fieldDef.key, storyId)}>
+                                            Remove
+                                        </RemoveButton>
+                                    )}
+                                </DependencyItem>
+                            );
+                        })
+                    )}
+                    {!isReadonly && (
+                        <AddItemContainer>
+                            <AutocompleteContainer>
+                                <AutocompleteInput
+                                    ref={(el) => {
+                                        if (el) inputRefs.current[fieldDef.key] = el;
+                                    }}
+                                    placeholder={`Search and add ${fieldDef.label.toLowerCase()}...`}
+                                    value={autocompleteState.inputValue}
+                                    onChange={(e) => handleAutocompleteChange(fieldDef.key, e.target.value)}
+                                    onFocus={() => {
+                                        calculateDropdownPosition(fieldDef.key);
+                                        setAutocompleteStates(prev => ({
+                                            ...prev,
+                                            [fieldDef.key]: {
+                                                ...prev[fieldDef.key],
+                                                showDropdown: true,
+                                                inputValue: prev[fieldDef.key]?.inputValue || ''
+                                            }
+                                        }));
+                                    }}
+                                    onClick={() => {
+                                        calculateDropdownPosition(fieldDef.key);
+                                    }}
+                                    onBlur={() => setTimeout(() => setAutocompleteStates(prev => ({
+                                        ...prev,
+                                        [fieldDef.key]: { ...prev[fieldDef.key], showDropdown: false }
+                                    })), 300)}
+                                />
+                            </AutocompleteContainer>
+                        </AddItemContainer>
+                    )}
+                </ListContainer>
+
+                {/* Portal dropdown rendered at document body level */}
+                {autocompleteState.showDropdown && (
+                    <PortalDropdown fieldKey={fieldDef.key}>
+                        {filteredStories.length === 0 ? (
+                            <AutocompleteOption style={{ fontStyle: 'italic', color: '#9ca3af', cursor: 'default' }}>
+                                {autocompleteState.inputValue ? 'No matching stories found' : 'Start typing to search stories...'}
+                            </AutocompleteOption>
+                        ) : (
+                            filteredStories.slice(0, 5).map(story => (
+                                <AutocompleteOption
+                                    key={story?.id || Math.random()}
+                                    onClick={() => handleDependencyAdd(fieldDef.key, story?.id)}
+                                >
+                                    <OptionTitle>
+                                        {story?.objective || 'Untitled Story'}
+                                        {story?.status && (
+                                            <StatusIndicator status={story.status}>
+                                                {story.status}
+                                            </StatusIndicator>
+                                        )}
+                                    </OptionTitle>
+                                    <OptionId>{story?.id || 'No ID'}</OptionId>
+                                </AutocompleteOption>
+                            ))
+                        )}
+                    </PortalDropdown>
+                )}
+                {fieldDef.description && (
+                    <PropertyDescription>{fieldDef.description}</PropertyDescription>
+                )}
+            </PropertyCard>
+        );
+    };
+
+    if (!selectedNode) {
+        return (
+            <PanelContainer>
+                <PanelContent>
+                    <EmptyState>
+                        <EmptyIcon>🎯</EmptyIcon>
+                        <EmptyTitle>No Selection</EmptyTitle>
+                        <EmptyDescription>
+                            Select a story or milestone to view and edit its properties
+                        </EmptyDescription>
+                    </EmptyState>
+                </PanelContent>
+            </PanelContainer>
+        );
+    }
+
+    const { data } = selectedNode;
     const entitySchema = uiSchema?.[data.type];
 
     if (!entitySchema) {
@@ -303,126 +881,273 @@ function NodePropertiesPanel({ selectedNode }) {
                     <PanelTitle>Properties</PanelTitle>
                 </PanelHeader>
                 <PanelContent>
-                    <div style={{ color: '#6b7280', textAlign: 'center', padding: '20px' }}>
-                        No schema found for {data.type}
-                    </div>
+                    <EmptyState>
+                        <EmptyIcon>⚠️</EmptyIcon>
+                        <EmptyTitle>Schema Not Found</EmptyTitle>
+                        <EmptyDescription>
+                            No schema definition found for {data.type}
+                        </EmptyDescription>
+                    </EmptyState>
                 </PanelContent>
             </PanelContainer>
         );
     }
 
-    const handleFieldChange = (fieldKey, value) => {
-        if (fieldKey.includes('.')) {
-            // Handle nested field updates
-            setEditData(prevData => setNestedValue(prevData, fieldKey, value));
-        } else {
-            setEditData(prevData => ({ ...prevData, [fieldKey]: value }));
+    // Calculate metrics for header
+    const isStory = data.type === 'story';
+    const acceptanceCriteria = data.acceptance_criteria || [];
+    const completedCriteria = acceptanceCriteria.filter(Boolean).length;
+    const progress = acceptanceCriteria.length > 0 ?
+        Math.round((completedCriteria / acceptanceCriteria.length) * 100) :
+        (data.status === 'done' ? 100 : data.status === 'in_progress' ? 50 : 0);
+
+    const renderField = (fieldDef, sectionId) => {
+        const fieldValue = getNestedValue(isEditing ? editData : data, fieldDef.key);
+        const isReadonly = fieldDef.readonly || !editMode || !isEditing;
+
+        // Handle story_multiselect type with autocomplete
+        if (fieldDef.type === 'story_multiselect') {
+            return renderStoryMultiselect(fieldDef);
         }
+
+        if (fieldDef.type === 'array') {
+            const arrayValue = fieldValue || [];
+            return (
+                <PropertyCard key={fieldDef.key}>
+                    <PropertyLabel>
+                        {fieldDef.label}
+                        {fieldDef.required && <span style={{ color: '#ef4444' }}>*</span>}
+                    </PropertyLabel>
+                    <ListContainer>
+                        {arrayValue.length === 0 ? (
+                            <ListItem style={{ justifyContent: 'center', fontStyle: 'italic', color: '#9ca3af' }}>
+                                No items added yet
+                            </ListItem>
+                        ) : (
+                            arrayValue.map((item, index) => (
+                                <ListItem key={index}>
+                                    <ListItemContent>{item}</ListItemContent>
+                                    {!isReadonly && (
+                                        <RemoveButton onClick={() => handleArrayRemove(fieldDef.key, index)}>
+                                            Remove
+                                        </RemoveButton>
+                                    )}
+                                </ListItem>
+                            ))
+                        )}
+                        {!isReadonly && (
+                            <AddItemContainer>
+                                <AddInput
+                                    placeholder={fieldDef.placeholder || `Add ${fieldDef.label.toLowerCase()}...`}
+                                    value={newItemInputs[fieldDef.key] || ''}
+                                    onChange={(e) => setNewItemInputs(prev => ({
+                                        ...prev,
+                                        [fieldDef.key]: e.target.value
+                                    }))}
+                                    onKeyPress={(e) => {
+                                        if (e.key === 'Enter') {
+                                            handleArrayAdd(fieldDef.key, newItemInputs[fieldDef.key] || '');
+                                        }
+                                    }}
+                                />
+                                <AddButton
+                                    onClick={() => handleArrayAdd(fieldDef.key, newItemInputs[fieldDef.key] || '')}
+                                >
+                                    Add
+                                </AddButton>
+                            </AddItemContainer>
+                        )}
+                    </ListContainer>
+                    {fieldDef.description && (
+                        <PropertyDescription>{fieldDef.description}</PropertyDescription>
+                    )}
+                </PropertyCard>
+            );
+        }
+
+        return (
+            <PropertyCard key={fieldDef.key}>
+                <PropertyLabel>
+                    {fieldDef.label}
+                    {fieldDef.required && <span style={{ color: '#ef4444' }}>*</span>}
+                    {fieldDef.key === 'complexity_score' && fieldValue && (
+                        <ComplexityIndicator score={fieldValue}>
+                            ⚡ {fieldValue}
+                        </ComplexityIndicator>
+                    )}
+                </PropertyLabel>
+
+                {isReadonly ? (
+                    <ReadOnlyValue>
+                        {fieldDef.key === 'status' && fieldValue ? (
+                            <StatusBadge status={fieldValue}>
+                                <span>{getStatusIcon(fieldValue)}</span>
+                                {fieldValue.replace('_', ' ')}
+                            </StatusBadge>
+                        ) : fieldDef.type === 'select' && fieldDef.options ? (
+                            fieldDef.options.find(opt => opt.value === fieldValue)?.label || fieldValue
+                        ) : (
+                            fieldValue || 'Not set'
+                        )}
+
+                        {fieldDef.key === 'estimated_tokens' && data.actual_tokens && (
+                            <TokenDisplay>
+                                <TokenBar>
+                                    <TokenProgress actual={data.actual_tokens} estimated={fieldValue} />
+                                </TokenBar>
+                                <span>{data.actual_tokens} used</span>
+                            </TokenDisplay>
+                        )}
+                    </ReadOnlyValue>
+                ) : (
+                    <>
+                        {fieldDef.type === 'textarea' ? (
+                            <EditTextarea
+                                value={fieldValue || ''}
+                                onChange={(e) => handleFieldChange(fieldDef.key, e.target.value)}
+                                placeholder={fieldDef.placeholder}
+                            />
+                        ) : fieldDef.type === 'select' ? (
+                            <SelectInput
+                                value={fieldValue || ''}
+                                onChange={(e) => handleFieldChange(fieldDef.key, e.target.value)}
+                            >
+                                <option value="">Select {fieldDef.label.toLowerCase()}...</option>
+                                {fieldDef.options?.map(option => (
+                                    <option key={option.value} value={option.value}>
+                                        {option.label}
+                                    </option>
+                                ))}
+                            </SelectInput>
+                        ) : (
+                            <EditInput
+                                type={fieldDef.type === 'number' ? 'number' : 'text'}
+                                value={fieldValue || ''}
+                                onChange={(e) => handleFieldChange(fieldDef.key,
+                                    fieldDef.type === 'number' ? Number(e.target.value) : e.target.value
+                                )}
+                                placeholder={fieldDef.placeholder}
+                                min={fieldDef.min}
+                                max={fieldDef.max}
+                            />
+                        )}
+                    </>
+                )}
+
+                {fieldDef.description && (
+                    <PropertyDescription>{fieldDef.description}</PropertyDescription>
+                )}
+
+                {fieldDef.key === 'acceptance_criteria' && fieldValue?.length > 0 && (
+                    <ProgressBarContainer>
+                        <ProgressText>
+                            <span>Progress</span>
+                            <span>{progress}%</span>
+                        </ProgressText>
+                        <ProgressBarTrack>
+                            <ProgressBarFill progress={progress} status={data.status} />
+                        </ProgressBarTrack>
+                    </ProgressBarContainer>
+                )}
+            </PropertyCard>
+        );
     };
 
     return (
         <PanelContainer>
             <PanelHeader>
-                <PanelTitle>
-                    {entitySchema.title} Properties
-                    <NodeType>{data.type}</NodeType>
-                </PanelTitle>
-                {editMode && (
-                    <div style={{ display: 'flex', gap: '8px' }}>
-                        {isEditing ? (
-                            <>
-                                <button
-                                    onClick={handleSave}
-                                    style={{
-                                        background: '#10b981',
-                                        color: 'white',
-                                        border: 'none',
-                                        padding: '4px 8px',
-                                        borderRadius: '4px',
-                                        fontSize: '0.7rem',
-                                        cursor: 'pointer'
-                                    }}
+                <HeaderTop>
+                    <PanelTitle>
+                        <SectionIcon>{isStory ? '📝' : '🎯'}</SectionIcon>
+                        {entitySchema.title}
+                        <NodeTypeChip>{data.type}</NodeTypeChip>
+                    </PanelTitle>
+
+                    <QuickActions>
+                        {editMode && (
+                            isEditing ? (
+                                <>
+                                    <ActionButton
+                                        variant="primary"
+                                        onClick={handleSave}
+                                    >
+                                        💾 Save
+                                    </ActionButton>
+                                    <ActionButton
+                                        onClick={() => {
+                                            setIsEditing(false);
+                                            setEditData(data);
+                                        }}
+                                    >
+                                        ❌ Cancel
+                                    </ActionButton>
+                                </>
+                            ) : (
+                                <ActionButton
+                                    variant="primary"
+                                    onClick={() => setIsEditing(true)}
                                 >
-                                    Save
-                                </button>
-                                <button
-                                    onClick={() => {
-                                        setIsEditing(false);
-                                        setEditData(data);
-                                    }}
-                                    style={{
-                                        background: '#6b7280',
-                                        color: 'white',
-                                        border: 'none',
-                                        padding: '4px 8px',
-                                        borderRadius: '4px',
-                                        fontSize: '0.7rem',
-                                        cursor: 'pointer'
-                                    }}
-                                >
-                                    Cancel
-                                </button>
-                            </>
-                        ) : (
-                            <button
-                                onClick={() => setIsEditing(true)}
-                                style={{
-                                    background: '#3b82f6',
-                                    color: 'white',
-                                    border: 'none',
-                                    padding: '4px 8px',
-                                    borderRadius: '4px',
-                                    fontSize: '0.7rem',
-                                    cursor: 'pointer'
-                                }}
-                            >
-                                Edit
-                            </button>
+                                    ✏️ Edit
+                                </ActionButton>
+                            )
                         )}
-                    </div>
-                )}
+                    </QuickActions>
+                </HeaderTop>
+
+                <CompactStatusRow>
+                    <StatusBadge status={data.status}>
+                        <span>{getStatusIcon(data.status)}</span>
+                        {data.status?.replace('_', ' ') || 'No Status'}
+                    </StatusBadge>
+
+                    <CompactMetrics>
+                        {isStory && (
+                            <>
+                                <MetricItem>{progress}% done</MetricItem>
+                                {data.complexity_score && (
+                                    <MetricItem>⚡{data.complexity_score}</MetricItem>
+                                )}
+                                {data.estimated_tokens && (
+                                    <MetricItem>🔢{data.actual_tokens || data.estimated_tokens}</MetricItem>
+                                )}
+                            </>
+                        )}
+                        {!isStory && data.stories && (
+                            <MetricItem>📚{data.stories.length} stories</MetricItem>
+                        )}
+                    </CompactMetrics>
+                </CompactStatusRow>
             </PanelHeader>
 
             <PanelContent>
-                {entitySchema.sections?.map(section => (
-                    <PropertySection key={section.id}>
-                        <SectionTitle>{section.title}</SectionTitle>
+                {entitySchema.sections?.map((section, index) => (
+                    <Section key={section.id} delay={`${index * 0.1}s`}>
+                        <SectionHeader
+                            expanded={expandedSections[section.id]}
+                            onClick={() => toggleSection(section.id)}
+                        >
+                            <SectionTitle>
+                                <SectionIcon>
+                                    {section.id === 'basic' ? '📋' :
+                                        section.id === 'assignment' ? '👤' :
+                                            section.id === 'criteria' ? '✅' :
+                                                section.id === 'dependencies' ? '🔗' :
+                                                    section.id === 'notes' ? '📝' :
+                                                        section.id === 'execution' ? '⚡' : '📂'}
+                                </SectionIcon>
+                                {section.title}
+                            </SectionTitle>
+                            <ExpandIcon expanded={expandedSections[section.id]}>
+                                ▼
+                            </ExpandIcon>
+                        </SectionHeader>
 
-                        {section.fields.map(fieldDef => {
-                            const fieldValue = getNestedValue(isEditing ? editData : data, fieldDef.key);
-
-                            return (
-                                <PropertyRow key={fieldDef.key}>
-                                    <PropertyLabel>
-                                        {fieldDef.label}
-                                        {fieldDef.required && <span style={{ color: '#ef4444' }}>*</span>}
-                                    </PropertyLabel>
-                                    <div style={{ flex: 1 }}>
-                                        {renderSchemaField(
-                                            fieldDef,
-                                            fieldValue,
-                                            (value) => handleFieldChange(fieldDef.key, value),
-                                            {
-                                                planData,
-                                                uiSchema,
-                                                editMode,
-                                                isEditing
-                                            }
-                                        )}
-                                        {fieldDef.description && (
-                                            <div style={{
-                                                fontSize: '0.7rem',
-                                                color: '#6b7280',
-                                                marginTop: '2px'
-                                            }}>
-                                                {fieldDef.description}
-                                            </div>
-                                        )}
-                                    </div>
-                                </PropertyRow>
-                            );
-                        })}
-                    </PropertySection>
+                        <SectionContent expanded={expandedSections[section.id]}>
+                            <PropertyGrid>
+                                {section.fields.map(fieldDef => renderField(fieldDef, section.id))}
+                            </PropertyGrid>
+                        </SectionContent>
+                    </Section>
                 ))}
             </PanelContent>
         </PanelContainer>

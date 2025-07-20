@@ -5,7 +5,8 @@ import ReactFlow, {
     Controls,
     MiniMap,
     useNodesState,
-    useEdgesState
+    useEdgesState,
+    Panel
 } from 'reactflow';
 import 'reactflow/dist/style.css';
 import { usePlan } from '../context/PlanContext';
@@ -103,12 +104,41 @@ const MilestoneOverlay = styled.div`
 `;
 
 const LivePanel = styled.div`
-  width: 300px;
+  width: ${props => props.width}px;
   background: white;
   border-left: 1px solid #e0e0e0;
   display: flex;
   flex-direction: column;
   box-shadow: -2px 0 8px rgba(0, 0, 0, 0.1);
+  min-width: 250px;
+  max-width: 500px;
+`;
+
+const ExecutionResizeHandle = styled.div`
+  width: 4px;
+  background-color: #e0e0e0;
+  cursor: col-resize;
+  position: relative;
+  transition: background-color 0.2s;
+  z-index: 101;
+
+  &:hover {
+    background-color: #3498db;
+  }
+
+  &:active {
+    background-color: #2980b9;
+  }
+
+  &::before {
+    content: '';
+    position: absolute;
+    left: -2px;
+    right: -2px;
+    top: 0;
+    bottom: 0;
+    background: transparent;
+  }
 `;
 
 const PanelHeader = styled.div`
@@ -250,6 +280,10 @@ function LiveExecution() {
     const [edges, setEdges, onEdgesChange] = useEdgesState([]);
     const [lastUpdate, setLastUpdate] = useState(new Date());
     const [milestonesCollapsed, setMilestonesCollapsed] = useState(false);
+    const [layoutDirection, setLayoutDirection] = useState('TB'); // Add layout direction state
+    const [sidebarWidth, setSidebarWidth] = useState(300);
+    const [isResizing, setIsResizing] = useState(false);
+    const [showMiniMap, setShowMiniMap] = useState(false);
 
     // Use plan data for live execution view
     const executionData = planData;
@@ -258,15 +292,69 @@ function LiveExecution() {
     const flowData = React.useMemo(() => {
         if (!executionData) return { nodes: [], edges: [] };
 
-        // Use plan data structure for execution view
-        return createFlowData(executionData, 'TB');
-    }, [executionData]);
+        // Use plan data structure for execution view with configurable layout direction
+        return createFlowData(executionData, layoutDirection);
+    }, [executionData, layoutDirection]);
 
     // Update nodes and edges when flow data changes
     React.useEffect(() => {
         setNodes(flowData.nodes);
         setEdges(flowData.edges);
     }, [flowData, setNodes, setEdges]);
+
+    // Add layout direction change handler
+    const changeLayout = React.useCallback((direction) => {
+        setLayoutDirection(direction);
+    }, []);
+
+    // Add MiniMap toggle handler
+    const toggleMiniMap = React.useCallback(() => {
+        setShowMiniMap(!showMiniMap);
+    }, [showMiniMap]);
+
+    // Sidebar resize handlers
+    const handleMouseDown = React.useCallback((e) => {
+        e.preventDefault();
+        setIsResizing(true);
+    }, []);
+
+    const handleMouseMove = React.useCallback((e) => {
+        if (!isResizing) return;
+
+        const newWidth = window.innerWidth - e.clientX;
+        const minWidth = 250;
+        const maxWidth = 500;
+
+        if (newWidth >= minWidth && newWidth <= maxWidth) {
+            setSidebarWidth(newWidth);
+        }
+    }, [isResizing]);
+
+    const handleMouseUp = React.useCallback(() => {
+        setIsResizing(false);
+    }, []);
+
+    // Add/remove global mouse event listeners for resizing
+    React.useEffect(() => {
+        if (isResizing) {
+            document.addEventListener('mousemove', handleMouseMove);
+            document.addEventListener('mouseup', handleMouseUp);
+            document.body.style.cursor = 'col-resize';
+            document.body.style.userSelect = 'none';
+        } else {
+            document.removeEventListener('mousemove', handleMouseMove);
+            document.removeEventListener('mouseup', handleMouseUp);
+            document.body.style.cursor = '';
+            document.body.style.userSelect = '';
+        }
+
+        return () => {
+            document.removeEventListener('mousemove', handleMouseMove);
+            document.removeEventListener('mouseup', handleMouseUp);
+            document.body.style.cursor = '';
+            document.body.style.userSelect = '';
+        };
+    }, [isResizing, handleMouseMove, handleMouseUp]);
 
     useEffect(() => {
         // Simulate live updates
@@ -307,7 +395,6 @@ function LiveExecution() {
     const allStories = executionData?.stories || [];
     const runningStories = allStories.filter(s => s.status === 'in_progress');
     const readyStories = allStories.filter(s => s.status === 'planned');
-    const blockedStories = allStories.filter(s => s.status === 'blocked');
     const completedStories = allStories.filter(s => s.status === 'done');
 
     return (
@@ -365,15 +452,86 @@ function LiveExecution() {
                     >
                         <Background color="#e2e8f0" size={1} />
                         <Controls />
-                        <MiniMap
-                            position="bottom-right"
-                            nodeColor={(node) => getStatusColor(node.data.status)}
-                            maskColor="rgba(0, 0, 0, 0.1)"
-                        />
+                        {showMiniMap && (
+                            <MiniMap
+                                position="bottom-right"
+                                nodeColor={(node) => getStatusColor(node.data.status)}
+                                maskColor="rgba(0, 0, 0, 0.1)"
+                            />
+                        )}
+
+                        <Panel position="top-right">
+                            <div style={{
+                                background: 'white',
+                                border: '1px solid #e5e7eb',
+                                borderRadius: '8px',
+                                padding: '8px',
+                                boxShadow: '0 2px 8px rgba(0, 0, 0, 0.1)',
+                                display: 'flex',
+                                gap: '4px'
+                            }}>
+                                <button
+                                    onClick={() => changeLayout('TB')}
+                                    style={{
+                                        background: layoutDirection === 'TB' ? '#3b82f6' : 'white',
+                                        color: layoutDirection === 'TB' ? 'white' : '#374151',
+                                        border: '1px solid #d1d5db',
+                                        borderRadius: '4px',
+                                        padding: '4px 8px',
+                                        fontSize: '12px',
+                                        cursor: 'pointer',
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        gap: '4px'
+                                    }}
+                                    title="Top-Bottom Layout"
+                                >
+                                    ⬇️
+                                </button>
+                                <button
+                                    onClick={() => changeLayout('LR')}
+                                    style={{
+                                        background: layoutDirection === 'LR' ? '#3b82f6' : 'white',
+                                        color: layoutDirection === 'LR' ? 'white' : '#374151',
+                                        border: '1px solid #d1d5db',
+                                        borderRadius: '4px',
+                                        padding: '4px 8px',
+                                        fontSize: '12px',
+                                        cursor: 'pointer',
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        gap: '4px'
+                                    }}
+                                    title="Left-Right Layout"
+                                >
+                                    ➡️
+                                </button>
+                                <button
+                                    onClick={toggleMiniMap}
+                                    style={{
+                                        background: showMiniMap ? '#3b82f6' : 'white',
+                                        color: showMiniMap ? 'white' : '#374151',
+                                        border: '1px solid #d1d5db',
+                                        borderRadius: '4px',
+                                        padding: '4px 8px',
+                                        fontSize: '12px',
+                                        cursor: 'pointer',
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        gap: '4px'
+                                    }}
+                                    title="Toggle MiniMap"
+                                >
+                                    🗺️
+                                </button>
+                            </div>
+                        </Panel>
                     </ReactFlow>
                 </FlowContainer>
 
-                <LivePanel>
+                <ExecutionResizeHandle onMouseDown={handleMouseDown} />
+
+                <LivePanel width={sidebarWidth}>
                     <PanelHeader>
                         <PanelTitle>
                             <LiveIndicator>
@@ -434,51 +592,31 @@ function LiveExecution() {
                             </ExecutionSection>
                         )}
 
-                        {blockedStories.length > 0 && (
+                        {completedStories.length > 0 && (
                             <ExecutionSection>
                                 <SectionTitle>
-                                    🚫 Blocked ({blockedStories.length})
+                                    ✅ Complete ({completedStories.length})
                                 </SectionTitle>
-                                {blockedStories.map(story => (
+                                {completedStories.map(story => (
                                     <StoryItem key={story.id}>
                                         <StoryHeader>
                                             <StoryId>{story.id}</StoryId>
-                                            <StoryStatus status="blocked">
-                                                🚫 blocked
+                                            <StoryStatus status="done">
+                                                ✅ done
                                             </StoryStatus>
                                         </StoryHeader>
                                         <StoryTitle>{story.objective}</StoryTitle>
+                                        <ProgressBar>
+                                            <ProgressFill progress={100} status="done" />
+                                        </ProgressBar>
                                         <StoryMeta>
-                                            <span>Dependencies: {story.dependencies?.length || 0}</span>
+                                            <span>👤 {story.owner_id || story.owner}</span>
+                                            <span>{story.actual_tokens || story.estimated_tokens} tokens</span>
                                         </StoryMeta>
                                     </StoryItem>
                                 ))}
                             </ExecutionSection>
                         )}
-
-                        <ExecutionSection>
-                            <SectionTitle>
-                                ✅ Recently Completed ({completedStories.length})
-                            </SectionTitle>
-                            {completedStories.slice(-3).map(story => (
-                                <StoryItem key={story.id}>
-                                    <StoryHeader>
-                                        <StoryId>{story.id}</StoryId>
-                                        <StoryStatus status="done">
-                                            ✅ done
-                                        </StoryStatus>
-                                    </StoryHeader>
-                                    <StoryTitle>{story.objective}</StoryTitle>
-                                    <ProgressBar>
-                                        <ProgressFill progress={100} status="done" />
-                                    </ProgressBar>
-                                    <StoryMeta>
-                                        <span>👤 {story.owner_id || story.owner}</span>
-                                        <span>{story.actual_tokens || story.estimated_tokens} tokens</span>
-                                    </StoryMeta>
-                                </StoryItem>
-                            ))}
-                        </ExecutionSection>
 
                         <div style={{
                             fontSize: '0.7rem',

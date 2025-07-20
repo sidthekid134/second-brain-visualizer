@@ -1,283 +1,107 @@
 {
     "project": {
-        "id": "PR-98765",
-        "name": "Collaborative Project Management App",
-        "description": "A next-generation tool for planning, executing, and tracking engineering projects with real-time collaboration.",
-        "status": "executing",
-        "created_at": "2025-07-01T12:00:00Z",
-        "updated_at": "2025-07-20T16:00:00Z",
+        "id": "proj-2025-enterprise-suite",
+        "name": "Enterprise Suite Platform",
+        "description": "A unified enterprise platform with modular services: authentication, billing, analytics, and collaboration.",
+        "status": "planned",
+        "created_at": "2025-07-21T09:00:00Z",
+        "updated_at": "2025-07-21T09:00:00Z",
         "progress": {
-            "completion_percentage": 54.2
+            "completion_percentage": 0
         },
         "budget": {
-            "limit": 2500,
-            "used": 1125
+            "limit": 10000,
+            "used": 0
         },
         "milestones": [
             {
-                "id": "milestone-setup",
-                "name": "Project Setup",
-                "status": "completed",
-                "stories": [
-                    "story-repo",
-                    "story-env"
-                ],
-                "manager_id": "manager-setup"
-            },
-            {
-                "id": "milestone-backend",
-                "name": "Backend API",
-                "status": "in_progress",
-                "stories": [
-                    "story-auth",
-                    "story-models",
-                    "story-api",
-                    "story-notifications"
-                ],
-                "manager_id": "manager-backend"
-            },
-            {
-                "id": "milestone-frontend",
-                "name": "Frontend App",
-                "status": "in_progress",
-                "stories": [
-                    "story-ui",
-                    "story-dashboard",
-                    "story-editor"
-                ],
-                "manager_id": "manager-frontend"
-            },
-            {
-                "id": "milestone-collab",
-                "name": "Collaboration Features",
+                "id": "ms-auth",
+                "name": "Authentication Service",
                 "status": "planned",
                 "stories": [
-                    "story-activity-feed",
-                    "story-comments",
-                    "story-realtime"
+                    "story-auth-db",
+                    "story-auth-api",
+                    "story-auth-ui"
                 ],
-                "manager_id": "manager-collab"
+                "manager_id": "mgr-auth"
             },
             {
-                "id": "milestone-deployment",
-                "name": "Deployment",
+                "id": "ms-billing",
+                "name": "Billing Module",
                 "status": "planned",
                 "stories": [
-                    "story-ci",
-                    "story-cloud",
-                    "story-monitoring"
+                    "story-billing-db",
+                    "story-billing-api",
+                    "story-billing-ui"
                 ],
-                "manager_id": "manager-devops"
+                "manager_id": "mgr-billing"
+            },
+            {
+                "id": "ms-analytics",
+                "name": "Analytics Engine",
+                "status": "planned",
+                "stories": [
+                    "story-analytics-core",
+                    "story-analytics-api",
+                    "story-analytics-ui"
+                ],
+                "manager_id": "mgr-analytics"
+            },
+            {
+                "id": "ms-collab",
+                "name": "Collaboration Tools",
+                "status": "planned",
+                "stories": [
+                    "story-collab-core",
+                    "story-collab-api",
+                    "story-collab-ui",
+                    "story-collab-realtime"
+                ],
+                "manager_id": "mgr-collab"
+            },
+            {
+                "id": "ms-integration",
+                "name": "Platform Integration & QA",
+                "status": "planned",
+                "stories": [
+                    "story-integration",
+                    "story-e2e-tests",
+                    "story-release-prep"
+                ],
+                "manager_id": "mgr-integration"
             }
         ]
     },
     "stories": [
         {
-            "id": "story-repo",
-            "objective": "Setup repository and version control",
-            "milestone": "Project Setup",
+            "id": "story-auth-db",
+            "objective": "Design authentication DB schema and migrations",
+            "milestone": "Authentication Service",
             "acceptance_criteria": [
-                "Central GitHub repo created",
-                "Branch protection rules in place"
-            ],
-            "status": "done",
-            "owner_id": "engineer-setup1",
-            "dependencies": [],
-            "dependents": [
-                "story-env"
-            ],
-            "implementation_notes": [
-                "Set up GitHub org",
-                "Added CODEOWNERS"
-            ],
-            "blocking_issues": [],
-            "estimated_tokens": 20,
-            "actual_tokens": 15,
-            "complexity_score": 1.0,
-            "created_at": "2025-07-01T12:10:00Z",
-            "updated_at": "2025-07-01T13:00:00Z",
-            "execution": {
-                "current": {
-                    "status": "done",
-                    "started_at": "2025-07-01T12:10:00Z",
-                    "ended_at": "2025-07-01T13:00:00Z",
-                    "duration_seconds": 3000,
-                    "agent_id": "engineer-setup1",
-                    "result": "success",
-                    "messages_count": 7
-                },
-                "history": []
-            }
-        },
-        {
-            "id": "story-env",
-            "objective": "Setup environments and CI/CD",
-            "milestone": "Project Setup",
-            "acceptance_criteria": [
-                "Staging and production environments",
-                "Basic CI pipeline"
-            ],
-            "status": "done",
-            "owner_id": "engineer-setup2",
-            "dependencies": [
-                "story-repo"
-            ],
-            "dependents": [
-                "story-ci"
-            ],
-            "implementation_notes": [
-                "Vercel for frontend, GitHub Actions for backend"
-            ],
-            "blocking_issues": [],
-            "estimated_tokens": 30,
-            "actual_tokens": 28,
-            "complexity_score": 1.5,
-            "created_at": "2025-07-01T13:05:00Z",
-            "updated_at": "2025-07-01T15:00:00Z",
-            "execution": {
-                "current": {
-                    "status": "done",
-                    "started_at": "2025-07-01T13:05:00Z",
-                    "ended_at": "2025-07-01T15:00:00Z",
-                    "duration_seconds": 6900,
-                    "agent_id": "engineer-setup2",
-                    "result": "success",
-                    "messages_count": 8
-                },
-                "history": [
-                    {
-                        "status": "failed",
-                        "started_at": "2025-07-01T13:05:00Z",
-                        "ended_at": "2025-07-01T14:05:00Z",
-                        "duration_seconds": 3600,
-                        "agent_id": "engineer-setup2",
-                        "result": "env-vars-missing",
-                        "messages_count": 5
-                    }
-                ]
-            }
-        },
-        {
-            "id": "story-auth",
-            "objective": "Implement user authentication (JWT, OAuth)",
-            "milestone": "Backend API",
-            "acceptance_criteria": [
-                "Email/password login",
-                "OAuth via Google/GitHub",
-                "JWT token system"
-            ],
-            "status": "in_progress",
-            "owner_id": "engineer-backend1",
-            "dependencies": [
-                "story-env"
-            ],
-            "dependents": [
-                "story-api"
-            ],
-            "implementation_notes": [
-                "Use FastAPI + OAuthlib"
-            ],
-            "blocking_issues": [],
-            "estimated_tokens": 75,
-            "actual_tokens": 40,
-            "complexity_score": 3.0,
-            "created_at": "2025-07-02T09:00:00Z",
-            "updated_at": "2025-07-20T15:55:00Z",
-            "execution": {
-                "current": {
-                    "status": "in_progress",
-                    "started_at": "2025-07-17T08:00:00Z",
-                    "ended_at": null,
-                    "duration_seconds": null,
-                    "agent_id": "engineer-backend1",
-                    "result": null,
-                    "messages_count": 10
-                },
-                "history": [
-                    {
-                        "status": "failed",
-                        "started_at": "2025-07-16T08:00:00Z",
-                        "ended_at": "2025-07-16T18:00:00Z",
-                        "duration_seconds": 36000,
-                        "agent_id": "engineer-backend1",
-                        "result": "tests-failed",
-                        "messages_count": 8
-                    }
-                ]
-            }
-        },
-        {
-            "id": "story-models",
-            "objective": "Define and implement backend models",
-            "milestone": "Backend API",
-            "acceptance_criteria": [
-                "Task, Milestone, User, Comment models",
-                "Unit tests for models"
-            ],
-            "status": "in_progress",
-            "owner_id": "engineer-backend2",
-            "dependencies": [
-                "story-env"
-            ],
-            "dependents": [
-                "story-api",
-                "story-notifications"
-            ],
-            "implementation_notes": [
-                "Use SQLAlchemy ORM"
-            ],
-            "blocking_issues": [],
-            "estimated_tokens": 60,
-            "actual_tokens": 20,
-            "complexity_score": 2.5,
-            "created_at": "2025-07-03T09:00:00Z",
-            "updated_at": "2025-07-18T10:00:00Z",
-            "execution": {
-                "current": {
-                    "status": "in_progress",
-                    "started_at": "2025-07-18T10:00:00Z",
-                    "ended_at": null,
-                    "duration_seconds": null,
-                    "agent_id": "engineer-backend2",
-                    "result": null,
-                    "messages_count": 5
-                },
-                "history": []
-            }
-        },
-        {
-            "id": "story-api",
-            "objective": "Implement REST API endpoints",
-            "milestone": "Backend API",
-            "acceptance_criteria": [
-                "CRUD for all main models",
-                "Error handling",
-                "Swagger/OpenAPI docs"
+                "DB tables for users, tokens, OAuth",
+                "Migration scripts"
             ],
             "status": "planned",
-            "owner_id": "engineer-backend2",
+            "owner_id": "eng-auth1",
             "dependencies": [
-                "story-auth",
-                "story-models"
+                "story-setup-repo",
+                "story-setup-config"
             ],
-            "dependents": [
-                "story-dashboard",
-                "story-editor"
+            "implementation_notes": [
+                "Consider future SSO support"
             ],
-            "implementation_notes": [],
-            "blocking_issues": [],
-            "estimated_tokens": 120,
+            "estimated_tokens": 30,
             "actual_tokens": null,
-            "complexity_score": 3.5,
-            "created_at": "2025-07-03T12:00:00Z",
-            "updated_at": "2025-07-03T12:00:00Z",
+            "complexity_score": 2,
+            "created_at": "2025-07-21T09:10:00Z",
+            "updated_at": "2025-07-21T09:10:00Z",
             "execution": {
                 "current": {
                     "status": "planned",
                     "started_at": null,
                     "ended_at": null,
                     "duration_seconds": null,
-                    "agent_id": "engineer-backend2",
+                    "agent_id": "eng-auth1",
                     "result": null,
                     "messages_count": null
                 },
@@ -285,41 +109,31 @@
             }
         },
         {
-            "id": "story-notifications",
-            "objective": "Implement notification system",
-            "milestone": "Backend API",
+            "id": "story-auth-api",
+            "objective": "Implement authentication API endpoints",
+            "milestone": "Authentication Service",
             "acceptance_criteria": [
-                "In-app and email notifications",
-                "User notification settings"
+                "/login, /register, /reset",
+                "JWT + OAuth"
             ],
-            "status": "blocked",
-            "owner_id": "engineer-backend1",
+            "status": "planned",
+            "owner_id": "eng-auth2",
             "dependencies": [
-                "story-models"
-            ],
-            "dependents": [
-                "story-dashboard"
+                "story-auth-db"
             ],
             "implementation_notes": [],
-            "blocking_issues": [
-                {
-                    "id": "block1",
-                    "description": "Blocked until models are complete",
-                    "status": "open"
-                }
-            ],
             "estimated_tokens": 50,
             "actual_tokens": null,
-            "complexity_score": 2.0,
-            "created_at": "2025-07-04T11:00:00Z",
-            "updated_at": "2025-07-10T11:00:00Z",
+            "complexity_score": 3,
+            "created_at": "2025-07-21T09:11:00Z",
+            "updated_at": "2025-07-21T09:11:00Z",
             "execution": {
                 "current": {
-                    "status": "blocked",
+                    "status": "planned",
                     "started_at": null,
                     "ended_at": null,
                     "duration_seconds": null,
-                    "agent_id": "engineer-backend1",
+                    "agent_id": "eng-auth2",
                     "result": null,
                     "messages_count": null
                 },
@@ -327,71 +141,444 @@
             }
         },
         {
-            "id": "story-ui",
-            "objective": "Design and build UI component library",
-            "milestone": "Frontend App",
+            "id": "story-auth-ui",
+            "objective": "Create authentication UI flows",
+            "milestone": "Authentication Service",
             "acceptance_criteria": [
-                "Reusable components for inputs, lists, forms, status",
-                "Documentation"
-            ],
-            "status": "done",
-            "owner_id": "engineer-frontend1",
-            "dependencies": [],
-            "dependents": [
-                "story-dashboard",
-                "story-editor"
-            ],
-            "implementation_notes": [
-                "Used shadcn/ui + custom themes"
-            ],
-            "blocking_issues": [],
-            "estimated_tokens": 90,
-            "actual_tokens": 90,
-            "complexity_score": 2.5,
-            "created_at": "2025-07-01T13:30:00Z",
-            "updated_at": "2025-07-15T10:00:00Z",
-            "execution": {
-                "current": {
-                    "status": "done",
-                    "started_at": "2025-07-10T08:00:00Z",
-                    "ended_at": "2025-07-15T10:00:00Z",
-                    "duration_seconds": 432000,
-                    "agent_id": "engineer-frontend1",
-                    "result": "success",
-                    "messages_count": 18
-                },
-                "history": []
-            }
-        },
-        {
-            "id": "story-dashboard",
-            "objective": "Implement main dashboard UI",
-            "milestone": "Frontend App",
-            "acceptance_criteria": [
-                "Dashboard page with overview, stats, filtering"
+                "Login/register forms",
+                "Reset password flow"
             ],
             "status": "planned",
-            "owner_id": "engineer-frontend2",
+            "owner_id": "eng-auth3",
             "dependencies": [
-                "story-api",
-                "story-ui",
-                "story-notifications"
+                "story-auth-api"
             ],
-            "dependents": [],
             "implementation_notes": [],
-            "blocking_issues": [],
-            "estimated_tokens": 60,
+            "estimated_tokens": 40,
             "actual_tokens": null,
-            "complexity_score": 2.0,
-            "created_at": "2025-07-13T14:00:00Z",
-            "updated_at": "2025-07-13T14:00:00Z",
+            "complexity_score": 2,
+            "created_at": "2025-07-21T09:12:00Z",
+            "updated_at": "2025-07-21T09:12:00Z",
             "execution": {
                 "current": {
                     "status": "planned",
                     "started_at": null,
                     "ended_at": null,
                     "duration_seconds": null,
-                    "agent_id": "engineer-frontend2",
+                    "agent_id": "eng-auth3",
+                    "result": null,
+                    "messages_count": null
+                },
+                "history": []
+            }
+        },
+        {
+            "id": "story-billing-db",
+            "objective": "Create billing DB schema",
+            "milestone": "Billing Module",
+            "acceptance_criteria": [
+                "Invoice, payment, subscription tables"
+            ],
+            "status": "planned",
+            "owner_id": "eng-billing1",
+            "dependencies": [],
+            "implementation_notes": [
+                "Stripe integration planned"
+            ],
+            "estimated_tokens": 28,
+            "actual_tokens": null,
+            "complexity_score": 2,
+            "created_at": "2025-07-21T09:13:00Z",
+            "updated_at": "2025-07-21T09:13:00Z",
+            "execution": {
+                "current": {
+                    "status": "planned",
+                    "started_at": null,
+                    "ended_at": null,
+                    "duration_seconds": null,
+                    "agent_id": "eng-billing1",
+                    "result": null,
+                    "messages_count": null
+                },
+                "history": []
+            }
+        },
+        {
+            "id": "story-billing-api",
+            "objective": "Develop billing API endpoints",
+            "milestone": "Billing Module",
+            "acceptance_criteria": [
+                "CRUD for invoices/payments",
+                "Webhook for Stripe"
+            ],
+            "status": "planned",
+            "owner_id": "eng-billing2",
+            "dependencies": [
+                "story-billing-db"
+            ],
+            "implementation_notes": [],
+            "estimated_tokens": 38,
+            "actual_tokens": null,
+            "complexity_score": 2,
+            "created_at": "2025-07-21T09:14:00Z",
+            "updated_at": "2025-07-21T09:14:00Z",
+            "execution": {
+                "current": {
+                    "status": "planned",
+                    "started_at": null,
+                    "ended_at": null,
+                    "duration_seconds": null,
+                    "agent_id": "eng-billing2",
+                    "result": null,
+                    "messages_count": null
+                },
+                "history": []
+            }
+        },
+        {
+            "id": "story-billing-ui",
+            "objective": "Design billing UI pages",
+            "milestone": "Billing Module",
+            "acceptance_criteria": [
+                "Payment forms",
+                "Invoices dashboard"
+            ],
+            "status": "planned",
+            "owner_id": "eng-billing3",
+            "dependencies": [
+                "story-billing-api"
+            ],
+            "implementation_notes": [],
+            "estimated_tokens": 30,
+            "actual_tokens": null,
+            "complexity_score": 1.5,
+            "created_at": "2025-07-21T09:15:00Z",
+            "updated_at": "2025-07-21T09:15:00Z",
+            "execution": {
+                "current": {
+                    "status": "planned",
+                    "started_at": null,
+                    "ended_at": null,
+                    "duration_seconds": null,
+                    "agent_id": "eng-billing3",
+                    "result": null,
+                    "messages_count": null
+                },
+                "history": []
+            }
+        },
+        {
+            "id": "story-analytics-core",
+            "objective": "Implement analytics data pipeline",
+            "milestone": "Analytics Engine",
+            "acceptance_criteria": [
+                "Data ingestion scripts",
+                "Storage for logs/metrics"
+            ],
+            "status": "planned",
+            "owner_id": "eng-analytics1",
+            "dependencies": [],
+            "implementation_notes": [],
+            "estimated_tokens": 40,
+            "actual_tokens": null,
+            "complexity_score": 3,
+            "created_at": "2025-07-21T09:16:00Z",
+            "updated_at": "2025-07-21T09:16:00Z",
+            "execution": {
+                "current": {
+                    "status": "planned",
+                    "started_at": null,
+                    "ended_at": null,
+                    "duration_seconds": null,
+                    "agent_id": "eng-analytics1",
+                    "result": null,
+                    "messages_count": null
+                },
+                "history": []
+            }
+        },
+        {
+            "id": "story-analytics-api",
+            "objective": "Develop analytics API endpoints",
+            "milestone": "Analytics Engine",
+            "acceptance_criteria": [
+                "Query logs",
+                "User metrics endpoint"
+            ],
+            "status": "planned",
+            "owner_id": "eng-analytics2",
+            "dependencies": [
+                "story-analytics-core"
+            ],
+            "implementation_notes": [],
+            "estimated_tokens": 35,
+            "actual_tokens": null,
+            "complexity_score": 2,
+            "created_at": "2025-07-21T09:17:00Z",
+            "updated_at": "2025-07-21T09:17:00Z",
+            "execution": {
+                "current": {
+                    "status": "planned",
+                    "started_at": null,
+                    "ended_at": null,
+                    "duration_seconds": null,
+                    "agent_id": "eng-analytics2",
+                    "result": null,
+                    "messages_count": null
+                },
+                "history": []
+            }
+        },
+        {
+            "id": "story-analytics-ui",
+            "objective": "Build analytics dashboard UI",
+            "milestone": "Analytics Engine",
+            "acceptance_criteria": [
+                "Interactive charts",
+                "Filter by time/user"
+            ],
+            "status": "planned",
+            "owner_id": "eng-analytics3",
+            "dependencies": [
+                "story-analytics-api"
+            ],
+            "implementation_notes": [],
+            "estimated_tokens": 40,
+            "actual_tokens": null,
+            "complexity_score": 2.5,
+            "created_at": "2025-07-21T09:18:00Z",
+            "updated_at": "2025-07-21T09:18:00Z",
+            "execution": {
+                "current": {
+                    "status": "planned",
+                    "started_at": null,
+                    "ended_at": null,
+                    "duration_seconds": null,
+                    "agent_id": "eng-analytics3",
+                    "result": null,
+                    "messages_count": null
+                },
+                "history": []
+            }
+        },
+        {
+            "id": "story-collab-core",
+            "objective": "Core collaboration logic and data model",
+            "milestone": "Collaboration Tools",
+            "acceptance_criteria": [
+                "Workspace/channel model",
+                "User role assignments"
+            ],
+            "status": "planned",
+            "owner_id": "eng-collab1",
+            "dependencies": [],
+            "implementation_notes": [],
+            "estimated_tokens": 45,
+            "actual_tokens": null,
+            "complexity_score": 2,
+            "created_at": "2025-07-21T09:19:00Z",
+            "updated_at": "2025-07-21T09:19:00Z",
+            "execution": {
+                "current": {
+                    "status": "planned",
+                    "started_at": null,
+                    "ended_at": null,
+                    "duration_seconds": null,
+                    "agent_id": "eng-collab1",
+                    "result": null,
+                    "messages_count": null
+                },
+                "history": []
+            }
+        },
+        {
+            "id": "story-collab-api",
+            "objective": "Develop collaboration API",
+            "milestone": "Collaboration Tools",
+            "acceptance_criteria": [
+                "API for messages, files, reactions"
+            ],
+            "status": "planned",
+            "owner_id": "eng-collab2",
+            "dependencies": [
+                "story-collab-core"
+            ],
+            "implementation_notes": [],
+            "estimated_tokens": 55,
+            "actual_tokens": null,
+            "complexity_score": 2.5,
+            "created_at": "2025-07-21T09:20:00Z",
+            "updated_at": "2025-07-21T09:20:00Z",
+            "execution": {
+                "current": {
+                    "status": "planned",
+                    "started_at": null,
+                    "ended_at": null,
+                    "duration_seconds": null,
+                    "agent_id": "eng-collab2",
+                    "result": null,
+                    "messages_count": null
+                },
+                "history": []
+            }
+        },
+        {
+            "id": "story-collab-ui",
+            "objective": "Build collaboration UI components",
+            "milestone": "Collaboration Tools",
+            "acceptance_criteria": [
+                "Chat window",
+                "File upload"
+            ],
+            "status": "planned",
+            "owner_id": "eng-collab3",
+            "dependencies": [
+                "story-collab-api"
+            ],
+            "implementation_notes": [],
+            "estimated_tokens": 42,
+            "actual_tokens": null,
+            "complexity_score": 2,
+            "created_at": "2025-07-21T09:21:00Z",
+            "updated_at": "2025-07-21T09:21:00Z",
+            "execution": {
+                "current": {
+                    "status": "planned",
+                    "started_at": null,
+                    "ended_at": null,
+                    "duration_seconds": null,
+                    "agent_id": "eng-collab3",
+                    "result": null,
+                    "messages_count": null
+                },
+                "history": []
+            }
+        },
+        {
+            "id": "story-collab-realtime",
+            "objective": "Enable real-time updates (WebSocket/Push)",
+            "milestone": "Collaboration Tools",
+            "acceptance_criteria": [
+                "Real-time chat",
+                "Presence indicators"
+            ],
+            "status": "planned",
+            "owner_id": "eng-collab4",
+            "dependencies": [
+                "story-collab-core"
+            ],
+            "implementation_notes": [],
+            "estimated_tokens": 36,
+            "actual_tokens": null,
+            "complexity_score": 2.5,
+            "created_at": "2025-07-21T09:22:00Z",
+            "updated_at": "2025-07-21T09:22:00Z",
+            "execution": {
+                "current": {
+                    "status": "planned",
+                    "started_at": null,
+                    "ended_at": null,
+                    "duration_seconds": null,
+                    "agent_id": "eng-collab4",
+                    "result": null,
+                    "messages_count": null
+                },
+                "history": []
+            }
+        },
+        {
+            "id": "story-integration",
+            "objective": "Integrate all modules into single platform",
+            "milestone": "Platform Integration & QA",
+            "acceptance_criteria": [
+                "Unified UI",
+                "Single sign-on across services"
+            ],
+            "status": "planned",
+            "owner_id": "eng-integration1",
+            "dependencies": [
+                "story-auth-ui",
+                "story-billing-ui",
+                "story-analytics-ui",
+                "story-collab-ui"
+            ],
+            "implementation_notes": [],
+            "estimated_tokens": 60,
+            "actual_tokens": null,
+            "complexity_score": 3.5,
+            "created_at": "2025-07-21T09:23:00Z",
+            "updated_at": "2025-07-21T09:23:00Z",
+            "execution": {
+                "current": {
+                    "status": "planned",
+                    "started_at": null,
+                    "ended_at": null,
+                    "duration_seconds": null,
+                    "agent_id": "eng-integration1",
+                    "result": null,
+                    "messages_count": null
+                },
+                "history": []
+            }
+        },
+        {
+            "id": "story-e2e-tests",
+            "objective": "Create and run end-to-end test suite",
+            "milestone": "Platform Integration & QA",
+            "acceptance_criteria": [
+                "Cypress or Playwright tests",
+                "Test coverage > 85%"
+            ],
+            "status": "planned",
+            "owner_id": "eng-integration2",
+            "dependencies": [
+                "story-integration"
+            ],
+            "implementation_notes": [],
+            "estimated_tokens": 25,
+            "actual_tokens": null,
+            "complexity_score": 2.5,
+            "created_at": "2025-07-21T09:24:00Z",
+            "updated_at": "2025-07-21T09:24:00Z",
+            "execution": {
+                "current": {
+                    "status": "planned",
+                    "started_at": null,
+                    "ended_at": null,
+                    "duration_seconds": null,
+                    "agent_id": "eng-integration2",
+                    "result": null,
+                    "messages_count": null
+                },
+                "history": []
+            }
+        },
+        {
+            "id": "story-release-prep",
+            "objective": "Prep for production release",
+            "milestone": "Platform Integration & QA",
+            "acceptance_criteria": [
+                "Deployment scripts",
+                "Documentation"
+            ],
+            "status": "planned",
+            "owner_id": "eng-integration3",
+            "dependencies": [
+                "story-e2e-tests"
+            ],
+            "implementation_notes": [],
+            "estimated_tokens": 20,
+            "actual_tokens": null,
+            "complexity_score": 1.5,
+            "created_at": "2025-07-21T09:25:00Z",
+            "updated_at": "2025-07-21T09:25:00Z",
+            "execution": {
+                "current": {
+                    "status": "planned",
+                    "started_at": null,
+                    "ended_at": null,
+                    "duration_seconds": null,
+                    "agent_id": "eng-integration3",
                     "result": null,
                     "messages_count": null
                 },
@@ -402,136 +589,269 @@
     "agents": [
         {
             "id": "conductor-1",
-            "name": "Project Conductor",
+            "name": "Conductor",
             "role": "conductor",
             "manager_id": null,
             "reports": [
-                "manager-setup",
-                "manager-backend",
-                "manager-frontend",
-                "manager-collab",
-                "manager-devops"
-            ]
+                "mgr-auth",
+                "mgr-billing",
+                "mgr-analytics",
+                "mgr-collab",
+                "mgr-integration"
+            ],
+            "milestone_ids": [],
+            "assigned_story_ids": []
         },
         {
-            "id": "manager-setup",
-            "name": "Manager: Setup",
+            "id": "mgr-auth",
+            "name": "Manager: Auth",
             "role": "manager",
             "manager_id": "conductor-1",
             "reports": [
-                "engineer-setup1",
-                "engineer-setup2"
+                "eng-auth1",
+                "eng-auth2",
+                "eng-auth3"
             ],
             "milestone_ids": [
-                "milestone-setup"
-            ]
+                "ms-auth"
+            ],
+            "assigned_story_ids": []
         },
         {
-            "id": "engineer-setup1",
-            "name": "Engineer: Repo",
+            "id": "eng-auth1",
+            "name": "Engineer: Auth DB",
             "role": "engineer",
-            "manager_id": "manager-setup",
+            "manager_id": "mgr-auth",
             "reports": [],
+            "milestone_ids": [],
             "assigned_story_ids": [
-                "story-repo"
+                "story-auth-db"
             ]
         },
         {
-            "id": "engineer-setup2",
-            "name": "Engineer: Env",
+            "id": "eng-auth2",
+            "name": "Engineer: Auth API",
             "role": "engineer",
-            "manager_id": "manager-setup",
+            "manager_id": "mgr-auth",
             "reports": [],
+            "milestone_ids": [],
             "assigned_story_ids": [
-                "story-env"
+                "story-auth-api"
             ]
         },
         {
-            "id": "manager-backend",
-            "name": "Manager: Backend",
+            "id": "eng-auth3",
+            "name": "Engineer: Auth UI",
+            "role": "engineer",
+            "manager_id": "mgr-auth",
+            "reports": [],
+            "milestone_ids": [],
+            "assigned_story_ids": [
+                "story-auth-ui"
+            ]
+        },
+        {
+            "id": "mgr-billing",
+            "name": "Manager: Billing",
             "role": "manager",
             "manager_id": "conductor-1",
             "reports": [
-                "engineer-backend1",
-                "engineer-backend2"
+                "eng-billing1",
+                "eng-billing2",
+                "eng-billing3"
             ],
             "milestone_ids": [
-                "milestone-backend"
-            ]
+                "ms-billing"
+            ],
+            "assigned_story_ids": []
         },
         {
-            "id": "engineer-backend1",
-            "name": "Engineer: Backend Auth/Notif",
+            "id": "eng-billing1",
+            "name": "Engineer: Billing DB",
             "role": "engineer",
-            "manager_id": "manager-backend",
+            "manager_id": "mgr-billing",
             "reports": [],
+            "milestone_ids": [],
             "assigned_story_ids": [
-                "story-auth",
-                "story-notifications"
+                "story-billing-db"
             ]
         },
         {
-            "id": "engineer-backend2",
-            "name": "Engineer: Backend Models/API",
+            "id": "eng-billing2",
+            "name": "Engineer: Billing API",
             "role": "engineer",
-            "manager_id": "manager-backend",
+            "manager_id": "mgr-billing",
             "reports": [],
+            "milestone_ids": [],
             "assigned_story_ids": [
-                "story-models",
-                "story-api"
+                "story-billing-api"
             ]
         },
         {
-            "id": "manager-frontend",
-            "name": "Manager: Frontend",
+            "id": "eng-billing3",
+            "name": "Engineer: Billing UI",
+            "role": "engineer",
+            "manager_id": "mgr-billing",
+            "reports": [],
+            "milestone_ids": [],
+            "assigned_story_ids": [
+                "story-billing-ui"
+            ]
+        },
+        {
+            "id": "mgr-analytics",
+            "name": "Manager: Analytics",
             "role": "manager",
             "manager_id": "conductor-1",
             "reports": [
-                "engineer-frontend1",
-                "engineer-frontend2"
+                "eng-analytics1",
+                "eng-analytics2",
+                "eng-analytics3"
             ],
             "milestone_ids": [
-                "milestone-frontend"
-            ]
+                "ms-analytics"
+            ],
+            "assigned_story_ids": []
         },
         {
-            "id": "engineer-frontend1",
-            "name": "Engineer: UI",
+            "id": "eng-analytics1",
+            "name": "Engineer: Analytics Core",
             "role": "engineer",
-            "manager_id": "manager-frontend",
+            "manager_id": "mgr-analytics",
             "reports": [],
+            "milestone_ids": [],
             "assigned_story_ids": [
-                "story-ui"
+                "story-analytics-core"
             ]
         },
         {
-            "id": "engineer-frontend2",
-            "name": "Engineer: Dashboard",
+            "id": "eng-analytics2",
+            "name": "Engineer: Analytics API",
             "role": "engineer",
-            "manager_id": "manager-frontend",
+            "manager_id": "mgr-analytics",
             "reports": [],
+            "milestone_ids": [],
             "assigned_story_ids": [
-                "story-dashboard"
+                "story-analytics-api"
             ]
         },
         {
-            "id": "manager-collab",
+            "id": "eng-analytics3",
+            "name": "Engineer: Analytics UI",
+            "role": "engineer",
+            "manager_id": "mgr-analytics",
+            "reports": [],
+            "milestone_ids": [],
+            "assigned_story_ids": [
+                "story-analytics-ui"
+            ]
+        },
+        {
+            "id": "mgr-collab",
             "name": "Manager: Collaboration",
             "role": "manager",
             "manager_id": "conductor-1",
-            "reports": [],
+            "reports": [
+                "eng-collab1",
+                "eng-collab2",
+                "eng-collab3",
+                "eng-collab4"
+            ],
             "milestone_ids": [
-                "milestone-collab"
+                "ms-collab"
+            ],
+            "assigned_story_ids": []
+        },
+        {
+            "id": "eng-collab1",
+            "name": "Engineer: Collab Core",
+            "role": "engineer",
+            "manager_id": "mgr-collab",
+            "reports": [],
+            "milestone_ids": [],
+            "assigned_story_ids": [
+                "story-collab-core"
             ]
         },
         {
-            "id": "manager-devops",
-            "name": "Manager: DevOps",
+            "id": "eng-collab2",
+            "name": "Engineer: Collab API",
+            "role": "engineer",
+            "manager_id": "mgr-collab",
+            "reports": [],
+            "milestone_ids": [],
+            "assigned_story_ids": [
+                "story-collab-api"
+            ]
+        },
+        {
+            "id": "eng-collab3",
+            "name": "Engineer: Collab UI",
+            "role": "engineer",
+            "manager_id": "mgr-collab",
+            "reports": [],
+            "milestone_ids": [],
+            "assigned_story_ids": [
+                "story-collab-ui"
+            ]
+        },
+        {
+            "id": "eng-collab4",
+            "name": "Engineer: Collab Realtime",
+            "role": "engineer",
+            "manager_id": "mgr-collab",
+            "reports": [],
+            "milestone_ids": [],
+            "assigned_story_ids": [
+                "story-collab-realtime"
+            ]
+        },
+        {
+            "id": "mgr-integration",
+            "name": "Manager: Integration",
             "role": "manager",
             "manager_id": "conductor-1",
-            "reports": [],
+            "reports": [
+                "eng-integration1",
+                "eng-integration2",
+                "eng-integration3"
+            ],
             "milestone_ids": [
-                "milestone-deployment"
+                "ms-integration"
+            ],
+            "assigned_story_ids": []
+        },
+        {
+            "id": "eng-integration1",
+            "name": "Engineer: Integration",
+            "role": "engineer",
+            "manager_id": "mgr-integration",
+            "reports": [],
+            "milestone_ids": [],
+            "assigned_story_ids": [
+                "story-integration"
+            ]
+        },
+        {
+            "id": "eng-integration2",
+            "name": "Engineer: E2E Tests",
+            "role": "engineer",
+            "manager_id": "mgr-integration",
+            "reports": [],
+            "milestone_ids": [],
+            "assigned_story_ids": [
+                "story-e2e-tests"
+            ]
+        },
+        {
+            "id": "eng-integration3",
+            "name": "Engineer: Release Prep",
+            "role": "engineer",
+            "manager_id": "mgr-integration",
+            "reports": [],
+            "milestone_ids": [],
+            "assigned_story_ids": [
+                "story-release-prep"
             ]
         }
     ]

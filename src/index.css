@@ -68,24 +68,18 @@ code {
 
 /* Status colors */
 .status-planned {
-    background-color: #e3f2fd;
-    border-color: #2196f3;
+    background: #f3f4f6;
+    color: #6b7280;
 }
 
-.status-in-progress {
-    background-color: #fff3e0;
-    border-color: #ff9800;
+.status-in_progress {
+    background: #fef3c7;
+    color: #f59e0b;
 }
 
-.status-completed,
 .status-done {
-    background-color: #e8f5e8;
-    border-color: #4caf50;
-}
-
-.status-blocked {
-    background-color: #ffebee;
-    border-color: #f44336;
+    background: #d1fae5;
+    color: #10b981;
 }
 
 .status-cancelled {

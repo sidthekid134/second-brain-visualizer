@@ -156,7 +156,6 @@
                     "enum": [
                         "planned",
                         "in_progress",
-                        "blocked",
                         "done",
                         "cancelled"
                     ]
@@ -170,22 +169,10 @@
                         "type": "string"
                     }
                 },
-                "dependents": {
-                    "type": "array",
-                    "items": {
-                        "type": "string"
-                    }
-                },
                 "implementation_notes": {
                     "type": "array",
                     "items": {
                         "type": "string"
-                    }
-                },
-                "blocking_issues": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/blocking_issue"
                     }
                 },
                 "estimated_tokens": {
@@ -226,9 +213,7 @@
                 "status",
                 "owner_id",
                 "dependencies",
-                "dependents",
                 "implementation_notes",
-                "blocking_issues",
                 "created_at",
                 "updated_at",
                 "execution"
@@ -260,7 +245,6 @@
                     "enum": [
                         "planned",
                         "in_progress",
-                        "blocked",
                         "done",
                         "failed"
                     ]
@@ -304,29 +288,6 @@
             "required": [
                 "status",
                 "agent_id"
-            ]
-        },
-        "blocking_issue": {
-            "type": "object",
-            "properties": {
-                "id": {
-                    "type": "string"
-                },
-                "description": {
-                    "type": "string"
-                },
-                "status": {
-                    "type": "string",
-                    "enum": [
-                        "open",
-                        "resolved"
-                    ]
-                }
-            },
-            "required": [
-                "id",
-                "description",
-                "status"
             ]
         },
         "agent": {

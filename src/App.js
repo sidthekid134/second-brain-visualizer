@@ -90,71 +90,71 @@ const StatusDot = styled.div`
   height: 8px;
   border-radius: 50%;
   background-color: ${props => {
-        switch (props.status) {
-            case 'connected': return '#27ae60';
-            case 'loading': return '#f39c12';
-            case 'error': return '#e74c3c';
-            default: return '#95a5a6';
-        }
-    }};
+    switch (props.status) {
+      case 'connected': return '#27ae60';
+      case 'loading': return '#f39c12';
+      case 'error': return '#e74c3c';
+      default: return '#95a5a6';
+    }
+  }};
 `;
 
 function App() {
-    const [activeTab, setActiveTab] = useState('editor');
-    const [connectionStatus, setConnectionStatus] = useState('connected');
-    const [lastUpdate, setLastUpdate] = useState(new Date());
+  const [activeTab, setActiveTab] = useState('execution');
+  const [connectionStatus, setConnectionStatus] = useState('connected');
+  const [lastUpdate, setLastUpdate] = useState(new Date());
 
-    useEffect(() => {
-        // Simulate live updates
-        const interval = setInterval(() => {
-            setLastUpdate(new Date());
-        }, 30000); // Update every 30 seconds
+  useEffect(() => {
+    // Simulate live updates
+    const interval = setInterval(() => {
+      setLastUpdate(new Date());
+    }, 30000); // Update every 30 seconds
 
-        return () => clearInterval(interval);
-    }, []);
+    return () => clearInterval(interval);
+  }, []);
 
-    const tabs = [
-        { id: 'editor', label: 'Plan Editor', component: PlanEditor },
-        { id: 'execution', label: 'Live Execution', component: LiveExecution },
-        { id: 'ideas', label: 'Idea Builder', component: IdeaBuilder }
-    ];
+  const tabs = [
+    { id: 'editor', label: 'Plan Editor', component: PlanEditor },
+    { id: 'execution', label: 'Live Execution', component: LiveExecution },
+    { id: 'ideas', label: 'Idea Builder', component: IdeaBuilder }
+  ];
 
-    const ActiveComponent = tabs.find(tab => tab.id === activeTab)?.component;
+  const ActiveComponent = tabs.find(tab => tab.id === activeTab)?.component;
 
-    return (
-        <PlanProvider>
-            <AppContainer>
-                <Header>
-                    <Title>Second Brain Visualizer</Title>
-                    <Subtitle>Project execution planning and monitoring platform</Subtitle>
-                </Header>
+  return (
+    <PlanProvider>
+      <AppContainer>
+        <Header>
+          <Title>Second Brain Visualizer</Title>
+          <Subtitle>Project execution planning and monitoring platform</Subtitle>
+        </Header>
 
-                <TabContainer>
-                    {tabs.map(tab => (
-                        <Tab
-                            key={tab.id}
-                            active={activeTab === tab.id}
-                            onClick={() => setActiveTab(tab.id)}
-                        >
-                            {tab.label}
-                        </Tab>
-                    ))}
-                </TabContainer>
+        <TabContainer>
+          {tabs.map(tab => (
+            <Tab
+              key={tab.id}
+              active={activeTab === tab.id}
+              onClick={() => setActiveTab(tab.id)}
+            >
+              {tab.label}
+            </Tab>
+          ))}
+        </TabContainer>
 
-                <ContentArea>
-                    {ActiveComponent && <ActiveComponent />}
-                </ContentArea>
+        <ContentArea>
+          {ActiveComponent && <ActiveComponent />}
+        </ContentArea>
 
-                <StatusBar>
-                    <StatusIndicator>
-                        <StatusDot status={connectionStatus} />
-                        Status: {connectionStatus}
-                    </StatusIndicator>
-                    <span>Last updated: {lastUpdate.toLocaleTimeString()}</span>
-                </StatusBar>
-            </AppContainer>
-        </PlanProvider>
-    );
+        <StatusBar>
+          <StatusIndicator>
+            <StatusDot status={connectionStatus} />
+            Status: {connectionStatus}
+          </StatusIndicator>
+          <span>Last updated: {lastUpdate.toLocaleTimeString()}</span>
+        </StatusBar>
+      </AppContainer>
+    </PlanProvider>
+  );
 }
 
 export default App; 

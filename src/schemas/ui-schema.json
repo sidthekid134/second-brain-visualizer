@@ -39,11 +39,6 @@
                                 "color": "#f59e0b"
                             },
                             {
-                                "value": "blocked",
-                                "label": "🚫 Blocked",
-                                "color": "#ef4444"
-                            },
-                            {
                                 "value": "done",
                                 "label": "✅ Done",
                                 "color": "#10b981"
@@ -123,13 +118,6 @@
                         "label": "Dependencies",
                         "type": "story_multiselect",
                         "description": "Stories that must be completed before this one can start"
-                    },
-                    {
-                        "key": "dependents",
-                        "label": "Dependents",
-                        "type": "story_multiselect",
-                        "readonly": true,
-                        "description": "Stories that depend on this one (auto-calculated)"
                     }
                 ]
             },
@@ -144,13 +132,6 @@
                         "itemType": "text",
                         "description": "Technical notes and implementation details",
                         "placeholder": "Add implementation note..."
-                    },
-                    {
-                        "key": "blocking_issues",
-                        "label": "Blocking Issues",
-                        "type": "array",
-                        "itemType": "blocking_issue",
-                        "description": "Issues that are preventing progress"
                     }
                 ]
             }
@@ -350,49 +331,13 @@
             }
         ]
     },
-    "blocking_issue": {
-        "title": "Blocking Issue",
-        "fields": [
-            {
-                "key": "id",
-                "label": "Issue ID",
-                "type": "text",
-                "readonly": true
-            },
-            {
-                "key": "description",
-                "label": "Description",
-                "type": "textarea",
-                "required": true,
-                "placeholder": "Describe what is blocking progress"
-            },
-            {
-                "key": "status",
-                "label": "Status",
-                "type": "select",
-                "options": [
-                    {
-                        "value": "open",
-                        "label": "🔴 Open"
-                    },
-                    {
-                        "value": "resolved",
-                        "label": "✅ Resolved"
-                    }
-                ]
-            }
-        ]
-    },
     "ui_config": {
         "colors": {
             "status": {
-                "planned": "#6b7280",
                 "in_progress": "#f59e0b",
-                "blocked": "#ef4444",
                 "done": "#10b981",
-                "completed": "#10b981",
-                "cancelled": "#6b7280",
-                "on_hold": "#f59e0b"
+                "planned": "#6b7280",
+                "cancelled": "#ef4444"
             },
             "complexity": {
                 "1-2": "#10b981",
@@ -403,15 +348,10 @@
             }
         },
         "icons": {
-            "status": {
-                "planned": "📋",
-                "in_progress": "🔄",
-                "blocked": "🚫",
-                "done": "✅",
-                "completed": "✅",
-                "cancelled": "❌",
-                "on_hold": "⏸️"
-            }
+            "planned": "📋",
+            "in_progress": "🔄",
+            "done": "✅",
+            "cancelled": "❌"
         }
     }
 }

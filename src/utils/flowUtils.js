@@ -27,7 +27,8 @@ export function createFlowData(planData, direction = 'TB') {
                 ...story,
                 type: 'story',
                 milestone_info: milestone,
-                milestone_color: milestoneColor
+                milestone_color: milestoneColor,
+                layoutDirection: direction // Pass layout direction to node
             },
             draggable: true,
             selectable: true,
@@ -48,7 +49,7 @@ export function createFlowData(planData, direction = 'TB') {
                 style: {
                     stroke: story.status === 'in_progress' ? '#f59e0b' : '#64748b',
                     strokeWidth: story.status === 'in_progress' ? 3 : 2,
-                    strokeDasharray: story.status === 'blocked' ? '5,5' : 'none'
+                    strokeDasharray: story.status === 'done' ? 'none' : 'none'
                 },
                 markerEnd: {
                     type: 'arrowclosed',
@@ -78,7 +79,7 @@ export function getLayoutedElements(nodes, edges, direction = 'TB') {
     dagreGraph.setGraph({
         rankdir: direction,
         nodesep: 60,
-        ranksep: 120,
+        ranksep: 200,
         marginx: 50,
         marginy: 50
     });
@@ -139,21 +140,13 @@ export function getStatusColor(status) {
     switch (status) {
         case 'done':
         case 'completed':
-            return '#10b981';
+            return '#10b981'; // green
         case 'in_progress':
-            return '#f59e0b';
-        case 'blocked':
-            return '#ef4444';
+            return '#f59e0b'; // amber
         case 'planned':
-            return '#6b7280';
-        case 'cancelled':
-            return '#9ca3af';
-        case 'on_hold':
-            return '#ec4899';
-        case 'failed':
-            return '#dc2626';
+            return '#6b7280'; // gray
         default:
-            return '#94a3b8';
+            return '#94a3b8'; // light gray
     }
 }
 
@@ -164,18 +157,10 @@ export function getStatusIcon(status) {
             return '✅';
         case 'in_progress':
             return '🔄';
-        case 'blocked':
-            return '🚫';
         case 'planned':
             return '📋';
-        case 'cancelled':
-            return '❌';
-        case 'on_hold':
-            return '⏸️';
-        case 'failed':
-            return '💥';
         default:
-            return '📝';
+            return '❓';
     }
 }
 

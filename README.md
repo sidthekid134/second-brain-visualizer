@@ -66,7 +66,6 @@ src/
 
 ### Status Badges
 - **Ready**: Green
-- **Blocked**: Red
 - **In Progress**: Yellow
 - **Completed**: Blue
 
@@ -97,7 +96,7 @@ The application expects JSON files in the following format:
       "id": "STORY-ID",
       "objective": "Story objective",
       "dependencies": ["OTHER-STORY-ID"],
-      "status": "ready|blocked|in_progress|completed",
+      "status": "planned|in_progress|done|cancelled",
       "priority": "high|medium|low",
       "milestone": "Milestone Name"
     }

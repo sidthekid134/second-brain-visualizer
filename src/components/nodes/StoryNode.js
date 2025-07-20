@@ -186,8 +186,14 @@ function StoryNode({ data, selected, isExecutionView = false }) {
     actual_tokens,
     acceptance_criteria = [],
     milestone_info,
-    milestone_color
+    milestone_color,
+    layoutDirection = 'TB' // Default to top-bottom if not provided
   } = data;
+
+  // Determine handle positions based on layout direction
+  const isHorizontalLayout = layoutDirection === 'LR' || layoutDirection === 'RL';
+  const targetPosition = isHorizontalLayout ? Position.Left : Position.Top;
+  const sourcePosition = isHorizontalLayout ? Position.Right : Position.Bottom;
 
   const progress = acceptance_criteria.length > 0 ?
     Math.round((acceptance_criteria.filter(Boolean).length / acceptance_criteria.length) * 100) :
@@ -202,7 +208,7 @@ function StoryNode({ data, selected, isExecutionView = false }) {
 
       <Handle
         type="target"
-        position={Position.Top}
+        position={targetPosition}
         style={{
           background: shouldShowStatus ? getStatusColor(status) : '#94a3b8',
           border: '2px solid white',
@@ -267,7 +273,7 @@ function StoryNode({ data, selected, isExecutionView = false }) {
 
       <Handle
         type="source"
-        position={Position.Bottom}
+        position={sourcePosition}
         style={{
           background: shouldShowStatus ? getStatusColor(status) : '#94a3b8',
           border: '2px solid white',

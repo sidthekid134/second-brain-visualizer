@@ -120,9 +120,7 @@ function ToolbarPanel({
 }) {
   const layoutOptions = [
     { value: 'TB', label: '⬇️ Top-Bottom', icon: '⬇️' },
-    { value: 'BT', label: '⬆️ Bottom-Top', icon: '⬆️' },
-    { value: 'LR', label: '➡️ Left-Right', icon: '➡️' },
-    { value: 'RL', label: '⬅️ Right-Left', icon: '⬅️' }
+    { value: 'LR', label: '➡️ Left-Right', icon: '➡️' }
   ];
 
   return (

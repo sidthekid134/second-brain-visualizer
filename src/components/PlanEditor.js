@@ -32,13 +32,42 @@ const FlowContainer = styled.div`
 `;
 
 const SidePanel = styled.div`
-  width: 350px;
+  width: ${props => props.width}px;
   background-color: white;
   border-left: 1px solid #e0e0e0;
   display: flex;
   flex-direction: column;
   z-index: 100;
   box-shadow: -2px 0 8px rgba(0, 0, 0, 0.1);
+  min-width: 250px;
+  max-width: 600px;
+`;
+
+const ResizeHandle = styled.div`
+  width: 4px;
+  background-color: #e0e0e0;
+  cursor: col-resize;
+  position: relative;
+  transition: background-color 0.2s;
+  z-index: 101;
+
+  &:hover {
+    background-color: #3498db;
+  }
+
+  &:active {
+    background-color: #2980b9;
+  }
+
+  &::before {
+    content: '';
+    position: absolute;
+    left: -2px;
+    right: -2px;
+    top: 0;
+    bottom: 0;
+    background: transparent;
+  }
 `;
 
 const MilestoneOverlay = styled.div`
@@ -65,10 +94,12 @@ function PlanEditor() {
     const { planData, selectedNode, dispatch, editMode } = usePlan();
     const [nodes, setNodes, onNodesChange] = useNodesState([]);
     const [edges, setEdges, onEdgesChange] = useEdgesState([]);
-    const [showMiniMap, setShowMiniMap] = useState(true);
+    const [showMiniMap, setShowMiniMap] = useState(false);
     const [layoutDirection, setLayoutDirection] = useState('TB'); // Top-Bottom
     const [milestonesCollapsed, setMilestonesCollapsed] = useState(false);
     const [showStoryModal, setShowStoryModal] = useState(false);
+    const [sidebarWidth, setSidebarWidth] = useState(350);
+    const [isResizing, setIsResizing] = useState(false);
 
     // Create flow data when plan data changes
     const flowData = useMemo(() => {
@@ -95,28 +126,15 @@ function PlanEditor() {
         }
 
         if (action === 'add') {
-            // Prevent duplicate dependencies
+            // Add dependency: sourceId -> targetId means targetId depends on sourceId
             const sourceAlreadyDependent = targetStory.dependencies.includes(sourceId);
-            const targetAlreadyDependent = sourceStory.dependents.includes(targetId);
 
             if (!sourceAlreadyDependent) {
                 dispatch({
                     type: 'UPDATE_DEPENDENCIES',
                     payload: {
                         storyId: targetId,
-                        dependencies: [...targetStory.dependencies, sourceId],
-                        dependents: targetStory.dependents
-                    }
-                });
-            }
-
-            if (!targetAlreadyDependent) {
-                dispatch({
-                    type: 'UPDATE_DEPENDENCIES',
-                    payload: {
-                        storyId: sourceId,
-                        dependencies: sourceStory.dependencies,
-                        dependents: [...sourceStory.dependents, targetId]
+                        dependencies: [...targetStory.dependencies, sourceId]
                     }
                 });
             }
@@ -125,22 +143,12 @@ function PlanEditor() {
             console.log(`Added dependency: ${sourceId} -> ${targetId}`);
 
         } else if (action === 'remove') {
-            // Remove dependency in both directions
+            // Remove dependency
             dispatch({
                 type: 'UPDATE_DEPENDENCIES',
                 payload: {
                     storyId: targetId,
-                    dependencies: targetStory.dependencies.filter(id => id !== sourceId),
-                    dependents: targetStory.dependents
-                }
-            });
-
-            dispatch({
-                type: 'UPDATE_DEPENDENCIES',
-                payload: {
-                    storyId: sourceId,
-                    dependencies: sourceStory.dependencies,
-                    dependents: sourceStory.dependents.filter(id => id !== targetId)
+                    dependencies: targetStory.dependencies.filter(id => id !== sourceId)
                 }
             });
 
@@ -154,20 +162,18 @@ function PlanEditor() {
 
         console.log(`Cleaning up dependencies for story: ${storyIdToDelete}`);
 
-        // Find all stories that depend on this story or that this story depends on
+        // Find all stories that depend on this story
         planData.stories.forEach(story => {
             if (story.id === storyIdToDelete) return;
 
             const hasDependencyOnDeleted = story.dependencies.includes(storyIdToDelete);
-            const hasDeletedAsDependent = story.dependents.includes(storyIdToDelete);
 
-            if (hasDependencyOnDeleted || hasDeletedAsDependent) {
+            if (hasDependencyOnDeleted) {
                 dispatch({
                     type: 'UPDATE_DEPENDENCIES',
                     payload: {
                         storyId: story.id,
-                        dependencies: story.dependencies.filter(id => id !== storyIdToDelete),
-                        dependents: story.dependents.filter(id => id !== storyIdToDelete)
+                        dependencies: story.dependencies.filter(id => id !== storyIdToDelete)
                     }
                 });
                 console.log(`Cleaned up story ${story.id} dependencies`);
@@ -274,6 +280,50 @@ function PlanEditor() {
         }
     }, [selectedNode, dispatch, cleanupStoryDependencies]);
 
+    // Sidebar resize handlers
+    const handleMouseDown = useCallback((e) => {
+        e.preventDefault();
+        setIsResizing(true);
+    }, []);
+
+    const handleMouseMove = useCallback((e) => {
+        if (!isResizing) return;
+
+        const newWidth = window.innerWidth - e.clientX;
+        const minWidth = 250;
+        const maxWidth = 600;
+
+        if (newWidth >= minWidth && newWidth <= maxWidth) {
+            setSidebarWidth(newWidth);
+        }
+    }, [isResizing]);
+
+    const handleMouseUp = useCallback(() => {
+        setIsResizing(false);
+    }, []);
+
+    // Add/remove global mouse event listeners for resizing
+    React.useEffect(() => {
+        if (isResizing) {
+            document.addEventListener('mousemove', handleMouseMove);
+            document.addEventListener('mouseup', handleMouseUp);
+            document.body.style.cursor = 'col-resize';
+            document.body.style.userSelect = 'none';
+        } else {
+            document.removeEventListener('mousemove', handleMouseMove);
+            document.removeEventListener('mouseup', handleMouseUp);
+            document.body.style.cursor = '';
+            document.body.style.userSelect = '';
+        }
+
+        return () => {
+            document.removeEventListener('mousemove', handleMouseMove);
+            document.removeEventListener('mouseup', handleMouseUp);
+            document.body.style.cursor = '';
+            document.body.style.userSelect = '';
+        };
+    }, [isResizing, handleMouseMove, handleMouseUp]);
+
     const handleCreateStory = useCallback((storyData) => {
         const newStory = {
             id: `ST-${Date.now().toString(36)}`,
@@ -283,9 +333,7 @@ function PlanEditor() {
             status: 'planned',
             owner_id: storyData.owner_id || '',
             dependencies: [],
-            dependents: [],
             implementation_notes: storyData.implementation_notes || [],
-            blocking_issues: [],
             estimated_tokens: storyData.estimated_tokens || null,
             actual_tokens: null,
             complexity_score: storyData.complexity_score || 1,
@@ -317,18 +365,6 @@ function PlanEditor() {
                 const depStory = planData.stories.find(s => s.id === depId);
                 if (!depStory) {
                     console.error(`Story ${story.id} has invalid dependency: ${depId}`);
-                } else if (!depStory.dependents.includes(story.id)) {
-                    console.error(`Dependency mismatch: ${story.id} depends on ${depId}, but ${depId} doesn't list ${story.id} as dependent`);
-                }
-            });
-
-            // Check if all dependents exist
-            story.dependents.forEach(depId => {
-                const depStory = planData.stories.find(s => s.id === depId);
-                if (!depStory) {
-                    console.error(`Story ${story.id} has invalid dependent: ${depId}`);
-                } else if (!depStory.dependencies.includes(story.id)) {
-                    console.error(`Dependent mismatch: ${story.id} lists ${depId} as dependent, but ${depId} doesn't depend on ${story.id}`);
                 }
             });
         });
@@ -405,8 +441,6 @@ function PlanEditor() {
                                         return '#10b981';
                                     case 'in_progress':
                                         return '#f59e0b';
-                                    case 'blocked':
-                                        return '#ef4444';
                                     case 'planned':
                                         return '#6b7280';
                                     default:
@@ -433,7 +467,9 @@ function PlanEditor() {
                 </ReactFlow>
             </FlowContainer>
 
-            <SidePanel>
+            <ResizeHandle onMouseDown={handleMouseDown} />
+
+            <SidePanel width={sidebarWidth}>
                 <NodePropertiesPanel selectedNode={selectedNode} />
             </SidePanel>
 

@@ -88,8 +88,13 @@ function MilestoneNode({ data, selected, isExecutionView = false }) {
     status,
     stories = [],
     manager_id,
-    storyCount
+    storyCount,
+    layoutDirection = 'TB' // Default to top-bottom if not provided
   } = data;
+
+  // Determine handle position based on layout direction
+  const isHorizontalLayout = layoutDirection === 'LR' || layoutDirection === 'RL';
+  const sourcePosition = isHorizontalLayout ? Position.Right : Position.Bottom;
 
   const actualStoryCount = storyCount || stories.length;
 
@@ -100,7 +105,7 @@ function MilestoneNode({ data, selected, isExecutionView = false }) {
     >
       <Handle
         type="source"
-        position={Position.Bottom}
+        position={sourcePosition}
         style={{
           background: '#fbbf24',
           border: '3px solid white',
