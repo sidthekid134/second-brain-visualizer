@@ -2,10 +2,11 @@ import React from 'react';
 import { Handle, Position } from 'reactflow';
 import styled from 'styled-components';
 import { getStatusColor, getStatusIcon, getComplexityColor } from '../../utils/flowUtils';
+import { usePlan } from '../../context/PlanContext';
 
 const NodeContainer = styled.div`
   background: white;
-  border: 2px solid ${props => getStatusColor(props.status)};
+  border: 2px solid ${props => props.status === 'neutral' ? '#e5e7eb' : getStatusColor(props.status)};
   border-radius: 16px;
   padding: 16px;
   width: 270px;
@@ -170,31 +171,16 @@ const ProgressText = styled.div`
   justify-content: space-between;
 `;
 
-const DependencyCount = styled.div`
-  position: absolute;
-  top: -8px;
-  right: -8px;
-  background: #ef4444;
-  color: white;
-  border-radius: 50%;
-  width: 22px;
-  height: 22px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 0.65rem;
-  font-weight: 700;
-  border: 2px solid white;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
-`;
 
-function StoryNode({ data, selected }) {
+
+function StoryNode({ data, selected, isExecutionView = false }) {
+  const shouldShowStatus = isExecutionView;
+
   const {
     id,
     objective,
     status,
     owner_id,
-    dependencies = [],
     complexity_score,
     estimated_tokens,
     actual_tokens,
@@ -207,11 +193,9 @@ function StoryNode({ data, selected }) {
     Math.round((acceptance_criteria.filter(Boolean).length / acceptance_criteria.length) * 100) :
     (status === 'done' ? 100 : status === 'in_progress' ? 50 : 0);
 
-  const dependencyCount = dependencies.length;
-
   return (
     <NodeContainer
-      status={status}
+      status={shouldShowStatus ? status : 'neutral'}
       className={selected ? 'selected' : ''}
     >
       {milestone_color && <MilestoneStripe color={milestone_color} />}
@@ -220,17 +204,13 @@ function StoryNode({ data, selected }) {
         type="target"
         position={Position.Top}
         style={{
-          background: getStatusColor(status),
+          background: shouldShowStatus ? getStatusColor(status) : '#94a3b8',
           border: '2px solid white',
           width: 12,
           height: 12,
           boxShadow: '0 2px 4px rgba(0, 0, 0, 0.2)'
         }}
       />
-
-      {dependencyCount > 0 && (
-        <DependencyCount>{dependencyCount}</DependencyCount>
-      )}
 
       <Header>
         <LeftHeader>
@@ -241,10 +221,12 @@ function StoryNode({ data, selected }) {
             </MilestoneBadge>
           )}
         </LeftHeader>
-        <StatusBadge status={status}>
-          <span>{getStatusIcon(status)}</span>
-          {status.replace('_', ' ')}
-        </StatusBadge>
+        {shouldShowStatus && (
+          <StatusBadge status={status}>
+            <span>{getStatusIcon(status)}</span>
+            {status.replace('_', ' ')}
+          </StatusBadge>
+        )}
       </Header>
 
       <Title>{objective}</Title>
@@ -253,35 +235,41 @@ function StoryNode({ data, selected }) {
         <Owner>
           👤 {owner_id ? owner_id.replace('AG-', 'Agent ') : 'Unassigned'}
         </Owner>
-        <ComplexityBadge score={complexity_score || 1}>
-          ⚡ {complexity_score || 1}
-        </ComplexityBadge>
+        {shouldShowStatus && (
+          <ComplexityBadge score={complexity_score || 1}>
+            ⚡ {complexity_score || 1}
+          </ComplexityBadge>
+        )}
       </MetadataRow>
 
-      <MetadataRow>
-        <TokenInfo>
-          {actual_tokens ?
-            `${actual_tokens} tokens used` :
-            `${estimated_tokens || 0} estimated`
-          }
-        </TokenInfo>
-      </MetadataRow>
+      {shouldShowStatus && (
+        <MetadataRow>
+          <TokenInfo>
+            {actual_tokens ?
+              `${actual_tokens} tokens used` :
+              `${estimated_tokens || 0} estimated`
+            }
+          </TokenInfo>
+        </MetadataRow>
+      )}
 
-      <ProgressSection>
-        <ProgressText>
-          <span>Progress</span>
-          <span>{progress}%</span>
-        </ProgressText>
-        <ProgressBar>
-          <ProgressFill progress={progress} status={status} />
-        </ProgressBar>
-      </ProgressSection>
+      {shouldShowStatus && (
+        <ProgressSection>
+          <ProgressText>
+            <span>Progress</span>
+            <span>{progress}%</span>
+          </ProgressText>
+          <ProgressBar>
+            <ProgressFill progress={progress} status={status} />
+          </ProgressBar>
+        </ProgressSection>
+      )}
 
       <Handle
         type="source"
         position={Position.Bottom}
         style={{
-          background: getStatusColor(status),
+          background: shouldShowStatus ? getStatusColor(status) : '#94a3b8',
           border: '2px solid white',
           width: 12,
           height: 12,

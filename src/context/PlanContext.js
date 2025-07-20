@@ -1,12 +1,11 @@
 import React, { createContext, useContext, useReducer, useEffect } from 'react';
-import planSchema from '../data/plan-schema.json';
+import uiSchema from '../schemas/ui-schema.json';
 
 const PlanContext = createContext();
 
 const initialState = {
     planData: null,
-    liveData: null,
-    schema: planSchema,
+    uiSchema: uiSchema, // UI structure and field definitions
     loading: false,
     error: null,
     selectedNode: null,
@@ -72,9 +71,6 @@ function planReducer(state, action) {
         case 'SET_PLAN_DATA':
             return { ...state, planData: action.payload, loading: false, error: null };
 
-        case 'SET_LIVE_DATA':
-            return { ...state, liveData: action.payload, loading: false, error: null };
-
         case 'UPDATE_STORY':
             if (!state.planData) return state;
 
@@ -109,6 +105,53 @@ function planReducer(state, action) {
                             } : milestone
                         )
                     }
+                }
+            };
+
+        case 'ADD_MILESTONE':
+            if (!state.planData) return state;
+            return {
+                ...state,
+                planData: {
+                    ...state.planData,
+                    project: {
+                        ...state.planData.project,
+                        milestones: [...state.planData.project.milestones, action.payload]
+                    }
+                }
+            };
+
+        case 'DELETE_MILESTONE':
+            if (!state.planData) return state;
+
+            const milestoneIdToDelete = action.payload;
+
+            // Remove milestone from project
+            const updatedMilestonesAfterDelete = state.planData.project.milestones.filter(
+                milestone => milestone.id !== milestoneIdToDelete
+            );
+
+            // Update stories that were assigned to this milestone
+            const updatedStoriesAfterMilestoneDelete = state.planData.stories.map(story => {
+                if (story.milestone === milestoneIdToDelete) {
+                    return {
+                        ...story,
+                        milestone: '', // Unassign from milestone
+                        updated_at: new Date().toISOString()
+                    };
+                }
+                return story;
+            });
+
+            return {
+                ...state,
+                planData: {
+                    ...state.planData,
+                    project: {
+                        ...state.planData.project,
+                        milestones: updatedMilestonesAfterDelete
+                    },
+                    stories: updatedStoriesAfterMilestoneDelete
                 }
             };
 
@@ -253,7 +296,6 @@ export function PlanProvider({ children }) {
     // Load initial data
     useEffect(() => {
         loadPlanData();
-        loadLiveData();
     }, []);
 
     // Validate dependencies periodically in development mode
@@ -270,242 +312,22 @@ export function PlanProvider({ children }) {
     const loadPlanData = async () => {
         dispatch({ type: 'SET_LOADING', payload: true });
         try {
-            // For now, we'll create a sample plan based on the schema
-            const samplePlan = createSamplePlan();
-            dispatch({ type: 'SET_PLAN_DATA', payload: samplePlan });
+            // Load plan data dynamically from public directory
+            const response = await fetch('/plan-data.json');
+            if (!response.ok) {
+                throw new Error(`Failed to load plan data: ${response.status}`);
+            }
+            const planData = await response.json();
+            dispatch({ type: 'SET_PLAN_DATA', payload: planData });
         } catch (error) {
+            console.error('Error loading plan data:', error);
             dispatch({ type: 'SET_ERROR', payload: error.message });
         }
     };
 
-    const loadLiveData = async () => {
-        try {
-            const response = await fetch('/live-file.json');
-            const liveData = await response.json();
-            dispatch({ type: 'SET_LIVE_DATA', payload: liveData });
-        } catch (error) {
-            console.warn('Could not load live data:', error);
-            // Don't set error for live data as it's optional
-        }
-    };
 
-    const createSamplePlan = () => {
-        return {
-            project: {
-                id: "PRJ-001",
-                name: "Sample Project",
-                description: "A sample project for demonstration",
-                status: "executing",
-                created_at: new Date().toISOString(),
-                updated_at: new Date().toISOString(),
-                progress: {
-                    completion_percentage: 25
-                },
-                budget: {
-                    limit: 1000,
-                    used: 250
-                },
-                milestones: [
-                    {
-                        id: "MS-001",
-                        name: "Planning Phase",
-                        status: "completed",
-                        stories: ["ST-001", "ST-002"],
-                        manager_id: "manager-planning"
-                    },
-                    {
-                        id: "MS-002",
-                        name: "Development Phase",
-                        status: "in_progress",
-                        stories: ["ST-003", "ST-004"],
-                        manager_id: "manager-development"
-                    },
-                    {
-                        id: "MS-003",
-                        name: "Testing Phase",
-                        status: "planned",
-                        stories: ["ST-005"],
-                        manager_id: "manager-testing"
-                    }
-                ]
-            },
-            stories: [
-                {
-                    id: "ST-001",
-                    objective: "Project Setup",
-                    milestone: "MS-001",
-                    acceptance_criteria: ["Setup development environment", "Create project structure"],
-                    status: "done",
-                    owner_id: "AG-001",
-                    dependencies: [],
-                    dependents: ["ST-002"],
-                    implementation_notes: ["Use React and Node.js"],
-                    blocking_issues: [],
-                    estimated_tokens: 100,
-                    actual_tokens: 95,
-                    complexity_score: 2,
-                    created_at: new Date().toISOString(),
-                    updated_at: new Date().toISOString(),
-                    execution: {
-                        current: {
-                            status: "done",
-                            agent_id: "AG-001",
-                            started_at: new Date(Date.now() - 86400000).toISOString(),
-                            ended_at: new Date(Date.now() - 82800000).toISOString(),
-                            duration_seconds: 3600,
-                            result: "Successfully completed project setup",
-                            messages_count: 15
-                        },
-                        history: []
-                    }
-                },
-                {
-                    id: "ST-002",
-                    objective: "Requirements Analysis",
-                    milestone: "MS-001",
-                    acceptance_criteria: ["Document all requirements", "Create user stories"],
-                    status: "done",
-                    owner_id: "AG-002",
-                    dependencies: ["ST-001"],
-                    dependents: ["ST-003"],
-                    implementation_notes: ["Focus on core features first"],
-                    blocking_issues: [],
-                    estimated_tokens: 150,
-                    actual_tokens: 140,
-                    complexity_score: 3,
-                    created_at: new Date().toISOString(),
-                    updated_at: new Date().toISOString(),
-                    execution: {
-                        current: {
-                            status: "done",
-                            agent_id: "AG-002",
-                            started_at: new Date(Date.now() - 82800000).toISOString(),
-                            ended_at: new Date(Date.now() - 79200000).toISOString(),
-                            duration_seconds: 3600,
-                            result: "Requirements documented",
-                            messages_count: 22
-                        },
-                        history: []
-                    }
-                },
-                {
-                    id: "ST-003",
-                    objective: "Core Feature Development",
-                    milestone: "MS-002",
-                    acceptance_criteria: ["Implement main functionality", "Add unit tests"],
-                    status: "in_progress",
-                    owner_id: "AG-003",
-                    dependencies: ["ST-002"],
-                    dependents: ["ST-004"],
-                    implementation_notes: ["Use TDD approach"],
-                    blocking_issues: [],
-                    estimated_tokens: 300,
-                    actual_tokens: null,
-                    complexity_score: 5,
-                    created_at: new Date().toISOString(),
-                    updated_at: new Date().toISOString(),
-                    execution: {
-                        current: {
-                            status: "in_progress",
-                            agent_id: "AG-003",
-                            started_at: new Date(Date.now() - 3600000).toISOString(),
-                            ended_at: null,
-                            duration_seconds: null,
-                            result: null,
-                            messages_count: 8
-                        },
-                        history: []
-                    }
-                },
-                {
-                    id: "ST-004",
-                    objective: "API Integration",
-                    milestone: "MS-002",
-                    acceptance_criteria: ["Connect to external APIs", "Handle error cases"],
-                    status: "planned",
-                    owner_id: "AG-003",
-                    dependencies: ["ST-003"],
-                    dependents: ["ST-005"],
-                    implementation_notes: ["Use REST APIs"],
-                    blocking_issues: [],
-                    estimated_tokens: 200,
-                    actual_tokens: null,
-                    complexity_score: 4,
-                    created_at: new Date().toISOString(),
-                    updated_at: new Date().toISOString(),
-                    execution: {
-                        current: {
-                            status: "planned",
-                            agent_id: "AG-003"
-                        },
-                        history: []
-                    }
-                },
-                {
-                    id: "ST-005",
-                    objective: "End-to-End Testing",
-                    milestone: "MS-003",
-                    acceptance_criteria: ["Create test scenarios", "Run automated tests"],
-                    status: "planned",
-                    owner_id: "AG-004",
-                    dependencies: ["ST-004"],
-                    dependents: [],
-                    implementation_notes: ["Use Cypress for E2E testing"],
-                    blocking_issues: [],
-                    estimated_tokens: 150,
-                    actual_tokens: null,
-                    complexity_score: 3,
-                    created_at: new Date().toISOString(),
-                    updated_at: new Date().toISOString(),
-                    execution: {
-                        current: {
-                            status: "planned",
-                            agent_id: "AG-004"
-                        },
-                        history: []
-                    }
-                }
-            ],
-            agents: [
-                {
-                    id: "AG-001",
-                    name: "Setup Engineer",
-                    role: "engineer",
-                    manager_id: null,
-                    reports: [],
-                    milestone_ids: ["MS-001"],
-                    assigned_story_ids: ["ST-001"]
-                },
-                {
-                    id: "AG-002",
-                    name: "Business Analyst",
-                    role: "engineer",
-                    manager_id: null,
-                    reports: [],
-                    milestone_ids: ["MS-001"],
-                    assigned_story_ids: ["ST-002"]
-                },
-                {
-                    id: "AG-003",
-                    name: "Full Stack Developer",
-                    role: "engineer",
-                    manager_id: null,
-                    reports: [],
-                    milestone_ids: ["MS-002"],
-                    assigned_story_ids: ["ST-003", "ST-004"]
-                },
-                {
-                    id: "AG-004",
-                    name: "QA Engineer",
-                    role: "engineer",
-                    manager_id: null,
-                    reports: [],
-                    milestone_ids: ["MS-003"],
-                    assigned_story_ids: ["ST-005"]
-                }
-            ]
-        };
-    };
+
+
 
     const savePlan = async (planData) => {
         // In a real app, this would save to a backend
@@ -517,7 +339,6 @@ export function PlanProvider({ children }) {
         ...state,
         dispatch,
         loadPlanData,
-        loadLiveData,
         savePlan
     };
 

@@ -1,0 +1,417 @@
+{
+    "story": {
+        "title": "Story",
+        "description": "Individual work items within the project",
+        "sections": [
+            {
+                "id": "basic",
+                "title": "Basic Information",
+                "fields": [
+                    {
+                        "key": "id",
+                        "label": "Story ID",
+                        "type": "text",
+                        "readonly": true,
+                        "description": "Unique identifier for the story"
+                    },
+                    {
+                        "key": "objective",
+                        "label": "Objective",
+                        "type": "textarea",
+                        "required": true,
+                        "placeholder": "What needs to be accomplished?",
+                        "description": "The main goal or purpose of this story"
+                    },
+                    {
+                        "key": "status",
+                        "label": "Status",
+                        "type": "select",
+                        "required": true,
+                        "options": [
+                            {
+                                "value": "planned",
+                                "label": "📋 Planned",
+                                "color": "#6b7280"
+                            },
+                            {
+                                "value": "in_progress",
+                                "label": "🔄 In Progress",
+                                "color": "#f59e0b"
+                            },
+                            {
+                                "value": "blocked",
+                                "label": "🚫 Blocked",
+                                "color": "#ef4444"
+                            },
+                            {
+                                "value": "done",
+                                "label": "✅ Done",
+                                "color": "#10b981"
+                            },
+                            {
+                                "value": "cancelled",
+                                "label": "❌ Cancelled",
+                                "color": "#6b7280"
+                            }
+                        ],
+                        "description": "Current status of the story"
+                    },
+                    {
+                        "key": "milestone",
+                        "label": "Milestone",
+                        "type": "milestone_select",
+                        "description": "Which milestone this story belongs to"
+                    }
+                ]
+            },
+            {
+                "id": "assignment",
+                "title": "Assignment & Ownership",
+                "fields": [
+                    {
+                        "key": "owner_id",
+                        "label": "Owner",
+                        "type": "agent_select",
+                        "description": "The agent responsible for this story"
+                    },
+                    {
+                        "key": "complexity_score",
+                        "label": "Complexity Score",
+                        "type": "number",
+                        "min": 1,
+                        "max": 10,
+                        "default": 1,
+                        "description": "Difficulty rating from 1 (simple) to 10 (very complex)"
+                    },
+                    {
+                        "key": "estimated_tokens",
+                        "label": "Estimated Tokens",
+                        "type": "number",
+                        "min": 0,
+                        "description": "Expected token usage for completion"
+                    },
+                    {
+                        "key": "actual_tokens",
+                        "label": "Actual Tokens",
+                        "type": "number",
+                        "min": 0,
+                        "readonly": true,
+                        "description": "Actual tokens used (populated after completion)"
+                    }
+                ]
+            },
+            {
+                "id": "criteria",
+                "title": "Acceptance Criteria",
+                "fields": [
+                    {
+                        "key": "acceptance_criteria",
+                        "label": "Acceptance Criteria",
+                        "type": "array",
+                        "itemType": "text",
+                        "description": "List of conditions that must be met for completion",
+                        "placeholder": "Add acceptance criterion..."
+                    }
+                ]
+            },
+            {
+                "id": "dependencies",
+                "title": "Dependencies",
+                "fields": [
+                    {
+                        "key": "dependencies",
+                        "label": "Dependencies",
+                        "type": "story_multiselect",
+                        "description": "Stories that must be completed before this one can start"
+                    },
+                    {
+                        "key": "dependents",
+                        "label": "Dependents",
+                        "type": "story_multiselect",
+                        "readonly": true,
+                        "description": "Stories that depend on this one (auto-calculated)"
+                    }
+                ]
+            },
+            {
+                "id": "notes",
+                "title": "Implementation",
+                "fields": [
+                    {
+                        "key": "implementation_notes",
+                        "label": "Implementation Notes",
+                        "type": "array",
+                        "itemType": "text",
+                        "description": "Technical notes and implementation details",
+                        "placeholder": "Add implementation note..."
+                    },
+                    {
+                        "key": "blocking_issues",
+                        "label": "Blocking Issues",
+                        "type": "array",
+                        "itemType": "blocking_issue",
+                        "description": "Issues that are preventing progress"
+                    }
+                ]
+            }
+        ]
+    },
+    "milestone": {
+        "title": "Milestone",
+        "description": "Major project phases or deliverables",
+        "sections": [
+            {
+                "id": "basic",
+                "title": "Basic Information",
+                "fields": [
+                    {
+                        "key": "id",
+                        "label": "Milestone ID",
+                        "type": "text",
+                        "readonly": true,
+                        "description": "Unique identifier for the milestone"
+                    },
+                    {
+                        "key": "name",
+                        "label": "Name",
+                        "type": "text",
+                        "required": true,
+                        "placeholder": "Milestone name",
+                        "description": "Descriptive name for this milestone"
+                    },
+                    {
+                        "key": "status",
+                        "label": "Status",
+                        "type": "select",
+                        "required": true,
+                        "options": [
+                            {
+                                "value": "planned",
+                                "label": "📋 Planned",
+                                "color": "#6b7280"
+                            },
+                            {
+                                "value": "in_progress",
+                                "label": "🔄 In Progress",
+                                "color": "#f59e0b"
+                            },
+                            {
+                                "value": "completed",
+                                "label": "✅ Completed",
+                                "color": "#10b981"
+                            },
+                            {
+                                "value": "on_hold",
+                                "label": "⏸️ On Hold",
+                                "color": "#f59e0b"
+                            }
+                        ],
+                        "description": "Current status of the milestone"
+                    },
+                    {
+                        "key": "manager_id",
+                        "label": "Manager",
+                        "type": "agent_select",
+                        "description": "The manager responsible for this milestone"
+                    }
+                ]
+            }
+        ]
+    },
+    "project": {
+        "title": "Project",
+        "description": "Overall project information and settings",
+        "sections": [
+            {
+                "id": "basic",
+                "title": "Project Details",
+                "fields": [
+                    {
+                        "key": "id",
+                        "label": "Project ID",
+                        "type": "text",
+                        "readonly": true
+                    },
+                    {
+                        "key": "name",
+                        "label": "Project Name",
+                        "type": "text",
+                        "required": true,
+                        "placeholder": "Enter project name"
+                    },
+                    {
+                        "key": "description",
+                        "label": "Description",
+                        "type": "textarea",
+                        "placeholder": "Describe the project goals and scope"
+                    },
+                    {
+                        "key": "status",
+                        "label": "Status",
+                        "type": "select",
+                        "options": [
+                            {
+                                "value": "planned",
+                                "label": "📋 Planned"
+                            },
+                            {
+                                "value": "executing",
+                                "label": "🔄 Executing"
+                            },
+                            {
+                                "value": "completed",
+                                "label": "✅ Completed"
+                            },
+                            {
+                                "value": "on_hold",
+                                "label": "⏸️ On Hold"
+                            },
+                            {
+                                "value": "cancelled",
+                                "label": "❌ Cancelled"
+                            }
+                        ]
+                    }
+                ]
+            },
+            {
+                "id": "progress",
+                "title": "Progress & Budget",
+                "fields": [
+                    {
+                        "key": "progress.completion_percentage",
+                        "label": "Completion %",
+                        "type": "number",
+                        "min": 0,
+                        "max": 100,
+                        "readonly": true,
+                        "description": "Auto-calculated based on completed stories"
+                    },
+                    {
+                        "key": "budget.limit",
+                        "label": "Budget Limit",
+                        "type": "number",
+                        "min": 0,
+                        "description": "Maximum budget for the project"
+                    },
+                    {
+                        "key": "budget.used",
+                        "label": "Budget Used",
+                        "type": "number",
+                        "min": 0,
+                        "readonly": true,
+                        "description": "Amount of budget consumed so far"
+                    }
+                ]
+            }
+        ]
+    },
+    "agent": {
+        "title": "Agent",
+        "description": "Team members and their roles",
+        "sections": [
+            {
+                "id": "basic",
+                "title": "Agent Information",
+                "fields": [
+                    {
+                        "key": "id",
+                        "label": "Agent ID",
+                        "type": "text",
+                        "readonly": true
+                    },
+                    {
+                        "key": "name",
+                        "label": "Name",
+                        "type": "text",
+                        "required": true,
+                        "placeholder": "Agent name"
+                    },
+                    {
+                        "key": "role",
+                        "label": "Role",
+                        "type": "select",
+                        "options": [
+                            {
+                                "value": "conductor",
+                                "label": "🎼 Conductor"
+                            },
+                            {
+                                "value": "manager",
+                                "label": "👨‍💼 Manager"
+                            },
+                            {
+                                "value": "engineer",
+                                "label": "👨‍💻 Engineer"
+                            }
+                        ]
+                    }
+                ]
+            }
+        ]
+    },
+    "blocking_issue": {
+        "title": "Blocking Issue",
+        "fields": [
+            {
+                "key": "id",
+                "label": "Issue ID",
+                "type": "text",
+                "readonly": true
+            },
+            {
+                "key": "description",
+                "label": "Description",
+                "type": "textarea",
+                "required": true,
+                "placeholder": "Describe what is blocking progress"
+            },
+            {
+                "key": "status",
+                "label": "Status",
+                "type": "select",
+                "options": [
+                    {
+                        "value": "open",
+                        "label": "🔴 Open"
+                    },
+                    {
+                        "value": "resolved",
+                        "label": "✅ Resolved"
+                    }
+                ]
+            }
+        ]
+    },
+    "ui_config": {
+        "colors": {
+            "status": {
+                "planned": "#6b7280",
+                "in_progress": "#f59e0b",
+                "blocked": "#ef4444",
+                "done": "#10b981",
+                "completed": "#10b981",
+                "cancelled": "#6b7280",
+                "on_hold": "#f59e0b"
+            },
+            "complexity": {
+                "1-2": "#10b981",
+                "3-4": "#f59e0b",
+                "5-6": "#ef4444",
+                "7-8": "#dc2626",
+                "9-10": "#7c2d12"
+            }
+        },
+        "icons": {
+            "status": {
+                "planned": "📋",
+                "in_progress": "🔄",
+                "blocked": "🚫",
+                "done": "✅",
+                "completed": "✅",
+                "cancelled": "❌",
+                "on_hold": "⏸️"
+            }
+        }
+    }
+}

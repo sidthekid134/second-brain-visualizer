@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import styled from 'styled-components';
 import { usePlan } from '../../context/PlanContext';
 import { getStatusColor, getStatusIcon } from '../../utils/flowUtils';
+import { renderSchemaField, getNestedValue, setNestedValue } from '../../utils/schemaRenderer';
 
 const PanelContainer = styled.div`
   height: 100%;
@@ -245,7 +246,7 @@ const SaveButton = styled.button`
 `;
 
 function NodePropertiesPanel({ selectedNode }) {
-    const { dispatch, editMode, schema, planData } = usePlan();
+    const { dispatch, editMode, uiSchema, planData } = usePlan();
     const [editData, setEditData] = useState({});
     const [isEditing, setIsEditing] = useState(false);
 
@@ -288,105 +289,34 @@ function NodePropertiesPanel({ selectedNode }) {
         setIsEditing(false);
     };
 
-    const handleArrayChange = (field, index, value) => {
-        const newArray = [...(editData[field] || [])];
-        newArray[index] = value;
-        setEditData({ ...editData, [field]: newArray });
-    };
 
-    const handleArrayAdd = (field, defaultValue = '') => {
-        const newArray = [...(editData[field] || []), defaultValue];
-        setEditData({ ...editData, [field]: newArray });
-    };
 
-    const handleArrayRemove = (field, index) => {
-        const newArray = (editData[field] || []).filter((_, i) => i !== index);
-        setEditData({ ...editData, [field]: newArray });
-    };
 
-    const statusOptions = ['planned', 'in_progress', 'blocked', 'done', 'cancelled'];
-    const milestoneOptions = planData?.project?.milestones?.map(m => m.id) || [];
 
-    const renderEditableField = (field, value, type = 'text') => {
-        if (!editMode || !isEditing) {
-            if (field === 'status') {
-                return (
-                    <StatusBadge status={value}>
-                        {getStatusIcon(value)}
-                        {value?.replace('_', ' ')}
-                    </StatusBadge>
-                );
-            }
-            return <PropertyValue>{value || 'Not set'}</PropertyValue>;
-        }
+    // Get the schema definition for this entity type
+    const entitySchema = uiSchema?.[data.type];
 
-        switch (type) {
-            case 'select':
-                return (
-                    <SelectInput
-                        value={editData[field] || value || ''}
-                        onChange={(e) => setEditData({ ...editData, [field]: e.target.value })}
-                    >
-                        {field === 'status' && statusOptions.map(status => (
-                            <option key={status} value={status}>
-                                {status.replace('_', ' ')}
-                            </option>
-                        ))}
-                        {field === 'milestone' && (
-                            <>
-                                <option value="">No milestone</option>
-                                {milestoneOptions.map(milestone => (
-                                    <option key={milestone} value={milestone}>
-                                        {milestone}
-                                    </option>
-                                ))}
-                            </>
-                        )}
-                    </SelectInput>
-                );
-            case 'number':
-                return (
-                    <EditNumber
-                        type="number"
-                        value={editData[field] ?? value ?? ''}
-                        onChange={(e) => setEditData({ ...editData, [field]: Number(e.target.value) || null })}
-                    />
-                );
-            case 'textarea':
-                return (
-                    <EditTextarea
-                        value={editData[field] ?? value ?? ''}
-                        onChange={(e) => setEditData({ ...editData, [field]: e.target.value })}
-                    />
-                );
-            case 'array':
-                return (
-                    <ArrayInput>
-                        {(editData[field] || value || []).map((item, index) => (
-                            <ArrayItem key={index}>
-                                <EditInput
-                                    value={item}
-                                    onChange={(e) => handleArrayChange(field, index, e.target.value)}
-                                    placeholder={`${field} item`}
-                                />
-                                <RemoveButton onClick={() => handleArrayRemove(field, index)}>
-                                    ×
-                                </RemoveButton>
-                            </ArrayItem>
-                        ))}
-                        <AddButton onClick={() => handleArrayAdd(field)}>
-                            + Add {field.replace('_', ' ')}
-                        </AddButton>
-                    </ArrayInput>
-                );
-            default:
-                return (
-                    <EditInput
-                        type="text"
-                        value={editData[field] ?? value ?? ''}
-                        onChange={(e) => setEditData({ ...editData, [field]: e.target.value })}
-                    />
-                );
+    if (!entitySchema) {
+        return (
+            <PanelContainer>
+                <PanelHeader>
+                    <PanelTitle>Properties</PanelTitle>
+                </PanelHeader>
+                <PanelContent>
+                    <div style={{ color: '#6b7280', textAlign: 'center', padding: '20px' }}>
+                        No schema found for {data.type}
+                    </div>
+                </PanelContent>
+            </PanelContainer>
+        );
+    }
+
+    const handleFieldChange = (fieldKey, value) => {
+        if (fieldKey.includes('.')) {
+            // Handle nested field updates
+            setEditData(prevData => setNestedValue(prevData, fieldKey, value));
+        } else {
+            setEditData(prevData => ({ ...prevData, [fieldKey]: value }));
         }
     };
 
@@ -394,117 +324,106 @@ function NodePropertiesPanel({ selectedNode }) {
         <PanelContainer>
             <PanelHeader>
                 <PanelTitle>
-                    📝 Story Properties
+                    {entitySchema.title} Properties
                     <NodeType>{data.type}</NodeType>
                 </PanelTitle>
+                {editMode && (
+                    <div style={{ display: 'flex', gap: '8px' }}>
+                        {isEditing ? (
+                            <>
+                                <button
+                                    onClick={handleSave}
+                                    style={{
+                                        background: '#10b981',
+                                        color: 'white',
+                                        border: 'none',
+                                        padding: '4px 8px',
+                                        borderRadius: '4px',
+                                        fontSize: '0.7rem',
+                                        cursor: 'pointer'
+                                    }}
+                                >
+                                    Save
+                                </button>
+                                <button
+                                    onClick={() => {
+                                        setIsEditing(false);
+                                        setEditData(data);
+                                    }}
+                                    style={{
+                                        background: '#6b7280',
+                                        color: 'white',
+                                        border: 'none',
+                                        padding: '4px 8px',
+                                        borderRadius: '4px',
+                                        fontSize: '0.7rem',
+                                        cursor: 'pointer'
+                                    }}
+                                >
+                                    Cancel
+                                </button>
+                            </>
+                        ) : (
+                            <button
+                                onClick={() => setIsEditing(true)}
+                                style={{
+                                    background: '#3b82f6',
+                                    color: 'white',
+                                    border: 'none',
+                                    padding: '4px 8px',
+                                    borderRadius: '4px',
+                                    fontSize: '0.7rem',
+                                    cursor: 'pointer'
+                                }}
+                            >
+                                Edit
+                            </button>
+                        )}
+                    </div>
+                )}
             </PanelHeader>
 
             <PanelContent>
-                <PropertySection>
-                    <SectionTitle>Basic Information</SectionTitle>
+                {entitySchema.sections?.map(section => (
+                    <PropertySection key={section.id}>
+                        <SectionTitle>{section.title}</SectionTitle>
 
-                    <PropertyRow>
-                        <PropertyLabel>ID</PropertyLabel>
-                        <PropertyValue>{data.id}</PropertyValue>
-                    </PropertyRow>
+                        {section.fields.map(fieldDef => {
+                            const fieldValue = getNestedValue(isEditing ? editData : data, fieldDef.key);
 
-                    <PropertyRow>
-                        <PropertyLabel>Objective</PropertyLabel>
-                        {renderEditableField('objective', data.objective, 'textarea')}
-                    </PropertyRow>
-
-                    <PropertyRow>
-                        <PropertyLabel>Status</PropertyLabel>
-                        {renderEditableField('status', data.status, 'select')}
-                    </PropertyRow>
-
-                    <PropertyRow>
-                        <PropertyLabel>Milestone</PropertyLabel>
-                        {renderEditableField('milestone', data.milestone, 'select')}
-                    </PropertyRow>
-                </PropertySection>
-
-                <PropertySection>
-                    <SectionTitle>Assignment & Ownership</SectionTitle>
-
-                    <PropertyRow>
-                        <PropertyLabel>Owner ID</PropertyLabel>
-                        {renderEditableField('owner_id', data.owner_id)}
-                    </PropertyRow>
-                </PropertySection>
-
-                <PropertySection>
-                    <SectionTitle>Dependencies</SectionTitle>
-
-                    <PropertyRow>
-                        <PropertyLabel>Dependencies ({data.dependencies?.length || 0})</PropertyLabel>
-                        {renderEditableField('dependencies', data.dependencies, 'array')}
-                    </PropertyRow>
-
-                    <PropertyRow>
-                        <PropertyLabel>Dependents ({data.dependents?.length || 0})</PropertyLabel>
-                        {renderEditableField('dependents', data.dependents, 'array')}
-                    </PropertyRow>
-                </PropertySection>
-
-                <PropertySection>
-                    <SectionTitle>Acceptance Criteria</SectionTitle>
-                    <PropertyRow>
-                        <PropertyLabel>Criteria</PropertyLabel>
-                        {renderEditableField('acceptance_criteria', data.acceptance_criteria, 'array')}
-                    </PropertyRow>
-                </PropertySection>
-
-                <PropertySection>
-                    <SectionTitle>Implementation Details</SectionTitle>
-
-                    <PropertyRow>
-                        <PropertyLabel>Implementation Notes</PropertyLabel>
-                        {renderEditableField('implementation_notes', data.implementation_notes, 'array')}
-                    </PropertyRow>
-                </PropertySection>
-
-                <PropertySection>
-                    <SectionTitle>Metrics & Estimation</SectionTitle>
-
-                    <PropertyRow>
-                        <PropertyLabel>Complexity Score (1-10)</PropertyLabel>
-                        {renderEditableField('complexity_score', data.complexity_score, 'number')}
-                    </PropertyRow>
-
-                    <PropertyRow>
-                        <PropertyLabel>Estimated Tokens</PropertyLabel>
-                        {renderEditableField('estimated_tokens', data.estimated_tokens, 'number')}
-                    </PropertyRow>
-
-                    <PropertyRow>
-                        <PropertyLabel>Actual Tokens</PropertyLabel>
-                        {renderEditableField('actual_tokens', data.actual_tokens, 'number')}
-                    </PropertyRow>
-                </PropertySection>
-
-                {editMode && (
-                    <PropertySection>
-                        <SectionTitle>Actions</SectionTitle>
-                        {!isEditing ? (
-                            <SaveButton onClick={() => setIsEditing(true)}>
-                                ✏️ Edit Properties
-                            </SaveButton>
-                        ) : (
-                            <div style={{ display: 'flex', gap: '8px' }}>
-                                <SaveButton onClick={handleSave}>
-                                    💾 Save Changes
-                                </SaveButton>
-                                <SaveButton
-                                    onClick={() => setIsEditing(false)}
-                                    style={{ background: '#6b7280' }}
-                                >
-                                    ❌ Cancel
-                                </SaveButton>
-                            </div>
-                        )}
+                            return (
+                                <PropertyRow key={fieldDef.key}>
+                                    <PropertyLabel>
+                                        {fieldDef.label}
+                                        {fieldDef.required && <span style={{ color: '#ef4444' }}>*</span>}
+                                    </PropertyLabel>
+                                    <div style={{ flex: 1 }}>
+                                        {renderSchemaField(
+                                            fieldDef,
+                                            fieldValue,
+                                            (value) => handleFieldChange(fieldDef.key, value),
+                                            {
+                                                planData,
+                                                uiSchema,
+                                                editMode,
+                                                isEditing
+                                            }
+                                        )}
+                                        {fieldDef.description && (
+                                            <div style={{
+                                                fontSize: '0.7rem',
+                                                color: '#6b7280',
+                                                marginTop: '2px'
+                                            }}>
+                                                {fieldDef.description}
+                                            </div>
+                                        )}
+                                    </div>
+                                </PropertyRow>
+                            );
+                        })}
                     </PropertySection>
-                )}
+                ))}
             </PanelContent>
         </PanelContainer>
     );

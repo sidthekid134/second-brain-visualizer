@@ -11,6 +11,7 @@ import 'reactflow/dist/style.css';
 import { usePlan } from '../context/PlanContext';
 import StoryNode from './nodes/StoryNode';
 import MilestoneNode from './nodes/MilestoneNode';
+import MilestonesPanel from './panels/MilestonesPanel';
 import { createFlowData, getStatusColor, getStatusIcon } from '../utils/flowUtils';
 
 const ExecutionContainer = styled.div`
@@ -19,10 +20,10 @@ const ExecutionContainer = styled.div`
   flex-direction: column;
 `;
 
-const StatusHeader = styled.div`
+const CompactHeader = styled.div`
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   color: white;
-  padding: 20px;
+  padding: 12px 20px;
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -31,47 +32,46 @@ const StatusHeader = styled.div`
 
 const ProjectInfo = styled.div`
   display: flex;
-  flex-direction: column;
-  gap: 4px;
+  align-items: center;
+  gap: 16px;
 `;
 
 const ProjectTitle = styled.h2`
   margin: 0;
-  font-size: 1.3rem;
+  font-size: 1.1rem;
   font-weight: 600;
 `;
 
-const ProjectSubtitle = styled.div`
-  opacity: 0.9;
+const CompactMetrics = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  font-size: 0.85rem;
+`;
+
+const Metric = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: rgba(255, 255, 255, 0.15);
+  padding: 4px 10px;
+  border-radius: 16px;
+  font-weight: 500;
+`;
+
+const MetricValue = styled.span`
+  font-weight: 700;
   font-size: 0.9rem;
 `;
 
-const StatusGrid = styled.div`
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
-  gap: 16px;
-`;
-
-const StatusCard = styled.div`
-  background: rgba(255, 255, 255, 0.15);
-  backdrop-filter: blur(10px);
-  border-radius: 12px;
-  padding: 12px;
-  text-align: center;
-  border: 1px solid rgba(255, 255, 255, 0.2);
-`;
-
-const StatusValue = styled.div`
-  font-size: 1.8rem;
-  font-weight: 700;
-  margin-bottom: 4px;
-`;
-
-const StatusLabel = styled.div`
-  font-size: 0.7rem;
-  text-transform: uppercase;
-  opacity: 0.8;
-  letter-spacing: 0.05em;
+const LiveIndicatorHeader = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: rgba(16, 185, 129, 0.2);
+  padding: 4px 10px;
+  border-radius: 16px;
+  font-size: 0.8rem;
 `;
 
 const MainContent = styled.div`
@@ -83,6 +83,23 @@ const FlowContainer = styled.div`
   flex: 1;
   height: 100%;
   background-color: #fafafa;
+  position: relative;
+`;
+
+const MilestoneOverlay = styled.div`
+  position: absolute;
+  top: 20px;
+  left: 20px;
+  z-index: 10;
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(10px);
+  border-radius: 12px;
+  border: 1px solid #e5e7eb;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+  max-width: 300px;
+  ${props => props.collapsed && `
+    width: auto;
+  `}
 `;
 
 const LivePanel = styled.div`
@@ -221,32 +238,29 @@ const Pulse = styled.div`
   }
 `;
 
+// Custom node types with execution view flag
 const nodeTypes = {
-    story: StoryNode,
-    milestone: MilestoneNode,
+    story: (props) => <StoryNode {...props} isExecutionView={true} />,
+    milestone: (props) => <MilestoneNode {...props} isExecutionView={true} />,
 };
 
 function LiveExecution() {
-    const { liveData, planData } = usePlan();
+    const { planData } = usePlan();
     const [nodes, setNodes, onNodesChange] = useNodesState([]);
     const [edges, setEdges, onEdgesChange] = useEdgesState([]);
     const [lastUpdate, setLastUpdate] = useState(new Date());
+    const [milestonesCollapsed, setMilestonesCollapsed] = useState(false);
 
-    // Use live data if available, otherwise fall back to plan data
-    const executionData = liveData || planData;
+    // Use plan data for live execution view
+    const executionData = planData;
 
     // Create flow data for live execution
     const flowData = React.useMemo(() => {
         if (!executionData) return { nodes: [], edges: [] };
 
-        if (liveData) {
-            // Use live data structure
-            return createFlowDataFromLive(liveData);
-        } else {
-            // Use plan data structure
-            return createFlowData(executionData, 'TB');
-        }
-    }, [executionData, liveData]);
+        // Use plan data structure for execution view
+        return createFlowData(executionData, 'TB');
+    }, [executionData]);
 
     // Update nodes and edges when flow data changes
     React.useEffect(() => {
@@ -263,67 +277,7 @@ function LiveExecution() {
         return () => clearInterval(interval);
     }, []);
 
-    function createFlowDataFromLive(liveData) {
-        if (!liveData.project_structure) return { nodes: [], edges: [] };
 
-        const { stories, milestones } = liveData.project_structure;
-
-        // Create story nodes
-        const storyNodes = stories.map(story => ({
-            id: story.id,
-            type: 'story',
-            position: { x: 0, y: 0 },
-            data: {
-                ...story,
-                type: 'story'
-            },
-            draggable: false,
-            selectable: true,
-            className: `status-${story.status.replace('_', '-')}`
-        }));
-
-        // Create milestone nodes
-        const milestoneNodes = Object.entries(milestones || {}).map(([key, milestone]) => ({
-            id: key,
-            type: 'milestone',
-            position: { x: 0, y: 0 },
-            data: {
-                ...milestone,
-                id: key,
-                type: 'milestone'
-            },
-            draggable: false,
-            selectable: true,
-            className: `status-${milestone.status.replace('_', '-')}`
-        }));
-
-        // Create dependency edges
-        const dependencyEdges = [];
-        stories.forEach(story => {
-            story.dependencies?.forEach(depId => {
-                dependencyEdges.push({
-                    id: `${depId}-${story.id}`,
-                    source: depId,
-                    target: story.id,
-                    type: 'smoothstep',
-                    animated: story.status === 'in_progress',
-                    style: {
-                        stroke: story.status === 'in_progress' ? '#f59e0b' : '#64748b',
-                        strokeWidth: story.status === 'in_progress' ? 3 : 2
-                    }
-                });
-            });
-        });
-
-        const allNodes = [...milestoneNodes, ...storyNodes];
-        const allEdges = dependencyEdges;
-
-        // Apply layout
-        return {
-            nodes: allNodes,
-            edges: allEdges
-        };
-    }
 
     if (!executionData) {
         return (
@@ -342,49 +296,58 @@ function LiveExecution() {
         );
     }
 
-    const projectInfo = liveData?.project_info || executionData?.project;
-    const executionStatus = liveData?.execution_status || {
+    const projectInfo = executionData?.project;
+    const executionStatus = {
         completion_percentage: executionData?.project?.progress?.completion_percentage || 0,
         total_stories: executionData?.stories?.length || 0,
         total_agents: executionData?.agents?.length || 0
     };
 
-    const currentExecution = liveData?.current_execution || {};
-    const runningStories = Object.values(currentExecution.currently_running_stories || {});
-    const readyStories = currentExecution.ready_stories || [];
-    const blockedStories = currentExecution.blocked_stories || [];
-    const completedStories = currentExecution.completed_stories || executionData?.stories?.filter(s => s.status === 'done') || [];
+    // Extract stories by status from plan data
+    const allStories = executionData?.stories || [];
+    const runningStories = allStories.filter(s => s.status === 'in_progress');
+    const readyStories = allStories.filter(s => s.status === 'planned');
+    const blockedStories = allStories.filter(s => s.status === 'blocked');
+    const completedStories = allStories.filter(s => s.status === 'done');
 
     return (
         <ExecutionContainer>
-            <StatusHeader>
+            <CompactHeader>
                 <ProjectInfo>
                     <ProjectTitle>{projectInfo?.name || 'Execution Monitor'}</ProjectTitle>
-                    <ProjectSubtitle>{projectInfo?.description || 'Live project execution status'}</ProjectSubtitle>
+                    <LiveIndicatorHeader>
+                        <Pulse />
+                        Live Execution
+                    </LiveIndicatorHeader>
                 </ProjectInfo>
 
-                <StatusGrid>
-                    <StatusCard>
-                        <StatusValue>{Math.round(executionStatus.completion_percentage || 0)}%</StatusValue>
-                        <StatusLabel>Complete</StatusLabel>
-                    </StatusCard>
-                    <StatusCard>
-                        <StatusValue>{runningStories.length}</StatusValue>
-                        <StatusLabel>Running</StatusLabel>
-                    </StatusCard>
-                    <StatusCard>
-                        <StatusValue>{executionStatus.total_stories || 0}</StatusValue>
-                        <StatusLabel>Stories</StatusLabel>
-                    </StatusCard>
-                    <StatusCard>
-                        <StatusValue>{executionStatus.total_agents || 0}</StatusValue>
-                        <StatusLabel>Agents</StatusLabel>
-                    </StatusCard>
-                </StatusGrid>
-            </StatusHeader>
+                <CompactMetrics>
+                    <Metric>
+                        📊 <MetricValue>{Math.round(executionStatus.completion_percentage || 0)}%</MetricValue>
+                    </Metric>
+                    <Metric>
+                        🔄 <MetricValue>{runningStories.length}</MetricValue>
+                    </Metric>
+                    <Metric>
+                        📚 <MetricValue>{executionStatus.total_stories || 0}</MetricValue>
+                    </Metric>
+                    <Metric>
+                        🤖 <MetricValue>{executionStatus.total_agents || 0}</MetricValue>
+                    </Metric>
+                </CompactMetrics>
+            </CompactHeader>
 
             <MainContent>
                 <FlowContainer>
+                    <MilestoneOverlay collapsed={milestonesCollapsed}>
+                        <MilestonesPanel
+                            milestones={flowData.milestones || []}
+                            collapsed={milestonesCollapsed}
+                            onToggleCollapsed={() => setMilestonesCollapsed(!milestonesCollapsed)}
+                            isExecutionView={true}
+                        />
+                    </MilestoneOverlay>
+
                     <ReactFlow
                         nodes={nodes}
                         edges={edges}

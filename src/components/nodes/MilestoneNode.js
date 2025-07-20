@@ -2,10 +2,11 @@ import React from 'react';
 import { Handle, Position } from 'reactflow';
 import styled from 'styled-components';
 import { getStatusColor, getStatusIcon } from '../../utils/flowUtils';
+import { usePlan } from '../../context/PlanContext';
 
 const NodeContainer = styled.div`
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  border: 3px solid ${props => getStatusColor(props.status)};
+  border: 3px solid ${props => props.status === 'neutral' ? '#e5e7eb' : getStatusColor(props.status)};
   border-radius: 16px;
   padding: 16px;
   width: 240px;
@@ -78,55 +79,59 @@ const ManagerInfo = styled.div`
   white-space: nowrap;
 `;
 
-function MilestoneNode({ data, selected }) {
-    const {
-        id,
-        name,
-        status,
-        stories = [],
-        manager_id,
-        storyCount
-    } = data;
+function MilestoneNode({ data, selected, isExecutionView = false }) {
+  const shouldShowStatus = isExecutionView;
 
-    const actualStoryCount = storyCount || stories.length;
+  const {
+    id,
+    name,
+    status,
+    stories = [],
+    manager_id,
+    storyCount
+  } = data;
 
-    return (
-        <NodeContainer
-            status={status}
-            className={selected ? 'selected' : ''}
-        >
-            <Handle
-                type="source"
-                position={Position.Bottom}
-                style={{
-                    background: '#fbbf24',
-                    border: '3px solid white',
-                    width: 14,
-                    height: 14
-                }}
-            />
+  const actualStoryCount = storyCount || stories.length;
 
-            <Header>
-                <MilestoneIcon>🎯</MilestoneIcon>
-                <StatusBadge status={status}>
-                    <span>{getStatusIcon(status)}</span>
-                    {status.replace('_', ' ')}
-                </StatusBadge>
-            </Header>
+  return (
+    <NodeContainer
+      status={shouldShowStatus ? status : 'neutral'}
+      className={selected ? 'selected' : ''}
+    >
+      <Handle
+        type="source"
+        position={Position.Bottom}
+        style={{
+          background: '#fbbf24',
+          border: '3px solid white',
+          width: 14,
+          height: 14
+        }}
+      />
 
-            <Title>{name}</Title>
+      <Header>
+        <MilestoneIcon>🎯</MilestoneIcon>
+        {shouldShowStatus && (
+          <StatusBadge status={status}>
+            <span>{getStatusIcon(status)}</span>
+            {status.replace('_', ' ')}
+          </StatusBadge>
+        )}
+      </Header>
 
-            <StoryCount>
-                📚 {actualStoryCount} {actualStoryCount === 1 ? 'story' : 'stories'}
-            </StoryCount>
+      <Title>{name}</Title>
 
-            {manager_id && (
-                <ManagerInfo>
-                    👨‍💼 {manager_id.replace('manager-', '').replace(/([A-Z])/g, ' $1').trim()}
-                </ManagerInfo>
-            )}
-        </NodeContainer>
-    );
+      <StoryCount>
+        📚 {actualStoryCount} {actualStoryCount === 1 ? 'story' : 'stories'}
+      </StoryCount>
+
+      {manager_id && (
+        <ManagerInfo>
+          👨‍💼 {manager_id.replace('manager-', '').replace(/([A-Z])/g, ' $1').trim()}
+        </ManagerInfo>
+      )}
+    </NodeContainer>
+  );
 }
 
 export default MilestoneNode; 
