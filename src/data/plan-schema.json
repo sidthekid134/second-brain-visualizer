@@ -1,0 +1,383 @@
+{
+    "$schema": "http://json-schema.org/draft-07/schema#",
+    "title": "Unified Project Execution Schema",
+    "type": "object",
+    "properties": {
+        "project": {
+            "type": "object",
+            "properties": {
+                "id": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "description": {
+                    "type": "string"
+                },
+                "status": {
+                    "type": "string",
+                    "enum": [
+                        "planned",
+                        "executing",
+                        "completed",
+                        "on_hold",
+                        "cancelled"
+                    ]
+                },
+                "created_at": {
+                    "type": "string",
+                    "format": "date-time"
+                },
+                "updated_at": {
+                    "type": "string",
+                    "format": "date-time"
+                },
+                "progress": {
+                    "type": "object",
+                    "properties": {
+                        "completion_percentage": {
+                            "type": "number"
+                        }
+                    },
+                    "required": [
+                        "completion_percentage"
+                    ]
+                },
+                "budget": {
+                    "type": "object",
+                    "properties": {
+                        "limit": {
+                            "type": "number"
+                        },
+                        "used": {
+                            "type": "number"
+                        }
+                    },
+                    "required": [
+                        "limit",
+                        "used"
+                    ]
+                },
+                "milestones": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/milestone"
+                    }
+                }
+            },
+            "required": [
+                "id",
+                "name",
+                "status",
+                "created_at",
+                "updated_at",
+                "progress",
+                "budget",
+                "milestones"
+            ]
+        },
+        "stories": {
+            "type": "array",
+            "items": {
+                "$ref": "#/definitions/story"
+            }
+        },
+        "agents": {
+            "type": "array",
+            "items": {
+                "$ref": "#/definitions/agent"
+            }
+        }
+    },
+    "required": [
+        "project",
+        "stories",
+        "agents"
+    ],
+    "definitions": {
+        "milestone": {
+            "type": "object",
+            "properties": {
+                "id": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "status": {
+                    "type": "string",
+                    "enum": [
+                        "planned",
+                        "in_progress",
+                        "completed"
+                    ]
+                },
+                "stories": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "manager_id": {
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                }
+            },
+            "required": [
+                "id",
+                "name",
+                "status",
+                "stories"
+            ]
+        },
+        "story": {
+            "type": "object",
+            "properties": {
+                "id": {
+                    "type": "string"
+                },
+                "objective": {
+                    "type": "string"
+                },
+                "milestone": {
+                    "type": "string"
+                },
+                "acceptance_criteria": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "status": {
+                    "type": "string",
+                    "enum": [
+                        "planned",
+                        "in_progress",
+                        "blocked",
+                        "done",
+                        "cancelled"
+                    ]
+                },
+                "owner_id": {
+                    "type": "string"
+                },
+                "dependencies": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "dependents": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "implementation_notes": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "blocking_issues": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/blocking_issue"
+                    }
+                },
+                "estimated_tokens": {
+                    "type": [
+                        "number",
+                        "null"
+                    ]
+                },
+                "actual_tokens": {
+                    "type": [
+                        "number",
+                        "null"
+                    ]
+                },
+                "complexity_score": {
+                    "type": [
+                        "number",
+                        "null"
+                    ]
+                },
+                "created_at": {
+                    "type": "string",
+                    "format": "date-time"
+                },
+                "updated_at": {
+                    "type": "string",
+                    "format": "date-time"
+                },
+                "execution": {
+                    "$ref": "#/definitions/execution_detail"
+                }
+            },
+            "required": [
+                "id",
+                "objective",
+                "milestone",
+                "acceptance_criteria",
+                "status",
+                "owner_id",
+                "dependencies",
+                "dependents",
+                "implementation_notes",
+                "blocking_issues",
+                "created_at",
+                "updated_at",
+                "execution"
+            ]
+        },
+        "execution_detail": {
+            "type": "object",
+            "properties": {
+                "current": {
+                    "$ref": "#/definitions/execution_run"
+                },
+                "history": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/execution_run"
+                    }
+                }
+            },
+            "required": [
+                "current",
+                "history"
+            ]
+        },
+        "execution_run": {
+            "type": "object",
+            "properties": {
+                "status": {
+                    "type": "string",
+                    "enum": [
+                        "planned",
+                        "in_progress",
+                        "blocked",
+                        "done",
+                        "failed"
+                    ]
+                },
+                "started_at": {
+                    "type": [
+                        "string",
+                        "null"
+                    ],
+                    "format": "date-time"
+                },
+                "ended_at": {
+                    "type": [
+                        "string",
+                        "null"
+                    ],
+                    "format": "date-time"
+                },
+                "duration_seconds": {
+                    "type": [
+                        "number",
+                        "null"
+                    ]
+                },
+                "agent_id": {
+                    "type": "string"
+                },
+                "result": {
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                },
+                "messages_count": {
+                    "type": [
+                        "number",
+                        "null"
+                    ]
+                }
+            },
+            "required": [
+                "status",
+                "agent_id"
+            ]
+        },
+        "blocking_issue": {
+            "type": "object",
+            "properties": {
+                "id": {
+                    "type": "string"
+                },
+                "description": {
+                    "type": "string"
+                },
+                "status": {
+                    "type": "string",
+                    "enum": [
+                        "open",
+                        "resolved"
+                    ]
+                }
+            },
+            "required": [
+                "id",
+                "description",
+                "status"
+            ]
+        },
+        "agent": {
+            "type": "object",
+            "properties": {
+                "id": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "role": {
+                    "type": "string",
+                    "enum": [
+                        "conductor",
+                        "manager",
+                        "engineer"
+                    ]
+                },
+                "manager_id": {
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                },
+                "reports": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "milestone_ids": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "assigned_story_ids": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                }
+            },
+            "required": [
+                "id",
+                "name",
+                "role",
+                "manager_id",
+                "reports"
+            ]
+        }
+    }
+}

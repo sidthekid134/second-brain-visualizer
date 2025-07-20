@@ -1,393 +1,159 @@
-import React, { useState, useCallback, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import styled from 'styled-components';
-import FileUpload from './components/FileUpload';
-import ProjectSidebar from './components/ProjectSidebar';
-import DependencyGraph from './components/DependencyGraph';
-import TestGraph from './components/TestGraph';
-import { normalizeProjectData, getSchemaDisplayInfo } from './utils/schemaUtils';
+import PlanEditor from './components/PlanEditor';
+import LiveExecution from './components/LiveExecution';
+import IdeaBuilder from './components/IdeaBuilder';
+import { PlanProvider } from './context/PlanContext';
 
 const AppContainer = styled.div`
-  display: flex;
   height: 100vh;
-  background-color: #f5f5f5;
-`;
-
-const MainContent = styled.div`
-  flex: 1;
+  width: 100vw;
   display: flex;
   flex-direction: column;
-  overflow: hidden;
-  height: 100vh;
+  background-color: #f8f9fa;
 `;
 
 const Header = styled.div`
-  background: white;
-  padding: 1rem;
-  border-bottom: 1px solid #e0e0e0;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  background-color: #2c3e50;
+  color: white;
+  padding: 1rem 2rem;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  z-index: 1000;
 `;
 
-const HeaderTop = styled.div`
+const Title = styled.h1`
+  font-size: 1.5rem;
+  font-weight: 600;
+  margin: 0;
+`;
+
+const Subtitle = styled.p`
+  font-size: 0.9rem;
+  margin: 0.25rem 0 0 0;
+  opacity: 0.8;
+`;
+
+const TabContainer = styled.div`
+  background-color: #34495e;
+  padding: 0 2rem;
   display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
-  margin-bottom: 0.5rem;
+  gap: 0;
 `;
 
-const ProjectInfo = styled.div`
+const Tab = styled.button`
+  background: ${props => props.active ? '#3498db' : 'transparent'};
+  color: white;
+  border: none;
+  padding: 0.75rem 1.5rem;
+  cursor: pointer;
+  font-size: 0.9rem;
+  font-weight: 500;
+  border-radius: 0;
+  transition: background-color 0.2s;
+  border-bottom: 3px solid ${props => props.active ? '#3498db' : 'transparent'};
+
+  &:hover {
+    background-color: ${props => props.active ? '#3498db' : 'rgba(52, 152, 219, 0.3)'};
+  }
+
+  &:focus {
+    outline: none;
+  }
+`;
+
+const ContentArea = styled.div`
   flex: 1;
-`;
-
-const StatusIndicators = styled.div`
+  overflow: hidden;
   display: flex;
   flex-direction: column;
-  align-items: flex-end;
-  gap: 0.5rem;
 `;
 
-const StatusBadge = styled.div`
+const StatusBar = styled.div`
+  background-color: #ecf0f1;
+  padding: 0.5rem 2rem;
+  border-top: 1px solid #bdc3c7;
+  font-size: 0.8rem;
+  color: #7f8c8d;
   display: flex;
+  justify-content: space-between;
+  align-items: center;
+`;
+
+const StatusIndicator = styled.span`
+  display: inline-flex;
   align-items: center;
   gap: 0.5rem;
-  padding: 0.25rem 0.5rem;
-  border-radius: 12px;
-  font-size: 0.8rem;
-  background: ${props => props.$active ? '#d4edda' : '#f8d7da'};
-  color: ${props => props.$active ? '#155724' : '#721c24'};
 `;
 
-const ProgressBar = styled.div`
-  width: 100%;
+const StatusDot = styled.div`
+  width: 8px;
   height: 8px;
-  background: #e9ecef;
-  border-radius: 4px;
-  margin-top: 0.5rem;
-  overflow: hidden;
-`;
-
-const ProgressFill = styled.div`
-  width: ${props => props.$progress}%;
-  height: 100%;
-  background: #28a745;
-  transition: width 0.3s ease;
-`;
-
-const LoadingIndicator = styled.div`
-  display: flex;
-  align-items: center;
-  gap: 0.25rem;
-  font-size: 0.8rem;
-  color: #666;
-`;
-
-const ToggleButton = styled.button`
-  background: ${props => props.$active ? '#dc3545' : '#28a745'};
-  color: white;
-  border: none;
-  padding: 0.25rem 0.5rem;
-  border-radius: 4px;
-  cursor: pointer;
-  font-size: 0.8rem;
-  transition: background-color 0.2s;
-
-  &:hover {
-    background: ${props => props.$active ? '#c82333' : '#218838'};
-  }
-`;
-
-const TestButton = styled.button`
-  background: #6f42c1;
-  color: white;
-  border: none;
-  padding: 0.25rem 0.5rem;
-  border-radius: 4px;
-  cursor: pointer;
-  font-size: 0.8rem;
-  transition: background-color 0.2s;
-
-  &:hover {
-    background: #5a359a;
-  }
-`;
-
-const DataSourceSelector = styled.div`
-  display: flex;
-  gap: 0.5rem;
-  margin-top: 0.5rem;
-  align-items: center;
-`;
-
-const DataSourceButton = styled.button`
-  background: ${props => props.$active ? '#007bff' : '#6c757d'};
-  color: white;
-  border: none;
-  padding: 0.35rem 0.7rem;
-  border-radius: 4px;
-  cursor: pointer;
-  font-size: 0.8rem;
-  transition: background-color 0.2s;
-
-  &:hover {
-    background: ${props => props.$active ? '#0056b3' : '#5a6268'};
-  }
-`;
-
-const SchemaIndicator = styled.div`
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  padding: 0.25rem 0.5rem;
-  border-radius: 12px;
-  font-size: 0.75rem;
-  background: ${props => props.$schemaType === 'live-file' ? '#e7f3ff' : '#fff3e0'};
-  color: ${props => props.$schemaType === 'live-file' ? '#0056b3' : '#bf6900'};
-  border: 1px solid ${props => props.$schemaType === 'live-file' ? '#b3d9ff' : '#ffd699'};
-`;
-
-const GraphContainer = styled.div`
-  flex: 1;
-  position: relative;
-  display: flex;
-  min-height: 0;
-`;
-
-const ProjectStats = styled.div`
-  display: flex;
-  gap: 1rem;
-  margin-top: 0.5rem;
-  font-size: 0.9rem;
-  color: #666;
-`;
-
-const StatItem = styled.div`
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
+  border-radius: 50%;
+  background-color: ${props => {
+        switch (props.status) {
+            case 'connected': return '#27ae60';
+            case 'loading': return '#f39c12';
+            case 'error': return '#e74c3c';
+            default: return '#95a5a6';
+        }
+    }};
 `;
 
 function App() {
-    const [projectData, setProjectData] = useState(null);
-    const [rawProjectData, setRawProjectData] = useState(null); // Store raw data before normalization
-    const [selectedStory, setSelectedStory] = useState(null);
-    const [isLoading, setIsLoading] = useState(false);
-    const [autoReloadEnabled, setAutoReloadEnabled] = useState(false);
-    const [showTestGraph, setShowTestGraph] = useState(false);
-    const [dataSource, setDataSource] = useState('live-file'); // 'live-file' | 'example' | 'custom'
+    const [activeTab, setActiveTab] = useState('editor');
+    const [connectionStatus, setConnectionStatus] = useState('connected');
+    const [lastUpdate, setLastUpdate] = useState(new Date());
 
-    // Function to load project data from a specific source
-    const loadProjectData = useCallback(async (source = dataSource) => {
-        setIsLoading(true);
-        try {
-            const filename = source === 'live-file' ? 'live-file.json' : 'example-plan-1.json';
-            const response = await fetch(`/${filename}?t=${Date.now()}`);
-            if (!response.ok) {
-                throw new Error(`HTTP error! status: ${response.status}`);
-            }
-            const rawData = await response.json();
-            setRawProjectData(rawData);
-
-            // Normalize the data regardless of schema
-            const normalizedData = normalizeProjectData(rawData);
-            setProjectData(normalizedData);
-        } catch (error) {
-            console.error('Error loading project data:', error);
-            // Show user-friendly error message
-            setProjectData(null);
-            setRawProjectData(null);
-        } finally {
-            setIsLoading(false);
-        }
-    }, [dataSource]);
-
-    // Auto-reload effect (only for live-file)
     useEffect(() => {
-        if (autoReloadEnabled && dataSource === 'live-file') {
-            const interval = setInterval(() => loadProjectData('live-file'), 2000);
-            return () => clearInterval(interval);
-        }
-    }, [autoReloadEnabled, dataSource, loadProjectData]);
+        // Simulate live updates
+        const interval = setInterval(() => {
+            setLastUpdate(new Date());
+        }, 30000); // Update every 30 seconds
 
-    // Load data when data source changes
-    useEffect(() => {
-        loadProjectData(dataSource);
-    }, [dataSource, loadProjectData]);
-
-    const handleFileUpload = useCallback((data) => {
-        try {
-            const parsedData = JSON.parse(data);
-            setRawProjectData(parsedData);
-
-            // Normalize the uploaded data
-            const normalizedData = normalizeProjectData(parsedData);
-            setProjectData(normalizedData);
-            setSelectedStory(null);
-            setDataSource('custom');
-
-            // Disable auto-reload when custom data is uploaded
-            setAutoReloadEnabled(false);
-        } catch (error) {
-            console.error('Error parsing JSON:', error);
-            alert('Invalid JSON file. Please check the format.');
-        }
+        return () => clearInterval(interval);
     }, []);
 
-    const toggleAutoReload = useCallback(() => {
-        if (dataSource !== 'live-file') {
-            alert('Auto-reload is only available for the live-file data source');
-            return;
-        }
-        setAutoReloadEnabled(prev => !prev);
-    }, [dataSource]);
+    const tabs = [
+        { id: 'editor', label: 'Plan Editor', component: PlanEditor },
+        { id: 'execution', label: 'Live Execution', component: LiveExecution },
+        { id: 'ideas', label: 'Idea Builder', component: IdeaBuilder }
+    ];
 
-    const toggleTestGraph = useCallback(() => {
-        setShowTestGraph(prev => !prev);
-    }, []);
-
-    const handleStorySelect = useCallback((story) => {
-        setSelectedStory(story);
-    }, []);
-
-    const handleDataSourceChange = useCallback((source) => {
-        setDataSource(source);
-        setSelectedStory(null);
-        // Disable auto-reload when switching away from live-file
-        if (source !== 'live-file') {
-            setAutoReloadEnabled(false);
-        }
-    }, []);
-
-    const getExecutionStatus = () => {
-        if (!projectData?.execution_status) return null;
-        return {
-            running: projectData.execution_status.running,
-            progress: projectData.execution_status.completion_percentage,
-            totalStories: projectData.execution_status.total_stories,
-            totalAgents: projectData.execution_status.total_agents,
-            totalMessages: projectData.execution_status.total_messages
-        };
-    };
-
-    const executionStatus = getExecutionStatus();
-    const schemaInfo = getSchemaDisplayInfo(projectData);
+    const ActiveComponent = tabs.find(tab => tab.id === activeTab)?.component;
 
     return (
-        <AppContainer>
-            <ProjectSidebar
-                projectData={projectData}
-                selectedStory={selectedStory}
-                onStorySelect={handleStorySelect}
-            />
-            <MainContent>
+        <PlanProvider>
+            <AppContainer>
                 <Header>
-                    <HeaderTop>
-                        <ProjectInfo>
-                            <h1>{projectData?.project_info?.name || 'Project Visualizer'}</h1>
-                            <p>{projectData?.project_info?.description || 'Load a project plan to visualize dependencies'}</p>
-                            {executionStatus && (
-                                <>
-                                    <ProgressBar>
-                                        <ProgressFill $progress={executionStatus.progress} />
-                                    </ProgressBar>
-                                    <ProjectStats>
-                                        <StatItem>
-                                            📊 Progress: {executionStatus.progress.toFixed(1)}%
-                                        </StatItem>
-                                        <StatItem>
-                                            📝 Stories: {executionStatus.totalStories}
-                                        </StatItem>
-                                        {executionStatus.totalAgents > 0 && (
-                                            <StatItem>
-                                                🤖 Agents: {executionStatus.totalAgents}
-                                            </StatItem>
-                                        )}
-                                        {executionStatus.totalMessages > 0 && (
-                                            <StatItem>
-                                                💬 Messages: {executionStatus.totalMessages}
-                                            </StatItem>
-                                        )}
-                                    </ProjectStats>
-                                </>
-                            )}
-                        </ProjectInfo>
-                        <StatusIndicators>
-                            {schemaInfo && (
-                                <SchemaIndicator $schemaType={schemaInfo.schemaType}>
-                                    <span>📋</span>
-                                    <span>{schemaInfo.schemaLabel}</span>
-                                </SchemaIndicator>
-                            )}
-                            <StatusBadge $active={autoReloadEnabled}>
-                                <span>Auto-reload: {autoReloadEnabled ? 'ON' : 'OFF'}</span>
-                                <ToggleButton
-                                    $active={autoReloadEnabled}
-                                    onClick={toggleAutoReload}
-                                    disabled={dataSource !== 'live-file'}
-                                >
-                                    {autoReloadEnabled ? 'Disable' : 'Enable'}
-                                </ToggleButton>
-                            </StatusBadge>
-                            {isLoading && (
-                                <LoadingIndicator>
-                                    <span>🔄</span>
-                                    <span>Loading data...</span>
-                                </LoadingIndicator>
-                            )}
-                            <TestButton onClick={toggleTestGraph}>
-                                {showTestGraph ? 'Show Real Graph' : 'Show Test Graph'}
-                            </TestButton>
-                        </StatusIndicators>
-                    </HeaderTop>
-
-                    <DataSourceSelector>
-                        <span style={{ fontSize: '0.9rem', color: '#666', marginRight: '0.5rem' }}>
-                            Data Source:
-                        </span>
-                        <DataSourceButton
-                            $active={dataSource === 'live-file'}
-                            onClick={() => handleDataSourceChange('live-file')}
-                        >
-                            Live File (Complex Schema)
-                        </DataSourceButton>
-                        <DataSourceButton
-                            $active={dataSource === 'example'}
-                            onClick={() => handleDataSourceChange('example')}
-                        >
-                            Example Plan (Simple Schema)
-                        </DataSourceButton>
-                        <DataSourceButton
-                            $active={dataSource === 'custom'}
-                            disabled={true}
-                        >
-                            Custom Upload {dataSource === 'custom' && '✓'}
-                        </DataSourceButton>
-                    </DataSourceSelector>
-
-                    <FileUpload onFileUpload={handleFileUpload} />
-
-                    <div style={{ fontSize: '0.9rem', color: '#666', marginTop: '0.5rem' }}>
-                        💡 <strong>Schema Support:</strong> This visualizer supports both simple project schemas (stories in root) and complex execution schemas (live monitoring data).
-                        {schemaInfo?.supportsRealtime && dataSource === 'live-file' && (
-                            <span> Real-time monitoring is enabled for this format.</span>
-                        )}
-                    </div>
+                    <Title>Second Brain Visualizer</Title>
+                    <Subtitle>Project execution planning and monitoring platform</Subtitle>
                 </Header>
-                <GraphContainer>
-                    {isLoading ? (
-                        <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100%' }}>
-                            Loading project data...
-                        </div>
-                    ) : showTestGraph ? (
-                        <TestGraph />
-                    ) : (
-                        <DependencyGraph
-                            projectData={projectData}
-                            selectedStory={selectedStory}
-                            onStorySelect={handleStorySelect}
-                        />
-                    )}
-                </GraphContainer>
-            </MainContent>
-        </AppContainer>
+
+                <TabContainer>
+                    {tabs.map(tab => (
+                        <Tab
+                            key={tab.id}
+                            active={activeTab === tab.id}
+                            onClick={() => setActiveTab(tab.id)}
+                        >
+                            {tab.label}
+                        </Tab>
+                    ))}
+                </TabContainer>
+
+                <ContentArea>
+                    {ActiveComponent && <ActiveComponent />}
+                </ContentArea>
+
+                <StatusBar>
+                    <StatusIndicator>
+                        <StatusDot status={connectionStatus} />
+                        Status: {connectionStatus}
+                    </StatusIndicator>
+                    <span>Last updated: {lastUpdate.toLocaleTimeString()}</span>
+                </StatusBar>
+            </AppContainer>
+        </PlanProvider>
     );
 }
 
