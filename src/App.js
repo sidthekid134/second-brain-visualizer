@@ -41,7 +41,7 @@ const TabContainer = styled.div`
 `;
 
 const Tab = styled.button`
-  background: ${props => props.active ? '#3498db' : 'transparent'};
+  background: ${props => props.$active ? '#3498db' : 'transparent'};
   color: white;
   border: none;
   padding: 0.75rem 1.5rem;
@@ -50,10 +50,10 @@ const Tab = styled.button`
   font-weight: 500;
   border-radius: 0;
   transition: background-color 0.2s;
-  border-bottom: 3px solid ${props => props.active ? '#3498db' : 'transparent'};
+  border-bottom: 3px solid ${props => props.$active ? '#3498db' : 'transparent'};
 
   &:hover {
-    background-color: ${props => props.active ? '#3498db' : 'rgba(52, 152, 219, 0.3)'};
+    background-color: ${props => props.$active ? '#3498db' : 'rgba(52, 152, 219, 0.3)'};
   }
 
   &:focus {
@@ -90,7 +90,7 @@ const StatusDot = styled.div`
   height: 8px;
   border-radius: 50%;
   background-color: ${props => {
-    switch (props.status) {
+    switch (props.$status) {
       case 'connected': return '#27ae60';
       case 'loading': return '#f39c12';
       case 'error': return '#e74c3c';
@@ -100,7 +100,7 @@ const StatusDot = styled.div`
 `;
 
 function App() {
-  const [activeTab, setActiveTab] = useState('execution');
+  const [activeTab, setActiveTab] = useState('editor');
   const [connectionStatus, setConnectionStatus] = useState('connected');
   const [lastUpdate, setLastUpdate] = useState(new Date());
 
@@ -133,7 +133,7 @@ function App() {
           {tabs.map(tab => (
             <Tab
               key={tab.id}
-              active={activeTab === tab.id}
+              $active={activeTab === tab.id}
               onClick={() => setActiveTab(tab.id)}
             >
               {tab.label}
@@ -147,7 +147,7 @@ function App() {
 
         <StatusBar>
           <StatusIndicator>
-            <StatusDot status={connectionStatus} />
+            <StatusDot $status={connectionStatus} />
             Status: {connectionStatus}
           </StatusIndicator>
           <span>Last updated: {lastUpdate.toLocaleTimeString()}</span>

@@ -65,8 +65,8 @@ const QuickActions = styled.div`
 `;
 
 const ActionButton = styled.button`
-  background: ${props => props.variant === 'primary' ? 'rgba(16, 185, 129, 0.9)' :
-        props.variant === 'danger' ? 'rgba(239, 68, 68, 0.9)' :
+  background: ${props => props.$variant === 'primary' ? 'rgba(16, 185, 129, 0.9)' :
+        props.$variant === 'danger' ? 'rgba(239, 68, 68, 0.9)' :
             'rgba(255, 255, 255, 0.2)'};
   color: white;
   border: none;
@@ -96,7 +96,7 @@ const CompactStatusRow = styled.div`
 `;
 
 const StatusBadge = styled.div`
-  background: ${props => getStatusColor(props.status)}CC;
+  background: ${props => getStatusColor(props.$status)}CC;
   color: white;
   padding: 4px 12px;
   border-radius: 14px;
@@ -138,19 +138,19 @@ const Section = styled.div`
   margin-bottom: 0;
   border-bottom: 1px solid #f3f4f6;
   animation: ${fadeIn} 0.4s ease-out;
-  animation-delay: ${props => props.delay || '0s'};
+  animation-delay: ${props => props.$delay || '0s'};
   animation-fill-mode: both;
 `;
 
 const SectionHeader = styled.div`
-  background: ${props => props.expanded ? '#f8fafc' : 'white'};
+  background: ${props => props.$expanded ? '#f8fafc' : 'white'};
   padding: 20px 24px;
   cursor: pointer;
   display: flex;
   justify-content: space-between;
   align-items: center;
   transition: all 0.2s ease;
-  border-left: 4px solid ${props => props.expanded ? '#3b82f6' : 'transparent'};
+  border-left: 4px solid ${props => props.$expanded ? '#3b82f6' : 'transparent'};
 
   &:hover {
     background: #f8fafc;
@@ -174,14 +174,14 @@ const SectionIcon = styled.span`
 const ExpandIcon = styled.span`
   font-size: 1rem;
   transition: transform 0.2s ease;
-  transform: ${props => props.expanded ? 'rotate(180deg)' : 'rotate(0deg)'};
+  transform: ${props => props.$expanded ? 'rotate(180deg)' : 'rotate(0deg)'};
   color: #6b7280;
 `;
 
 const SectionContent = styled.div`
-  padding: ${props => props.expanded ? '0 24px 24px 24px' : '0'};
-  max-height: ${props => props.expanded ? '1000px' : '0'};
-  overflow: ${props => props.expanded ? 'visible' : 'hidden'};
+  padding: ${props => props.$expanded ? '0 24px 24px 24px' : '0'};
+  max-height: ${props => props.$expanded ? '1000px' : '0'};
+  overflow: ${props => props.$expanded ? 'visible' : 'hidden'};
   transition: all 0.3s ease;
 `;
 
@@ -192,14 +192,19 @@ const PropertyGrid = styled.div`
 `;
 
 const PropertyCard = styled.div`
-  background: #f9fafb;
-  border: 1px solid #e5e7eb;
+  background: ${props => props.$isChanged ? '#fef3c7' : '#f9fafb'};
+  border: 1px solid ${props => props.$isChanged ? '#f59e0b' : '#e5e7eb'};
   border-radius: 12px;
   padding: 16px;
   transition: all 0.2s ease;
+  position: relative;
+
+  ${props => props.$isChanged && `
+    box-shadow: 0 2px 8px rgba(245, 158, 11, 0.2);
+  `}
 
   &:hover {
-    border-color: #d1d5db;
+    border-color: ${props => props.$isChanged ? '#f59e0b' : '#d1d5db'};
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
   }
 `;
@@ -208,11 +213,20 @@ const PropertyLabel = styled.label`
   display: block;
   font-size: 0.85rem;
   font-weight: 600;
-  color: #374151;
+  color: ${props => props.$isChanged ? '#92400e' : '#374151'};
   margin-bottom: 8px;
   display: flex;
   align-items: center;
   gap: 6px;
+  
+  ${props => props.$isChanged && `
+    &::after {
+      content: '●';
+      color: #f59e0b;
+      font-size: 0.6rem;
+      margin-left: 4px;
+    }
+  `}
 `;
 
 const PropertyDescription = styled.div`
@@ -390,8 +404,8 @@ const ProgressBarTrack = styled.div`
 
 const ProgressBarFill = styled.div`
   height: 100%;
-  background: linear-gradient(90deg, ${props => getStatusColor(props.status)}, ${props => getStatusColor(props.status)}CC);
-  width: ${props => props.progress}%;
+  background: linear-gradient(90deg, ${props => getStatusColor(props.$status)}, ${props => getStatusColor(props.$status)}CC);
+  width: ${props => props.$progress}%;
   transition: width 0.3s ease;
   border-radius: 4px;
 `;
@@ -437,13 +451,13 @@ const ComplexityIndicator = styled.div`
   display: inline-flex;
   align-items: center;
   gap: 4px;
-  background: ${props => getComplexityColor(props.score)}22;
-  color: ${props => getComplexityColor(props.score)};
+  background: ${props => getComplexityColor(props.$score)}22;
+  color: ${props => getComplexityColor(props.$score)};
   padding: 4px 8px;
   border-radius: 12px;
   font-size: 0.8rem;
   font-weight: 600;
-  border: 1px solid ${props => getComplexityColor(props.score)}44;
+  border: 1px solid ${props => getComplexityColor(props.$score)}44;
 `;
 
 const TokenDisplay = styled.div`
@@ -466,7 +480,7 @@ const TokenBar = styled.div`
 const TokenProgress = styled.div`
   height: 100%;
   background: linear-gradient(90deg, #10b981, #059669);
-  width: ${props => Math.min((props.actual / props.estimated) * 100, 100)}%;
+  width: ${props => Math.min((props.$actual / props.$estimated) * 100, 100)}%;
   transition: width 0.3s ease;
 `;
 
@@ -497,9 +511,9 @@ const AutocompleteInput = styled.input`
 
 const AutocompleteDropdown = styled.div`
   position: fixed;
-  top: ${props => props.top || 0}px;
-  left: ${props => props.left || 0}px;
-  width: ${props => props.width || 200}px;
+  top: ${props => props.$top || 0}px;
+  left: ${props => props.$left || 0}px;
+  width: ${props => props.$width || 200}px;
   background: white;
   border: 2px solid #3b82f6;
   border-top: none;
@@ -572,8 +586,8 @@ const DependencyId = styled.div`
 `;
 
 const StatusIndicator = styled.span`
-  background: ${props => getStatusColor(props.status)}22;
-  color: ${props => getStatusColor(props.status)};
+  background: ${props => getStatusColor(props.$status)}22;
+  color: ${props => getStatusColor(props.$status)};
   padding: 2px 6px;
   border-radius: 8px;
   font-size: 0.6rem;
@@ -583,7 +597,19 @@ const StatusIndicator = styled.span`
 `;
 
 function NodePropertiesPanel({ selectedNode }) {
-    const { dispatch, editMode, uiSchema, planData, getDependentsForStory } = usePlan();
+    const {
+        dispatch,
+        editMode,
+        executionView,
+        uiSchema,
+        planData,
+        getDependentsForStory,
+        stageChanges,
+        getPendingChangesForEntity,
+        getEntityWithPendingChanges,
+        hasChangesForEntity,
+        discardChanges
+    } = usePlan();
     const [editData, setEditData] = useState({});
     const [isEditing, setIsEditing] = useState(false);
     const [expandedSections, setExpandedSections] = useState({
@@ -601,20 +627,41 @@ function NodePropertiesPanel({ selectedNode }) {
 
     useEffect(() => {
         if (selectedNode) {
-            setEditData(selectedNode.data || {});
+            // Get entity data with any pending changes applied
+            const entityWithChanges = getEntityWithPendingChanges(
+                selectedNode.data.type,
+                selectedNode.data.id
+            ) || selectedNode.data;
+
+            setEditData(entityWithChanges);
             setIsEditing(false);
+
             // Auto-expand relevant sections based on content
             const hasContent = {
                 basic: true,
-                assignment: selectedNode.data?.owner_id || selectedNode.data?.complexity_score,
-                criteria: selectedNode.data?.acceptance_criteria?.length > 0,
-                dependencies: selectedNode.data?.dependencies?.length > 0 || getDependentsForStory(selectedNode.data?.id)?.length > 0,
-                notes: selectedNode.data?.implementation_notes?.length > 0,
-                execution: selectedNode.data?.execution?.history?.length > 0
+                assignment: entityWithChanges?.owner_id || entityWithChanges?.complexity_score,
+                criteria: entityWithChanges?.acceptance_criteria?.length > 0,
+                dependencies: entityWithChanges?.dependencies?.length > 0 || getDependentsForStory(entityWithChanges?.id)?.length > 0,
+                notes: entityWithChanges?.implementation_notes?.length > 0,
+                execution: entityWithChanges?.execution?.history?.length > 0
             };
             setExpandedSections(hasContent);
         }
-    }, [selectedNode, getDependentsForStory]);
+    }, [selectedNode, getDependentsForStory, getEntityWithPendingChanges]);
+
+    // Exit editing mode when global edit mode is disabled
+    useEffect(() => {
+        if (!editMode && isEditing) {
+            setIsEditing(false);
+        }
+    }, [editMode, isEditing]);
+
+    // Auto-enable editing when global edit mode is on
+    useEffect(() => {
+        if (editMode && selectedNode && !isEditing) {
+            setIsEditing(true);
+        }
+    }, [editMode, selectedNode, isEditing]);
 
     const toggleSection = (sectionId) => {
         setExpandedSections(prev => ({
@@ -623,24 +670,36 @@ function NodePropertiesPanel({ selectedNode }) {
         }));
     };
 
-    const handleSave = () => {
-        if (selectedNode.data.type === 'story') {
-            dispatch({
-                type: 'UPDATE_STORY',
-                payload: {
-                    id: selectedNode.data.id,
-                    updates: editData
-                }
-            });
-        }
-        setIsEditing(false);
-    };
+    const handleFieldChange = (fieldPath, value) => {
+        if (!isEditing) return;
 
-    const handleFieldChange = (fieldKey, value) => {
-        if (fieldKey.includes('.')) {
-            setEditData(prevData => setNestedValue(prevData, fieldKey, value));
-        } else {
-            setEditData(prevData => ({ ...prevData, [fieldKey]: value }));
+        const newEditData = setNestedValue({ ...editData }, fieldPath, value);
+        setEditData(newEditData);
+
+        // Stage the changes immediately
+        if (selectedNode) {
+            // Calculate the diff between original and edited data
+            const originalData = selectedNode.data;
+            const changes = {};
+
+            // Deep comparison to find what changed
+            const findChanges = (original, edited) => {
+                for (const key in edited) {
+                    if (JSON.stringify(edited[key]) !== JSON.stringify(original[key])) {
+                        changes[key] = edited[key];
+                    }
+                }
+            };
+
+            findChanges(originalData, newEditData);
+
+            // Stage the changes
+            stageChanges(
+                selectedNode.data.type,
+                selectedNode.data.id,
+                changes,
+                originalData
+            );
         }
     };
 
@@ -680,9 +739,9 @@ function NodePropertiesPanel({ selectedNode }) {
 
         return createPortal(
             <AutocompleteDropdown
-                top={position.top}
-                left={position.left}
-                width={position.width}
+                $top={position.top}
+                $left={position.left}
+                $width={position.width}
             >
                 {children}
             </AutocompleteDropdown>,
@@ -740,7 +799,8 @@ function NodePropertiesPanel({ selectedNode }) {
 
     const renderStoryMultiselect = (fieldDef) => {
         const fieldValue = getNestedValue(isEditing ? editData : data, fieldDef.key) || [];
-        const isReadonly = fieldDef.readonly || !editMode || !isEditing;
+        const isReadonly = fieldDef.readonly || !editMode;
+        const isChanged = isFieldChanged(fieldDef.key);
         const autocompleteState = autocompleteStates[fieldDef.key] || { inputValue: '', showDropdown: false };
 
         const availableStories = getAvailableStories(fieldDef.key, fieldValue);
@@ -752,8 +812,8 @@ function NodePropertiesPanel({ selectedNode }) {
         });
 
         return (
-            <PropertyCard key={fieldDef.key}>
-                <PropertyLabel>
+            <PropertyCard key={fieldDef.key} $isChanged={isChanged}>
+                <PropertyLabel $isChanged={isChanged}>
                     {fieldDef.label}
                     {fieldDef.required && <span style={{ color: '#ef4444' }}>*</span>}
                 </PropertyLabel>
@@ -771,7 +831,7 @@ function NodePropertiesPanel({ selectedNode }) {
                                         <DependencyTitle>
                                             {story?.objective || `Unknown Story (${storyId})`}
                                             {story?.status && (
-                                                <StatusIndicator status={story.status}>
+                                                <StatusIndicator $status={story.status}>
                                                     {story.status}
                                                 </StatusIndicator>
                                             )}
@@ -837,7 +897,7 @@ function NodePropertiesPanel({ selectedNode }) {
                                     <OptionTitle>
                                         {story?.objective || 'Untitled Story'}
                                         {story?.status && (
-                                            <StatusIndicator status={story.status}>
+                                            <StatusIndicator $status={story.status}>
                                                 {story.status}
                                             </StatusIndicator>
                                         )}
@@ -855,6 +915,188 @@ function NodePropertiesPanel({ selectedNode }) {
         );
     };
 
+    const renderDependencyMultiselect = (fieldDef) => {
+        const fieldValue = getNestedValue(isEditing ? editData : data, fieldDef.key) || [];
+        const isReadonly = fieldDef.readonly || !editMode;
+        const isChanged = isFieldChanged(fieldDef.key);
+
+        return (
+            <PropertyCard key={fieldDef.key} $isChanged={isChanged}>
+                <PropertyLabel $isChanged={isChanged}>
+                    {fieldDef.label}
+                    {fieldDef.required && <span style={{ color: '#ef4444' }}>*</span>}
+                </PropertyLabel>
+
+                {isReadonly ? (
+                    <ListContainer>
+                        {fieldValue.length === 0 ? (
+                            <ListItem style={{ justifyContent: 'center', fontStyle: 'italic', color: '#9ca3af' }}>
+                                No dependencies
+                            </ListItem>
+                        ) : (
+                            fieldValue.map((dep, index) => (
+                                <ListItem key={index} style={{ background: getDependencyTypeColor(dep.type) }}>
+                                    <ListItemContent>
+                                        {getDependencyTypeIcon(dep.type)} {dep.type}: {dep.id}
+                                    </ListItemContent>
+                                </ListItem>
+                            ))
+                        )}
+                    </ListContainer>
+                ) : (
+                    <div>
+                        <ListContainer>
+                            {fieldValue.map((dep, index) => (
+                                <ListItem key={index} style={{ background: getDependencyTypeColor(dep.type) }}>
+                                    <ListItemContent>
+                                        {getDependencyTypeIcon(dep.type)} {dep.type}: {dep.id}
+                                    </ListItemContent>
+                                    <RemoveButton onClick={() => {
+                                        const newDeps = fieldValue.filter((_, i) => i !== index);
+                                        handleFieldChange(fieldDef.key, newDeps);
+                                    }}>
+                                        Remove
+                                    </RemoveButton>
+                                </ListItem>
+                            ))}
+                        </ListContainer>
+                        <div style={{ marginTop: '8px', padding: '8px', background: '#f9fafb', borderRadius: '6px' }}>
+                            <div style={{ fontSize: '0.8rem', color: '#6b7280', marginBottom: '4px' }}>
+                                Add dependency (format: type:id)
+                            </div>
+                            <div style={{ display: 'flex', gap: '4px' }}>
+                                <input
+                                    type="text"
+                                    placeholder="e.g., story:story-auth-db"
+                                    style={{
+                                        flex: 1,
+                                        padding: '6px 8px',
+                                        border: '1px solid #d1d5db',
+                                        borderRadius: '4px',
+                                        fontSize: '0.8rem'
+                                    }}
+                                    onKeyPress={(e) => {
+                                        if (e.key === 'Enter') {
+                                            const value = e.target.value.trim();
+                                            const [type, id] = value.split(':');
+                                            if (type && id && ['intent', 'checkpoint', 'story'].includes(type)) {
+                                                const newDep = { type, id };
+                                                const exists = fieldValue.some(dep => dep.type === type && dep.id === id);
+                                                if (!exists) {
+                                                    handleFieldChange(fieldDef.key, [...fieldValue, newDep]);
+                                                    e.target.value = '';
+                                                }
+                                            }
+                                        }
+                                    }}
+                                />
+                            </div>
+                        </div>
+                    </div>
+                )}
+
+                {fieldDef.description && (
+                    <PropertyDescription>{fieldDef.description}</PropertyDescription>
+                )}
+            </PropertyCard>
+        );
+    };
+
+    const renderAgentMultiselect = (fieldDef) => {
+        const fieldValue = getNestedValue(isEditing ? editData : data, fieldDef.key) || [];
+        const isReadonly = fieldDef.readonly || !editMode;
+        const isChanged = isFieldChanged(fieldDef.key);
+
+        return (
+            <PropertyCard key={fieldDef.key} $isChanged={isChanged}>
+                <PropertyLabel $isChanged={isChanged}>
+                    {fieldDef.label}
+                    {fieldDef.required && <span style={{ color: '#ef4444' }}>*</span>}
+                </PropertyLabel>
+
+                {isReadonly ? (
+                    <ListContainer>
+                        {fieldValue.length === 0 ? (
+                            <ListItem style={{ justifyContent: 'center', fontStyle: 'italic', color: '#9ca3af' }}>
+                                No agents selected
+                            </ListItem>
+                        ) : (
+                            fieldValue.map((agentId, index) => (
+                                <ListItem key={index}>
+                                    <ListItemContent>
+                                        👤 {agentId}
+                                    </ListItemContent>
+                                </ListItem>
+                            ))
+                        )}
+                    </ListContainer>
+                ) : (
+                    <div>
+                        <ListContainer>
+                            {fieldValue.map((agentId, index) => (
+                                <ListItem key={index}>
+                                    <ListItemContent>
+                                        👤 {agentId}
+                                    </ListItemContent>
+                                    <RemoveButton onClick={() => {
+                                        const newAgents = fieldValue.filter((_, i) => i !== index);
+                                        handleFieldChange(fieldDef.key, newAgents);
+                                    }}>
+                                        Remove
+                                    </RemoveButton>
+                                </ListItem>
+                            ))}
+                        </ListContainer>
+                        <div style={{ marginTop: '8px' }}>
+                            <input
+                                type="text"
+                                placeholder="e.g., eng-auth1"
+                                style={{
+                                    width: '100%',
+                                    padding: '6px 8px',
+                                    border: '1px solid #d1d5db',
+                                    borderRadius: '4px',
+                                    fontSize: '0.8rem'
+                                }}
+                                onKeyPress={(e) => {
+                                    if (e.key === 'Enter') {
+                                        const value = e.target.value.trim();
+                                        if (value && !fieldValue.includes(value)) {
+                                            handleFieldChange(fieldDef.key, [...fieldValue, value]);
+                                            e.target.value = '';
+                                        }
+                                    }
+                                }}
+                            />
+                        </div>
+                    </div>
+                )}
+
+                {fieldDef.description && (
+                    <PropertyDescription>{fieldDef.description}</PropertyDescription>
+                )}
+            </PropertyCard>
+        );
+    };
+
+    const getDependencyTypeColor = (type) => {
+        switch (type) {
+            case 'intent': return '#f3e8ff';
+            case 'checkpoint': return '#e0f2fe';
+            case 'story': return '#fff7ed';
+            default: return '#f3f4f6';
+        }
+    };
+
+    const getDependencyTypeIcon = (type) => {
+        switch (type) {
+            case 'intent': return '🎯';
+            case 'checkpoint': return '🏁';
+            case 'story': return '📝';
+            default: return '🔗';
+        }
+    };
+
     if (!selectedNode) {
         return (
             <PanelContainer>
@@ -863,7 +1105,7 @@ function NodePropertiesPanel({ selectedNode }) {
                         <EmptyIcon>🎯</EmptyIcon>
                         <EmptyTitle>No Selection</EmptyTitle>
                         <EmptyDescription>
-                            Select a story or milestone to view and edit its properties
+                            Select a story or milestone to view its properties. Enable edit mode to make changes.
                         </EmptyDescription>
                     </EmptyState>
                 </PanelContent>
@@ -901,20 +1143,111 @@ function NodePropertiesPanel({ selectedNode }) {
         Math.round((completedCriteria / acceptanceCriteria.length) * 100) :
         (data.status === 'done' ? 100 : data.status === 'in_progress' ? 50 : 0);
 
+    // Helper function to check if a field has been changed
+    const isFieldChanged = (fieldKey) => {
+        if (!editMode || !selectedNode) return false;
+        const originalValue = getNestedValue(selectedNode.data, fieldKey);
+        const currentValue = getNestedValue(editData, fieldKey);
+        return JSON.stringify(originalValue) !== JSON.stringify(currentValue);
+    };
+
     const renderField = (fieldDef, sectionId) => {
         const fieldValue = getNestedValue(isEditing ? editData : data, fieldDef.key);
-        const isReadonly = fieldDef.readonly || !editMode || !isEditing;
+        // When global edit mode is enabled, fields are editable unless explicitly readonly
+        const isReadonly = fieldDef.readonly || !editMode;
+        const isChanged = isFieldChanged(fieldDef.key);
 
         // Handle story_multiselect type with autocomplete
         if (fieldDef.type === 'story_multiselect') {
             return renderStoryMultiselect(fieldDef);
         }
 
+        if (fieldDef.type === 'dependency_multiselect') {
+            return renderDependencyMultiselect(fieldDef);
+        }
+
+        if (fieldDef.type === 'agent_multiselect') {
+            return renderAgentMultiselect(fieldDef);
+        }
+
+        if (fieldDef.type === 'boolean') {
+            const booleanValue = getNestedValue(isEditing ? editData : data, fieldDef.key);
+            return (
+                <PropertyCard key={fieldDef.key} $isChanged={isChanged}>
+                    <PropertyLabel $isChanged={isChanged}>
+                        {fieldDef.label}
+                        {fieldDef.required && <span style={{ color: '#ef4444' }}>*</span>}
+                    </PropertyLabel>
+                    {isReadonly ? (
+                        <ReadOnlyValue>
+                            {booleanValue ? 'Yes' : 'No'}
+                        </ReadOnlyValue>
+                    ) : (
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                            <input
+                                type="checkbox"
+                                checked={booleanValue || false}
+                                onChange={(e) => handleFieldChange(fieldDef.key, e.target.checked)}
+                                style={{ width: '16px', height: '16px' }}
+                            />
+                            <span style={{ fontSize: '0.9rem', color: '#374151' }}>
+                                {booleanValue ? 'Yes' : 'No'}
+                            </span>
+                        </div>
+                    )}
+                    {fieldDef.description && (
+                        <PropertyDescription>{fieldDef.description}</PropertyDescription>
+                    )}
+                </PropertyCard>
+            );
+        }
+
+        if (fieldDef.type === 'datetime') {
+            const datetimeValue = getNestedValue(isEditing ? editData : data, fieldDef.key);
+            const displayValue = datetimeValue ? new Date(datetimeValue).toLocaleString() : 'Not set';
+
+            return (
+                <PropertyCard key={fieldDef.key} $isChanged={isChanged}>
+                    <PropertyLabel $isChanged={isChanged}>
+                        {fieldDef.label}
+                        {fieldDef.required && <span style={{ color: '#ef4444' }}>*</span>}
+                    </PropertyLabel>
+                    <ReadOnlyValue>{displayValue}</ReadOnlyValue>
+                    {fieldDef.description && (
+                        <PropertyDescription>{fieldDef.description}</PropertyDescription>
+                    )}
+                </PropertyCard>
+            );
+        }
+
+        if (fieldDef.type === 'url') {
+            const urlValue = getNestedValue(isEditing ? editData : data, fieldDef.key);
+
+            return (
+                <PropertyCard key={fieldDef.key} $isChanged={isChanged}>
+                    <PropertyLabel $isChanged={isChanged}>
+                        {fieldDef.label}
+                        {fieldDef.required && <span style={{ color: '#ef4444' }}>*</span>}
+                    </PropertyLabel>
+                    <ReadOnlyValue>
+                        {urlValue ? (
+                            <a href={urlValue} target="_blank" rel="noopener noreferrer" style={{ color: '#3b82f6' }}>
+                                {urlValue}
+                            </a>
+                        ) : 'Not set'}
+                    </ReadOnlyValue>
+                    {fieldDef.description && (
+                        <PropertyDescription>{fieldDef.description}</PropertyDescription>
+                    )}
+                </PropertyCard>
+            );
+        }
+
         if (fieldDef.type === 'array') {
             const arrayValue = fieldValue || [];
             return (
-                <PropertyCard key={fieldDef.key}>
-                    <PropertyLabel>
+                <PropertyCard key={fieldDef.key} $isChanged={isChanged}>
+                    <PropertyLabel $isChanged={isChanged}>
                         {fieldDef.label}
                         {fieldDef.required && <span style={{ color: '#ef4444' }}>*</span>}
                     </PropertyLabel>
@@ -966,12 +1299,12 @@ function NodePropertiesPanel({ selectedNode }) {
         }
 
         return (
-            <PropertyCard key={fieldDef.key}>
-                <PropertyLabel>
+            <PropertyCard key={fieldDef.key} $isChanged={isChanged}>
+                <PropertyLabel $isChanged={isChanged}>
                     {fieldDef.label}
                     {fieldDef.required && <span style={{ color: '#ef4444' }}>*</span>}
                     {fieldDef.key === 'complexity_score' && fieldValue && (
-                        <ComplexityIndicator score={fieldValue}>
+                        <ComplexityIndicator $score={fieldValue}>
                             ⚡ {fieldValue}
                         </ComplexityIndicator>
                     )}
@@ -980,7 +1313,7 @@ function NodePropertiesPanel({ selectedNode }) {
                 {isReadonly ? (
                     <ReadOnlyValue>
                         {fieldDef.key === 'status' && fieldValue ? (
-                            <StatusBadge status={fieldValue}>
+                            <StatusBadge $status={fieldValue}>
                                 <span>{getStatusIcon(fieldValue)}</span>
                                 {fieldValue.replace('_', ' ')}
                             </StatusBadge>
@@ -993,7 +1326,7 @@ function NodePropertiesPanel({ selectedNode }) {
                         {fieldDef.key === 'estimated_tokens' && data.actual_tokens && (
                             <TokenDisplay>
                                 <TokenBar>
-                                    <TokenProgress actual={data.actual_tokens} estimated={fieldValue} />
+                                    <TokenProgress $actual={data.actual_tokens} $estimated={fieldValue} />
                                 </TokenBar>
                                 <span>{data.actual_tokens} used</span>
                             </TokenDisplay>
@@ -1045,7 +1378,7 @@ function NodePropertiesPanel({ selectedNode }) {
                             <span>{progress}%</span>
                         </ProgressText>
                         <ProgressBarTrack>
-                            <ProgressBarFill progress={progress} status={data.status} />
+                            <ProgressBarFill $progress={progress} $status={data.status} />
                         </ProgressBarTrack>
                     </ProgressBarContainer>
                 )}
@@ -1061,41 +1394,20 @@ function NodePropertiesPanel({ selectedNode }) {
                         <SectionIcon>{isStory ? '📝' : '🎯'}</SectionIcon>
                         {entitySchema.title}
                         <NodeTypeChip>{data.type}</NodeTypeChip>
+                        {hasChangesForEntity(data.type, data.id) && (
+                            <NodeTypeChip style={{ background: '#f59e0b', animation: 'pulse 2s infinite' }}>
+                                MODIFIED
+                            </NodeTypeChip>
+                        )}
                     </PanelTitle>
 
                     <QuickActions>
-                        {editMode && (
-                            isEditing ? (
-                                <>
-                                    <ActionButton
-                                        variant="primary"
-                                        onClick={handleSave}
-                                    >
-                                        💾 Save
-                                    </ActionButton>
-                                    <ActionButton
-                                        onClick={() => {
-                                            setIsEditing(false);
-                                            setEditData(data);
-                                        }}
-                                    >
-                                        ❌ Cancel
-                                    </ActionButton>
-                                </>
-                            ) : (
-                                <ActionButton
-                                    variant="primary"
-                                    onClick={() => setIsEditing(true)}
-                                >
-                                    ✏️ Edit
-                                </ActionButton>
-                            )
-                        )}
+                        {/* Global edit controls handled by main save indicator */}
                     </QuickActions>
                 </HeaderTop>
 
                 <CompactStatusRow>
-                    <StatusBadge status={data.status}>
+                    <StatusBadge $status={data.status}>
                         <span>{getStatusIcon(data.status)}</span>
                         {data.status?.replace('_', ' ') || 'No Status'}
                     </StatusBadge>
@@ -1121,9 +1433,9 @@ function NodePropertiesPanel({ selectedNode }) {
 
             <PanelContent>
                 {entitySchema.sections?.map((section, index) => (
-                    <Section key={section.id} delay={`${index * 0.1}s`}>
+                    <Section key={section.id} $delay={`${index * 0.1}s`}>
                         <SectionHeader
-                            expanded={expandedSections[section.id]}
+                            $expanded={expandedSections[section.id]}
                             onClick={() => toggleSection(section.id)}
                         >
                             <SectionTitle>
@@ -1137,18 +1449,108 @@ function NodePropertiesPanel({ selectedNode }) {
                                 </SectionIcon>
                                 {section.title}
                             </SectionTitle>
-                            <ExpandIcon expanded={expandedSections[section.id]}>
+                            <ExpandIcon $expanded={expandedSections[section.id]}>
                                 ▼
                             </ExpandIcon>
                         </SectionHeader>
 
-                        <SectionContent expanded={expandedSections[section.id]}>
+                        <SectionContent $expanded={expandedSections[section.id]}>
                             <PropertyGrid>
                                 {section.fields.map(fieldDef => renderField(fieldDef, section.id))}
                             </PropertyGrid>
                         </SectionContent>
                     </Section>
                 ))}
+
+                {/* Execution Details Section - Only show in execution view */}
+                {executionView && data.execution && (
+                    <Section>
+                        <SectionHeader
+                            $expanded={expandedSections.execution_details || false}
+                            onClick={() => toggleSection('execution_details')}
+                        >
+                            <SectionTitle>
+                                <SectionIcon>📊</SectionIcon>
+                                Live Execution Details
+                            </SectionTitle>
+                            <ExpandIcon $expanded={expandedSections.execution_details || false}>
+                                ▼
+                            </ExpandIcon>
+                        </SectionHeader>
+
+                        <SectionContent $expanded={expandedSections.execution_details !== false}>
+                            <PropertyGrid>
+                                <PropertyCard>
+                                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
+                                        <strong>Current Status</strong>
+                                        <StatusBadge $status={data.execution.current?.status || 'planned'}>
+                                            {getStatusIcon(data.execution.current?.status || 'planned')}
+                                            {data.execution.current?.status || 'planned'}
+                                        </StatusBadge>
+                                    </div>
+
+                                    {data.execution.current?.agent_id && (
+                                        <div style={{ marginBottom: '8px' }}>
+                                            <strong>Assigned Agent:</strong> {data.execution.current.agent_id}
+                                        </div>
+                                    )}
+
+                                    {data.execution.current?.started_at && (
+                                        <div style={{ marginBottom: '8px' }}>
+                                            <strong>Started At:</strong> {new Date(data.execution.current.started_at).toLocaleString()}
+                                        </div>
+                                    )}
+
+                                    {data.execution.current?.duration_seconds && (
+                                        <div style={{ marginBottom: '8px' }}>
+                                            <strong>Duration:</strong> {Math.round(data.execution.current.duration_seconds / 60)} minutes
+                                        </div>
+                                    )}
+
+                                    {data.execution.current?.pr_url && (
+                                        <div style={{ marginBottom: '8px' }}>
+                                            <strong>Pull Request:</strong>{' '}
+                                            <a
+                                                href={data.execution.current.pr_url}
+                                                target="_blank"
+                                                rel="noopener noreferrer"
+                                                style={{ color: '#3b82f6', textDecoration: 'underline' }}
+                                            >
+                                                PR #{data.execution.current.pr_number}
+                                            </a>
+                                        </div>
+                                    )}
+
+                                    {data.execution.current?.commit_sha && (
+                                        <div style={{ marginBottom: '8px' }}>
+                                            <strong>Commit:</strong>{' '}
+                                            <code style={{
+                                                backgroundColor: 'rgba(0,0,0,0.1)',
+                                                padding: '2px 4px',
+                                                borderRadius: '4px',
+                                                fontSize: '0.8em'
+                                            }}>
+                                                {data.execution.current.commit_sha.substring(0, 8)}
+                                            </code>
+                                        </div>
+                                    )}
+
+                                    {data.execution.current?.messages_count && (
+                                        <div style={{ marginBottom: '8px' }}>
+                                            <strong>Messages Count:</strong> {data.execution.current.messages_count}
+                                        </div>
+                                    )}
+
+                                    {data.execution.history && data.execution.history.length > 0 && (
+                                        <div style={{ fontSize: '0.9em', color: '#6b7280' }}>
+                                            <strong>Execution History:</strong> {data.execution.history.length} previous runs
+                                        </div>
+                                    )}
+                                </PropertyCard>
+                            </PropertyGrid>
+                        </SectionContent>
+                    </Section>
+                )}
             </PanelContent>
         </PanelContainer>
     );

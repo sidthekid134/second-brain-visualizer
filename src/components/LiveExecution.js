@@ -12,8 +12,8 @@ import 'reactflow/dist/style.css';
 import { usePlan } from '../context/PlanContext';
 import StoryNode from './nodes/StoryNode';
 import MilestoneNode from './nodes/MilestoneNode';
-import MilestonesPanel from './panels/MilestonesPanel';
-import { createFlowData, getStatusColor, getStatusIcon } from '../utils/flowUtils';
+import IntentNode from './nodes/IntentNode';
+import { createIntentFlowData, createStoryFlowData, getStatusColor, getStatusIcon } from '../utils/flowUtils';
 
 const ExecutionContainer = styled.div`
   height: 100%;
@@ -87,24 +87,59 @@ const FlowContainer = styled.div`
   position: relative;
 `;
 
-const MilestoneOverlay = styled.div`
+const NavigationOverlay = styled.div`
   position: absolute;
   top: 20px;
-  left: 20px;
-  z-index: 10;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 1000;
   background: rgba(255, 255, 255, 0.95);
   backdrop-filter: blur(10px);
-  border-radius: 12px;
   border: 1px solid #e5e7eb;
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
-  max-width: 300px;
-  ${props => props.collapsed && `
-    width: auto;
-  `}
+  border-radius: 12px;
+  padding: 12px 16px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-size: 0.85rem;
+  max-width: 400px;
+`;
+
+const BackButton = styled.button`
+  background: #3b82f6;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  padding: 6px 12px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+
+  &:hover {
+    background: #2563eb;
+    transform: translateY(-1px);
+  }
+
+  &:active {
+    transform: translateY(0);
+  }
+`;
+
+const BreadcrumbText = styled.div`
+  color: #374151;
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  gap: 8px;
 `;
 
 const LivePanel = styled.div`
-  width: ${props => props.width}px;
+  width: ${props => props.$width}px;
   background: white;
   border-left: 1px solid #e0e0e0;
   display: flex;
@@ -206,7 +241,7 @@ const StoryStatus = styled.div`
   display: inline-flex;
   align-items: center;
   gap: 4px;
-  background: ${props => getStatusColor(props.status)};
+  background: ${props => getStatusColor(props.$status)};
   color: white;
   padding: 2px 6px;
   border-radius: 8px;
@@ -240,8 +275,8 @@ const ProgressBar = styled.div`
 
 const ProgressFill = styled.div`
   height: 100%;
-  background: ${props => getStatusColor(props.status)};
-  width: ${props => props.progress}%;
+  background: ${props => getStatusColor(props.$status)};
+  width: ${props => props.$progress}%;
   transition: width 0.3s ease;
 `;
 
@@ -268,22 +303,32 @@ const Pulse = styled.div`
   }
 `;
 
-// Custom node types with execution view flag
-const nodeTypes = {
+// Custom node types with execution view flag and navigation
+const createNodeTypes = (navigateToStoryView) => ({
     story: (props) => <StoryNode {...props} isExecutionView={true} />,
     milestone: (props) => <MilestoneNode {...props} isExecutionView={true} />,
-};
+    checkpoint: (props) => <MilestoneNode {...props} isExecutionView={true} />,
+    intent: (props) => <IntentNode {...props} isExecutionView={true} onExplore={navigateToStoryView} onDoubleClick={navigateToStoryView} />,
+});
 
 function LiveExecution() {
-    const { planData } = usePlan();
+    const {
+        planData,
+        viewLevel,
+        selectedIntentId,
+        navigateToIntentView,
+        navigateToStoryView
+    } = usePlan();
     const [nodes, setNodes, onNodesChange] = useNodesState([]);
     const [edges, setEdges, onEdgesChange] = useEdgesState([]);
     const [lastUpdate, setLastUpdate] = useState(new Date());
-    const [milestonesCollapsed, setMilestonesCollapsed] = useState(false);
-    const [layoutDirection, setLayoutDirection] = useState('TB'); // Add layout direction state
+    const [layoutDirection, setLayoutDirection] = useState('TB');
     const [sidebarWidth, setSidebarWidth] = useState(300);
     const [isResizing, setIsResizing] = useState(false);
     const [showMiniMap, setShowMiniMap] = useState(false);
+
+    // Create node types with navigation
+    const nodeTypes = React.useMemo(() => createNodeTypes(navigateToStoryView), [navigateToStoryView]);
 
     // Use plan data for live execution view
     const executionData = planData;
@@ -292,9 +337,17 @@ function LiveExecution() {
     const flowData = React.useMemo(() => {
         if (!executionData) return { nodes: [], edges: [] };
 
-        // Use plan data structure for execution view with configurable layout direction
-        return createFlowData(executionData, layoutDirection);
-    }, [executionData, layoutDirection]);
+        try {
+            if (viewLevel === 'story' && selectedIntentId) {
+                return createStoryFlowData(executionData, selectedIntentId, { editMode: false });
+            } else {
+                return createIntentFlowData(executionData, { editMode: false });
+            }
+        } catch (error) {
+            console.error('Error creating flow data:', error);
+            return { nodes: [], edges: [] };
+        }
+    }, [executionData, layoutDirection, viewLevel, selectedIntentId]);
 
     // Update nodes and edges when flow data changes
     React.useEffect(() => {
@@ -391,6 +444,11 @@ function LiveExecution() {
         total_agents: executionData?.agents?.length || 0
     };
 
+    // Get current intent name for breadcrumb
+    const currentIntent = viewLevel === 'story' && selectedIntentId && executionData
+        ? executionData.project?.roadmap?.intents?.find(intent => intent.id === selectedIntentId)
+        : null;
+
     // Extract stories by status from plan data
     const allStories = executionData?.stories || [];
     const runningStories = allStories.filter(s => s.status === 'in_progress');
@@ -426,14 +484,18 @@ function LiveExecution() {
 
             <MainContent>
                 <FlowContainer>
-                    <MilestoneOverlay collapsed={milestonesCollapsed}>
-                        <MilestonesPanel
-                            milestones={flowData.milestones || []}
-                            collapsed={milestonesCollapsed}
-                            onToggleCollapsed={() => setMilestonesCollapsed(!milestonesCollapsed)}
-                            isExecutionView={true}
-                        />
-                    </MilestoneOverlay>
+                    {/* Navigation Overlay for Story View */}
+                    {viewLevel === 'story' && currentIntent && (
+                        <NavigationOverlay>
+                            <BackButton onClick={navigateToIntentView}>
+                                ← Back
+                            </BackButton>
+                            <BreadcrumbText>
+                                <span>📖 {currentIntent.name}</span>
+                                <span style={{ color: '#6b7280' }}>Stories (Live)</span>
+                            </BreadcrumbText>
+                        </NavigationOverlay>
+                    )}
 
                     <ReactFlow
                         nodes={nodes}
@@ -531,7 +593,7 @@ function LiveExecution() {
 
                 <ExecutionResizeHandle onMouseDown={handleMouseDown} />
 
-                <LivePanel width={sidebarWidth}>
+                <LivePanel $width={sidebarWidth}>
                     <PanelHeader>
                         <PanelTitle>
                             <LiveIndicator>
@@ -551,14 +613,14 @@ function LiveExecution() {
                                     <StoryItem key={story.id}>
                                         <StoryHeader>
                                             <StoryId>{story.id}</StoryId>
-                                            <StoryStatus status={story.status}>
+                                            <StoryStatus $status={story.status}>
                                                 {getStatusIcon(story.status)}
                                                 {story.status}
                                             </StoryStatus>
                                         </StoryHeader>
                                         <StoryTitle>{story.objective}</StoryTitle>
                                         <ProgressBar>
-                                            <ProgressFill progress={50} status={story.status} />
+                                            <ProgressFill $progress={50} $status={story.status} />
                                         </ProgressBar>
                                         <StoryMeta>
                                             <span>👤 {story.owner}</span>

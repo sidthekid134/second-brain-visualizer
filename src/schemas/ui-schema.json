@@ -23,10 +23,105 @@
                         "description": "The main goal or purpose of this story"
                     },
                     {
-                        "key": "status",
+                        "key": "intent_id",
+                        "label": "Intent",
+                        "type": "intent_select",
+                        "required": true,
+                        "description": "Which intent this story contributes to"
+                    },
+                    {
+                        "key": "workstream_id",
+                        "label": "Workstream",
+                        "type": "text",
+                        "required": true,
+                        "placeholder": "e.g., workstream-auth-backend",
+                        "description": "The workstream this story belongs to"
+                    }
+                ]
+            },
+            {
+                "id": "assignment",
+                "title": "Assignment & Planning",
+                "fields": [
+                    {
+                        "key": "complexity_score",
+                        "label": "Complexity Score",
+                        "type": "number",
+                        "min": 1,
+                        "max": 10,
+                        "default": 1,
+                        "description": "Difficulty rating from 1 (simple) to 10 (very complex)"
+                    },
+                    {
+                        "key": "estimated_tokens",
+                        "label": "Estimated Tokens",
+                        "type": "number",
+                        "min": 0,
+                        "description": "Expected token usage for completion"
+                    }
+                ]
+            },
+            {
+                "id": "criteria",
+                "title": "Acceptance Criteria",
+                "fields": [
+                    {
+                        "key": "acceptance_criteria",
+                        "label": "Acceptance Criteria",
+                        "type": "array",
+                        "itemType": "text",
+                        "required": true,
+                        "description": "List of conditions that must be met for completion",
+                        "placeholder": "Add acceptance criterion..."
+                    }
+                ]
+            },
+            {
+                "id": "dependencies",
+                "title": "Dependencies",
+                "fields": [
+                    {
+                        "key": "dependencies",
+                        "label": "Dependencies",
+                        "type": "dependency_multiselect",
+                        "description": "Intents, checkpoints, or stories that must be completed before this one can start"
+                    }
+                ]
+            },
+            {
+                "id": "preferences",
+                "title": "Preferences",
+                "fields": [
+                    {
+                        "key": "preferences.preferred_agents",
+                        "label": "Preferred Agents",
+                        "type": "agent_multiselect",
+                        "description": "Ranked list of preferred agents for this story"
+                    },
+                    {
+                        "key": "preferences.execution_overrides.max_runtime_seconds",
+                        "label": "Max Runtime (seconds)",
+                        "type": "number",
+                        "min": 0,
+                        "description": "Maximum execution time in seconds"
+                    },
+                    {
+                        "key": "preferences.execution_overrides.require_manual_approval",
+                        "label": "Require Manual Approval",
+                        "type": "boolean",
+                        "description": "Whether this story requires manual approval before execution"
+                    }
+                ]
+            },
+            {
+                "id": "execution",
+                "title": "Execution Details",
+                "fields": [
+                    {
+                        "key": "execution.current.status",
                         "label": "Status",
                         "type": "select",
-                        "required": true,
+                        "readonly": true,
                         "options": [
                             {
                                 "value": "planned",
@@ -44,80 +139,82 @@
                                 "color": "#10b981"
                             },
                             {
-                                "value": "cancelled",
-                                "label": "❌ Cancelled",
-                                "color": "#6b7280"
+                                "value": "failed",
+                                "label": "❌ Failed",
+                                "color": "#ef4444"
                             }
                         ],
-                        "description": "Current status of the story"
+                        "description": "Current execution status of the story"
                     },
                     {
-                        "key": "milestone",
-                        "label": "Milestone",
-                        "type": "milestone_select",
-                        "description": "Which milestone this story belongs to"
-                    }
-                ]
-            },
-            {
-                "id": "assignment",
-                "title": "Assignment & Ownership",
-                "fields": [
-                    {
-                        "key": "owner_id",
-                        "label": "Owner",
+                        "key": "execution.current.agent_id",
+                        "label": "Assigned Agent",
                         "type": "agent_select",
-                        "description": "The agent responsible for this story"
-                    },
-                    {
-                        "key": "complexity_score",
-                        "label": "Complexity Score",
-                        "type": "number",
-                        "min": 1,
-                        "max": 10,
-                        "default": 1,
-                        "description": "Difficulty rating from 1 (simple) to 10 (very complex)"
-                    },
-                    {
-                        "key": "estimated_tokens",
-                        "label": "Estimated Tokens",
-                        "type": "number",
-                        "min": 0,
-                        "description": "Expected token usage for completion"
-                    },
-                    {
-                        "key": "actual_tokens",
-                        "label": "Actual Tokens",
-                        "type": "number",
-                        "min": 0,
                         "readonly": true,
-                        "description": "Actual tokens used (populated after completion)"
-                    }
-                ]
-            },
-            {
-                "id": "criteria",
-                "title": "Acceptance Criteria",
-                "fields": [
+                        "description": "The agent currently assigned to this story"
+                    },
                     {
-                        "key": "acceptance_criteria",
-                        "label": "Acceptance Criteria",
-                        "type": "array",
-                        "itemType": "text",
-                        "description": "List of conditions that must be met for completion",
-                        "placeholder": "Add acceptance criterion..."
-                    }
-                ]
-            },
-            {
-                "id": "dependencies",
-                "title": "Dependencies",
-                "fields": [
+                        "key": "execution.current.started_at",
+                        "label": "Started At",
+                        "type": "datetime",
+                        "readonly": true,
+                        "description": "When execution started"
+                    },
                     {
-                        "key": "dependencies",
-                        "label": "Dependencies",
-                        "type": "story_multiselect",
-                        "description": "Stories that must be completed before this one can start"
+                        "key": "execution.current.ended_at",
+                        "label": "Ended At",
+                        "type": "datetime",
+                        "readonly": true,
+                        "description": "When execution completed"
+                    },
+                    {
+                        "key": "execution.current.duration_seconds",
+                        "label": "Duration (seconds)",
+                        "type": "number",
+                        "readonly": true,
+                        "description": "Total execution time in seconds"
+                    },
+                    {
+                        "key": "execution.current.branch",
+                        "label": "Branch",
+                        "type": "text",
+                        "readonly": true,
+                        "description": "Git branch used for execution"
+                    },
+                    {
+                        "key": "execution.current.commit_sha",
+                        "label": "Commit SHA",
+                        "type": "text",
+                        "readonly": true,
+                        "description": "Git commit hash"
+                    },
+                    {
+                        "key": "execution.current.pr_number",
+                        "label": "PR Number",
+                        "type": "number",
+                        "readonly": true,
+                        "description": "Pull request number"
+                    },
+                    {
+                        "key": "execution.current.pr_url",
+                        "label": "PR URL",
+                        "type": "url",
+                        "readonly": true,
+                        "description": "Pull request URL"
+                    },
+                    {
+                        "key": "execution.current.result",
+                        "label": "Result",
+                        "type": "textarea",
+                        "readonly": true,
+                        "description": "Execution result or error message"
+                    },
+                    {
+                        "key": "execution.current.messages_count",
+                        "label": "Messages Count",
+                        "type": "number",
+                        "readonly": true,
+                        "description": "Number of messages exchanged during execution"
                     }
                 ]
             },
@@ -137,9 +234,116 @@
             }
         ]
     },
+    "checkpoint": {
+        "title": "Checkpoint",
+        "description": "Major project phases or deliverables",
+        "sections": [
+            {
+                "id": "basic",
+                "title": "Basic Information",
+                "fields": [
+                    {
+                        "key": "id",
+                        "label": "Checkpoint ID",
+                        "type": "text",
+                        "readonly": true,
+                        "description": "Unique identifier for the checkpoint"
+                    },
+                    {
+                        "key": "name",
+                        "label": "Name",
+                        "type": "text",
+                        "required": true,
+                        "placeholder": "Checkpoint name",
+                        "description": "Descriptive name for this checkpoint"
+                    },
+                    {
+                        "key": "description",
+                        "label": "Description",
+                        "type": "textarea",
+                        "required": true,
+                        "placeholder": "Describe what this checkpoint represents",
+                        "description": "Detailed description of the checkpoint"
+                    }
+                ]
+            },
+            {
+                "id": "stories",
+                "title": "Stories",
+                "fields": [
+                    {
+                        "key": "story_ids",
+                        "label": "Story IDs",
+                        "type": "story_multiselect",
+                        "required": true,
+                        "description": "Stories that must be completed for this checkpoint"
+                    }
+                ]
+            },
+            {
+                "id": "dependencies",
+                "title": "Dependencies",
+                "fields": [
+                    {
+                        "key": "dependencies",
+                        "label": "Dependencies",
+                        "type": "dependency_multiselect",
+                        "description": "Intents, checkpoints, or stories that must be completed before this checkpoint"
+                    }
+                ]
+            }
+        ]
+    },
+    "intent": {
+        "title": "Intent",
+        "description": "High-level project goals and objectives",
+        "sections": [
+            {
+                "id": "basic",
+                "title": "Basic Information",
+                "fields": [
+                    {
+                        "key": "id",
+                        "label": "Intent ID",
+                        "type": "text",
+                        "readonly": true,
+                        "description": "Unique identifier for the intent"
+                    },
+                    {
+                        "key": "name",
+                        "label": "Name",
+                        "type": "text",
+                        "required": true,
+                        "placeholder": "Intent name",
+                        "description": "Descriptive name for this intent"
+                    },
+                    {
+                        "key": "description",
+                        "label": "Description",
+                        "type": "textarea",
+                        "required": true,
+                        "placeholder": "Describe the intent and its goals",
+                        "description": "Detailed description of what this intent aims to achieve"
+                    }
+                ]
+            },
+            {
+                "id": "dependencies",
+                "title": "Dependencies",
+                "fields": [
+                    {
+                        "key": "dependencies",
+                        "label": "Dependencies",
+                        "type": "dependency_multiselect",
+                        "description": "Other intents, checkpoints, or stories that must be completed before this intent"
+                    }
+                ]
+            }
+        ]
+    },
     "milestone": {
         "title": "Milestone",
-        "description": "Major project phases or deliverables",
+        "description": "Major project phases or deliverables (legacy - use checkpoints instead)",
         "sections": [
             {
                 "id": "basic",
@@ -284,6 +488,32 @@
                         "description": "Amount of budget consumed so far"
                     }
                 ]
+            },
+            {
+                "id": "roadmap",
+                "title": "Roadmap",
+                "fields": [
+                    {
+                        "key": "roadmap.intents",
+                        "label": "Intents",
+                        "type": "intent_list",
+                        "readonly": true,
+                        "description": "High-level project intents and their dependencies"
+                    }
+                ]
+            },
+            {
+                "id": "checkpoints",
+                "title": "Checkpoints",
+                "fields": [
+                    {
+                        "key": "checkpoints",
+                        "label": "Checkpoints",
+                        "type": "checkpoint_list",
+                        "readonly": true,
+                        "description": "Project checkpoints and milestones"
+                    }
+                ]
             }
         ]
     },
@@ -326,6 +556,31 @@
                                 "label": "👨‍💻 Engineer"
                             }
                         ]
+                    },
+                    {
+                        "key": "manager_id",
+                        "label": "Manager",
+                        "type": "agent_select",
+                        "description": "The manager this agent reports to"
+                    }
+                ]
+            },
+            {
+                "id": "hierarchy",
+                "title": "Hierarchy",
+                "fields": [
+                    {
+                        "key": "reports",
+                        "label": "Reports",
+                        "type": "agent_multiselect",
+                        "description": "Agents that report to this agent"
+                    },
+                    {
+                        "key": "assigned_story_ids",
+                        "label": "Assigned Stories",
+                        "type": "story_multiselect",
+                        "readonly": true,
+                        "description": "Stories currently assigned to this agent"
                     }
                 ]
             }
@@ -337,6 +592,7 @@
                 "in_progress": "#f59e0b",
                 "done": "#10b981",
                 "planned": "#6b7280",
+                "failed": "#ef4444",
                 "cancelled": "#ef4444"
             },
             "complexity": {
@@ -345,13 +601,26 @@
                 "5-6": "#ef4444",
                 "7-8": "#dc2626",
                 "9-10": "#7c2d12"
+            },
+            "dependency_types": {
+                "intent": "#8b5cf6",
+                "checkpoint": "#06b6d4",
+                "workstream": "#10b981",
+                "story": "#f59e0b"
             }
         },
         "icons": {
             "planned": "📋",
             "in_progress": "🔄",
             "done": "✅",
-            "cancelled": "❌"
+            "failed": "❌",
+            "cancelled": "❌",
+            "intent": "🎯",
+            "checkpoint": "🏁",
+            "workstream": "🔧",
+            "story": "📝",
+            "agent": "👤",
+            "dependency": "🔗"
         }
     }
 }

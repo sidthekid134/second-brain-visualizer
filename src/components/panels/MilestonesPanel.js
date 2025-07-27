@@ -4,8 +4,8 @@ import { getStatusColor, getStatusIcon, getMilestoneColor } from '../../utils/fl
 import { usePlan } from '../../context/PlanContext';
 
 const PanelContainer = styled.div`
-  padding: ${props => props.collapsed ? '12px' : '16px'};
-  ${props => props.collapsed && `
+  padding: ${props => props.$collapsed ? '12px' : '16px'};
+  ${props => props.$collapsed && `
     padding: 8px 12px;
   `}
 `;
@@ -14,14 +14,14 @@ const PanelHeader = styled.div`
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: ${props => props.collapsed ? '0' : '12px'};
+  margin-bottom: ${props => props.$collapsed ? '0' : '12px'};
   cursor: pointer;
   user-select: none;
 `;
 
 const PanelTitle = styled.h3`
   margin: 0;
-  font-size: ${props => props.collapsed ? '0.8rem' : '0.9rem'};
+  font-size: ${props => props.$collapsed ? '0.8rem' : '0.9rem'};
   font-weight: 600;
   color: #1f2937;
   display: flex;
@@ -36,9 +36,9 @@ const HeaderActions = styled.div`
 `;
 
 const ActionButton = styled.button`
-  background: ${props => props.primary ? '#3b82f6' : 'none'};
-  border: ${props => props.primary ? '1px solid #3b82f6' : '1px solid #d1d5db'};
-  color: ${props => props.primary ? 'white' : '#6b7280'};
+  background: ${props => props.$primary ? '#3b82f6' : 'none'};
+  border: ${props => props.$primary ? '1px solid #3b82f6' : '1px solid #d1d5db'};
+  color: ${props => props.$primary ? 'white' : '#6b7280'};
   cursor: pointer;
   font-size: 0.7rem;
   padding: 4px 8px;
@@ -49,8 +49,8 @@ const ActionButton = styled.button`
   gap: 3px;
 
   &:hover {
-    background: ${props => props.primary ? '#2563eb' : '#f3f4f6'};
-    color: ${props => props.primary ? 'white' : '#374151'};
+    background: ${props => props.$primary ? '#2563eb' : '#f3f4f6'};
+    color: ${props => props.$primary ? 'white' : '#374151'};
   }
 
   &:disabled {
@@ -86,7 +86,7 @@ const MilestonesList = styled.div`
 const MilestoneItem = styled.div`
   background: #f8fafc;
   border: 1px solid #e5e7eb;
-  border-left: 4px solid ${props => props.color};
+  border-left: 4px solid ${props => props.$color};
   border-radius: 8px;
   padding: 10px;
   transition: all 0.2s ease;
@@ -98,7 +98,7 @@ const MilestoneItem = styled.div`
     transform: translateX(2px);
   }
 
-  ${props => props.editing && `
+  ${props => props.$editing && `
     border: 1px solid #3b82f6;
     background: #eff6ff;
   `}
@@ -126,7 +126,7 @@ const MilestoneActions = styled.div`
 `;
 
 const StatusBadge = styled.div`
-  background: ${props => getStatusColor(props.status)};
+  background: ${props => getStatusColor(props.$status)};
   color: white;
   padding: 2px 6px;
   border-radius: 8px;
@@ -138,7 +138,7 @@ const StatusBadge = styled.div`
 `;
 
 const StatusSelect = styled.select`
-  background: ${props => getStatusColor(props.value)};
+  background: ${props => getStatusColor(props.$value)};
   color: white;
   border: none;
   padding: 2px 6px;
@@ -189,7 +189,7 @@ const ColorIndicator = styled.div`
   width: 12px;
   height: 12px;
   border-radius: 50%;
-  background: ${props => props.color};
+  background: ${props => props.$color};
   border: 2px solid white;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
 `;
@@ -313,9 +313,9 @@ function MilestonesPanel({ milestones = [], collapsed, onToggleCollapsed, isExec
 
   if (collapsed) {
     return (
-      <PanelContainer collapsed>
-        <PanelHeader collapsed onClick={onToggleCollapsed}>
-          <PanelTitle collapsed>
+      <PanelContainer $collapsed>
+        <PanelHeader $collapsed onClick={onToggleCollapsed}>
+          <PanelTitle $collapsed>
             🎯 {milestones.length} Milestones
           </PanelTitle>
           <CollapseButton>
@@ -326,7 +326,7 @@ function MilestonesPanel({ milestones = [], collapsed, onToggleCollapsed, isExec
           {milestones.slice(0, 3).map((milestone, index) => (
             <ColorIndicator
               key={milestone.id}
-              color={getMilestoneColor(milestone.status, index)}
+              $color={getMilestoneColor(milestone.status, index)}
               title={milestone.name}
             />
           ))}
@@ -347,7 +347,7 @@ function MilestonesPanel({ milestones = [], collapsed, onToggleCollapsed, isExec
         <HeaderActions>
           {canEdit && (
             <ActionButton
-              primary
+              $primary
               onClick={(e) => {
                 e.stopPropagation();
                 setShowAddForm(!showAddForm);
@@ -375,7 +375,7 @@ function MilestonesPanel({ milestones = [], collapsed, onToggleCollapsed, isExec
               autoFocus
             />
             <StatusSelect
-              value={addForm.status}
+              $value={addForm.status}
               onChange={(e) => setAddForm({ ...addForm, status: e.target.value })}
             >
               <option value="planned">Planned</option>
@@ -387,7 +387,7 @@ function MilestonesPanel({ milestones = [], collapsed, onToggleCollapsed, isExec
                 Cancel
               </ActionButton>
               <ActionButton
-                primary
+                $primary
                 onClick={handleAddMilestone}
                 disabled={!addForm.name.trim()}
               >
@@ -402,8 +402,8 @@ function MilestonesPanel({ milestones = [], collapsed, onToggleCollapsed, isExec
         {milestones.map((milestone, index) => (
           <MilestoneItem
             key={milestone.id}
-            color={getMilestoneColor(milestone.status, index)}
-            editing={editingId === milestone.id}
+            $color={getMilestoneColor(milestone.status, index)}
+            $editing={editingId === milestone.id}
           >
             <MilestoneHeader>
               {editingId === milestone.id ? (
@@ -419,7 +419,7 @@ function MilestonesPanel({ milestones = [], collapsed, onToggleCollapsed, isExec
 
               {editingId === milestone.id ? (
                 <StatusSelect
-                  value={editForm.status || milestone.status}
+                  $value={editForm.status || milestone.status}
                   onChange={(e) => setEditForm({ ...editForm, status: e.target.value })}
                 >
                   <option value="planned">Planned</option>
@@ -427,7 +427,7 @@ function MilestonesPanel({ milestones = [], collapsed, onToggleCollapsed, isExec
                   <option value="completed">Completed</option>
                 </StatusSelect>
               ) : shouldShowStatus && (
-                <StatusBadge status={milestone.status}>
+                <StatusBadge $status={milestone.status}>
                   {getStatusIcon(milestone.status)}
                   {milestone.status}
                 </StatusBadge>
@@ -441,7 +441,7 @@ function MilestonesPanel({ milestones = [], collapsed, onToggleCollapsed, isExec
                         ✕
                       </ActionButton>
                       <ActionButton
-                        primary
+                        $primary
                         onClick={handleSaveEdit}
                         disabled={!editForm.name?.trim()}
                       >

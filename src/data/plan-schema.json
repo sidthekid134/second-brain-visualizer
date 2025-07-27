@@ -1,6 +1,6 @@
 {
     "$schema": "http://json-schema.org/draft-07/schema#",
-    "title": "Unified Project Execution Schema",
+    "title": "Project Execution & Roadmap Schema with Dependencies",
     "type": "object",
     "properties": {
         "project": {
@@ -37,7 +37,9 @@
                     "type": "object",
                     "properties": {
                         "completion_percentage": {
-                            "type": "number"
+                            "type": "number",
+                            "minimum": 0,
+                            "maximum": 100
                         }
                     },
                     "required": [
@@ -48,10 +50,12 @@
                     "type": "object",
                     "properties": {
                         "limit": {
-                            "type": "number"
+                            "type": "number",
+                            "minimum": 0
                         },
                         "used": {
-                            "type": "number"
+                            "type": "number",
+                            "minimum": 0
                         }
                     },
                     "required": [
@@ -59,10 +63,25 @@
                         "used"
                     ]
                 },
-                "milestones": {
+                "roadmap": {
+                    "type": "object",
+                    "properties": {
+                        "intents": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/intent"
+                            },
+                            "minItems": 1
+                        }
+                    },
+                    "required": [
+                        "intents"
+                    ]
+                },
+                "checkpoints": {
                     "type": "array",
                     "items": {
-                        "$ref": "#/definitions/milestone"
+                        "$ref": "#/definitions/checkpoint"
                     }
                 }
             },
@@ -74,8 +93,10 @@
                 "updated_at",
                 "progress",
                 "budget",
-                "milestones"
-            ]
+                "roadmap",
+                "checkpoints"
+            ],
+            "additionalProperties": false
         },
         "stories": {
             "type": "array",
@@ -95,8 +116,31 @@
         "stories",
         "agents"
     ],
+    "additionalProperties": false,
     "definitions": {
-        "milestone": {
+        "dependency": {
+            "type": "object",
+            "properties": {
+                "type": {
+                    "type": "string",
+                    "enum": [
+                        "intent",
+                        "workstream",
+                        "checkpoint",
+                        "story"
+                    ]
+                },
+                "id": {
+                    "type": "string"
+                }
+            },
+            "required": [
+                "type",
+                "id"
+            ],
+            "additionalProperties": false
+        },
+        "intent": {
             "type": "object",
             "properties": {
                 "id": {
@@ -105,33 +149,55 @@
                 "name": {
                     "type": "string"
                 },
-                "status": {
-                    "type": "string",
-                    "enum": [
-                        "planned",
-                        "in_progress",
-                        "completed"
-                    ]
+                "description": {
+                    "type": "string"
                 },
-                "stories": {
+                "dependencies": {
                     "type": "array",
                     "items": {
-                        "type": "string"
+                        "$ref": "#/definitions/dependency"
                     }
-                },
-                "manager_id": {
-                    "type": [
-                        "string",
-                        "null"
-                    ]
                 }
             },
             "required": [
                 "id",
                 "name",
-                "status",
-                "stories"
-            ]
+                "description"
+            ],
+            "additionalProperties": false
+        },
+        "checkpoint": {
+            "type": "object",
+            "properties": {
+                "id": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "description": {
+                    "type": "string"
+                },
+                "story_ids": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "dependencies": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/dependency"
+                    }
+                }
+            },
+            "required": [
+                "id",
+                "name",
+                "description",
+                "story_ids"
+            ],
+            "additionalProperties": false
         },
         "story": {
             "type": "object",
@@ -142,31 +208,23 @@
                 "objective": {
                     "type": "string"
                 },
-                "milestone": {
+                "intent_id": {
+                    "type": "string"
+                },
+                "workstream_id": {
                     "type": "string"
                 },
                 "acceptance_criteria": {
                     "type": "array",
                     "items": {
                         "type": "string"
-                    }
-                },
-                "status": {
-                    "type": "string",
-                    "enum": [
-                        "planned",
-                        "in_progress",
-                        "done",
-                        "cancelled"
-                    ]
-                },
-                "owner_id": {
-                    "type": "string"
+                    },
+                    "minItems": 1
                 },
                 "dependencies": {
                     "type": "array",
                     "items": {
-                        "type": "string"
+                        "$ref": "#/definitions/dependency"
                     }
                 },
                 "implementation_notes": {
@@ -176,22 +234,12 @@
                     }
                 },
                 "estimated_tokens": {
-                    "type": [
-                        "number",
-                        "null"
-                    ]
-                },
-                "actual_tokens": {
-                    "type": [
-                        "number",
-                        "null"
-                    ]
+                    "type": "number",
+                    "minimum": 0
                 },
                 "complexity_score": {
-                    "type": [
-                        "number",
-                        "null"
-                    ]
+                    "type": "number",
+                    "minimum": 0
                 },
                 "created_at": {
                     "type": "string",
@@ -201,6 +249,31 @@
                     "type": "string",
                     "format": "date-time"
                 },
+                "preferences": {
+                    "type": "object",
+                    "properties": {
+                        "preferred_agents": {
+                            "type": "array",
+                            "items": {
+                                "type": "string"
+                            }
+                        },
+                        "execution_overrides": {
+                            "type": "object",
+                            "properties": {
+                                "max_runtime_seconds": {
+                                    "type": "number",
+                                    "minimum": 0
+                                },
+                                "require_manual_approval": {
+                                    "type": "boolean"
+                                }
+                            },
+                            "additionalProperties": false
+                        }
+                    },
+                    "additionalProperties": false
+                },
                 "execution": {
                     "$ref": "#/definitions/execution_detail"
                 }
@@ -208,16 +281,18 @@
             "required": [
                 "id",
                 "objective",
-                "milestone",
+                "intent_id",
+                "workstream_id",
                 "acceptance_criteria",
-                "status",
-                "owner_id",
                 "dependencies",
                 "implementation_notes",
+                "estimated_tokens",
+                "complexity_score",
                 "created_at",
                 "updated_at",
                 "execution"
-            ]
+            ],
+            "additionalProperties": false
         },
         "execution_detail": {
             "type": "object",
@@ -235,7 +310,8 @@
             "required": [
                 "current",
                 "history"
-            ]
+            ],
+            "additionalProperties": false
         },
         "execution_run": {
             "type": "object",
@@ -267,10 +343,39 @@
                     "type": [
                         "number",
                         "null"
-                    ]
+                    ],
+                    "minimum": 0
                 },
                 "agent_id": {
-                    "type": "string"
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                },
+                "branch": {
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                },
+                "commit_sha": {
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                },
+                "pr_number": {
+                    "type": [
+                        "number",
+                        "null"
+                    ]
+                },
+                "pr_url": {
+                    "type": [
+                        "string",
+                        "null"
+                    ],
+                    "format": "uri"
                 },
                 "result": {
                     "type": [
@@ -282,13 +387,14 @@
                     "type": [
                         "number",
                         "null"
-                    ]
+                    ],
+                    "minimum": 0
                 }
             },
             "required": [
-                "status",
-                "agent_id"
-            ]
+                "status"
+            ],
+            "additionalProperties": false
         },
         "agent": {
             "type": "object",
@@ -319,12 +425,6 @@
                         "type": "string"
                     }
                 },
-                "milestone_ids": {
-                    "type": "array",
-                    "items": {
-                        "type": "string"
-                    }
-                },
                 "assigned_story_ids": {
                     "type": "array",
                     "items": {
@@ -336,9 +436,9 @@
                 "id",
                 "name",
                 "role",
-                "manager_id",
                 "reports"
-            ]
+            ],
+            "additionalProperties": false
         }
     }
 }

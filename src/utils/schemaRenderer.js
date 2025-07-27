@@ -13,7 +13,8 @@ export function renderSchemaField(fieldDef, value, onChange, options = {}) {
         onArrayRemove
     } = options;
 
-    const isReadonly = fieldDef.readonly || !editMode || !isEditing;
+    // When global edit mode is enabled, fields are editable unless explicitly readonly
+    const isReadonly = fieldDef.readonly || !editMode;
     const fieldValue = value ?? fieldDef.default ?? '';
 
     // Readonly display

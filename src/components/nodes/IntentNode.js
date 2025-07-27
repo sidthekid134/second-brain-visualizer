@@ -2,8 +2,8 @@ import React from 'react';
 import styled from 'styled-components';
 import { Handle, Position } from 'reactflow';
 
-const NodeContainer = styled.div`
-  background: white;
+const IntentContainer = styled.div`
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   border: 2px solid ${props => {
     if (props.$hasChanges) return '#f59e0b';
     if (props.$executionView && props.$executionStatus) {
@@ -12,55 +12,111 @@ const NodeContainer = styled.div`
         case 'done': return '#10b981';
         case 'failed': return '#ef4444';
         case 'blocked': return '#f59e0b';
-        default: return '#94a3b8';
+        default: return '#8b5cf6';
       }
     }
-    return '#94a3b8';
+    return '#8b5cf6';
   }};
   border-radius: 12px;
   padding: 16px;
   min-width: 280px;
   max-width: 320px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-  font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  color: white;
   position: relative;
   transition: all 0.2s ease;
+  cursor: ${props => props.$hasStories ? 'pointer' : 'default'};
 
   ${props => props.$hasChanges && `
-    box-shadow: 0 4px 16px rgba(245, 158, 11, 0.3);
+    box-shadow: 0 4px 16px rgba(245, 158, 11, 0.4);
   `}
 
   ${props => props.$executionView && props.$executionStatus && `
-    box-shadow: 0 4px 16px ${props => {
+    box-shadow: 0 4px 16px ${() => {
       switch (props.$executionStatus) {
-        case 'in_progress': return 'rgba(59, 130, 246, 0.3)';
-        case 'done': return 'rgba(16, 185, 129, 0.3)';
-        case 'failed': return 'rgba(239, 68, 68, 0.3)';
-        case 'blocked': return 'rgba(245, 158, 11, 0.3)';
-        default: return 'rgba(148, 163, 184, 0.3)';
+        case 'in_progress': return 'rgba(59, 130, 246, 0.4)';
+        case 'done': return 'rgba(16, 185, 129, 0.4)';
+        case 'failed': return 'rgba(239, 68, 68, 0.4)';
+        case 'blocked': return 'rgba(245, 158, 11, 0.4)';
+        default: return 'rgba(139, 92, 246, 0.4)';
       }
     }};
   `}
 
-  &:hover {
-    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
-    transform: translateY(-1px);
-  }
+  ${props => props.$selected && `
+    box-shadow: 0 0 0 3px rgba(139, 92, 246, 0.4);
+    transform: scale(1.02);
+  `}
 
-  &.selected {
-    border-color: #3b82f6;
-    box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.2);
+  &:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.2);
   }
 `;
 
-const CheckpointStripe = styled.div`
+const Header = styled.div`
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 12px;
+`;
+
+const IntentTitle = styled.h3`
+  margin: 0;
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: white;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+`;
+
+const Description = styled.p`
+  margin: 0 0 12px 0;
+  font-size: 0.85rem;
+  color: rgba(255, 255, 255, 0.9);
+  line-height: 1.4;
+`;
+
+const IntentBadge = styled.div`
   position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  height: 4px;
-  background: ${props => props.$color || '#94a3af'};
-  border-radius: 10px 10px 0 0;
+  top: -8px;
+  left: 12px;
+  background: #f59e0b;
+  color: white;
+  padding: 2px 8px;
+  border-radius: 8px;
+  font-size: 0.7rem;
+  font-weight: 600;
+  text-transform: uppercase;
+`;
+
+const ExploreButton = styled.button`
+  width: 100%;
+  background: rgba(255, 255, 255, 0.2);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  border-radius: 8px;
+  color: white;
+  padding: 8px 12px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  margin-top: 8px;
+
+  &:hover {
+    background: rgba(255, 255, 255, 0.3);
+    border-color: rgba(255, 255, 255, 0.5);
+    transform: translateY(-1px);
+  }
+
+  &:active {
+    transform: translateY(0);
+  }
 `;
 
 const ChangeIndicator = styled.div`
@@ -175,85 +231,14 @@ const ExecutionStatusIndicator = styled.div`
   ${props => props.$status === 'in_progress' && `
     animation: pulse 2s infinite;
   `}
-
-  @keyframes pulse {
-    0%, 100% { transform: scale(1); }
-    50% { transform: scale(1.1); }
-  }
 `;
 
-const Header = styled.div`
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
-  margin-bottom: 12px;
-  flex-wrap: wrap;
-  gap: 8px;
-`;
-
-const LeftHeader = styled.div`
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-  flex: 1;
-`;
-
-const StoryId = styled.div`
-  font-weight: 700;
-  font-size: 0.8rem;
-  color: #374151;
-  letter-spacing: 0.02em;
-`;
-
-const WorkstreamBadge = styled.div`
-  background: ${props => props.$color || '#e5e7eb'};
-  color: #374151;
-  padding: 2px 8px;
-  border-radius: 6px;
-  font-size: 0.7rem;
-  font-weight: 600;
-  display: inline-block;
-  max-width: fit-content;
-`;
-
-const IntentBadge = styled.div`
-  background: #f3e8ff;
-  color: #7c3aed;
-  padding: 2px 8px;
-  border-radius: 6px;
-  font-size: 0.7rem;
-  font-weight: 600;
-  display: inline-block;
-  max-width: fit-content;
-`;
-
-const Title = styled.div`
-  font-weight: 600;
-  font-size: 0.9rem;
-  line-height: 1.4;
-  color: #111827;
-  margin-bottom: 12px;
-  word-wrap: break-word;
-`;
-
-function getWorkstreamColor(workstreamId) {
-  const colors = ['#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#06b6d4'];
-  let hash = 0;
-  for (let i = 0; i < workstreamId.length; i++) {
-    hash = workstreamId.charCodeAt(i) + ((hash << 5) - hash);
-  }
-  return colors[Math.abs(hash) % colors.length] + '20'; // Add transparency
-}
-
-function StoryNode({ data, selected }) {
+function IntentNode({ data, selected, onExplore, onDoubleClick }) {
   const {
     id,
-    objective,
-    intent_id,
-    workstream_id,
-    checkpoint_info,
-    checkpoint_color,
-    layoutDirection = 'TB', // Default to top-bottom if not provided
+    name,
+    description,
+    story_count = 0,
     hasChanges = false,
     dependencyAffected = false,
     directlyEdited = false,
@@ -266,19 +251,12 @@ function StoryNode({ data, selected }) {
     execution = null
   } = data;
 
-  // Determine handle position based on layout direction
-  const isHorizontalLayout = layoutDirection === 'LR' || layoutDirection === 'RL';
-  const targetPosition = isHorizontalLayout ? Position.Left : Position.Top;
-
-  // Get workstream display name
-  const workstreamName = workstream_id ?
-    workstream_id.replace('workstream-', '').replace(/-/g, ' ').replace(/\b\w/g, l => l.toUpperCase()) :
-    '';
-
-  // Get intent display name  
-  const intentName = intent_id ?
-    intent_id.replace('intent-', '').replace(/-/g, ' ').replace(/\b\w/g, l => l.toUpperCase()) :
-    '';
+  const handleDoubleClick = (e) => {
+    e.stopPropagation();
+    if (story_count > 0 && onDoubleClick) {
+      onDoubleClick(id);
+    }
+  };
 
   // Get execution status icon
   const getExecutionIcon = (status) => {
@@ -292,13 +270,16 @@ function StoryNode({ data, selected }) {
   };
 
   return (
-    <NodeContainer
-      className={selected ? 'selected' : ''}
+    <IntentContainer
+      $selected={selected}
+      $hasStories={story_count > 0}
       $hasChanges={hasChanges}
       $executionView={executionView}
       $executionStatus={executionStatus}
+      onDoubleClick={handleDoubleClick}
+      title={story_count > 0 ? "Double-click to explore stories" : "No stories available"}
     >
-      {checkpoint_color && <CheckpointStripe $color={checkpoint_color} />}
+      <IntentBadge>Intent</IntentBadge>
 
       {/* Change indicators */}
       {hasChanges && <ChangeIndicator $hasDependencyIndicator={dependencyAffected}>✏️</ChangeIndicator>}
@@ -319,54 +300,47 @@ function StoryNode({ data, selected }) {
 
       <Handle
         type="target"
-        position={targetPosition}
+        position={Position.Top}
         id={`${id}-target`}
         style={{
-          background: '#94a3b8',
+          background: '#8b5cf6',
           border: '2px solid white',
           width: 12,
-          height: 12,
-          boxShadow: '0 2px 4px rgba(0, 0, 0, 0.2)'
+          height: 12
         }}
       />
 
       <Header>
-        <LeftHeader>
-          <StoryId>{id}</StoryId>
-          {workstream_id && (
-            <WorkstreamBadge $color={getWorkstreamColor(workstream_id)}>
-              🔧 {workstreamName}
-            </WorkstreamBadge>
-          )}
-          {intent_id && (
-            <IntentBadge>
-              🎯 {intentName}
-            </IntentBadge>
-          )}
-          {checkpoint_info && (
-            <WorkstreamBadge $color={checkpoint_color}>
-              🏁 {checkpoint_info.name}
-            </WorkstreamBadge>
-          )}
-        </LeftHeader>
+        <IntentTitle>{name}</IntentTitle>
       </Header>
 
-      <Title>{objective}</Title>
+      <Description>{description}</Description>
+
+      <ExploreButton
+        onClick={() => onExplore && onExplore(id)}
+        disabled={story_count === 0}
+        style={{
+          opacity: story_count === 0 ? 0.5 : 1,
+          cursor: story_count === 0 ? 'not-allowed' : 'pointer'
+        }}
+      >
+        📖 Explore Stories
+        <span>→</span>
+      </ExploreButton>
 
       <Handle
         type="source"
-        position={isHorizontalLayout ? Position.Right : Position.Bottom}
+        position={Position.Bottom}
         id={`${id}-source`}
         style={{
-          background: '#94a3b8',
+          background: '#8b5cf6',
           border: '2px solid white',
           width: 12,
-          height: 12,
-          boxShadow: '0 2px 4px rgba(0, 0, 0, 0.2)'
+          height: 12
         }}
       />
-    </NodeContainer>
+    </IntentContainer>
   );
 }
 
-export default StoryNode; 
+export default IntentNode; 
