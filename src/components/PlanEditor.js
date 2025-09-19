@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useMemo, useRef } from 'react';
+import React, { useState, useCallback, useMemo, useRef, useEffect } from 'react';
 import styled from 'styled-components';
 import ReactFlow, {
     Background,
@@ -18,6 +18,10 @@ import IntentNode from './nodes/IntentNode';
 import NodePropertiesPanel from './panels/NodePropertiesPanel';
 import ToolbarPanel from './panels/ToolbarPanel';
 import StoryCreationModal from './modals/StoryCreationModal';
+import IntentCreationModal from './modals/IntentCreationModal';
+import PlanImportModal from './modals/PlanImportModal';
+import apiService from '../services/apiService';
+import { planDataToApiPlan, submissionPlanToPlanData } from '../utils/planExport';
 import ContextMenu from './ContextMenu';
 import { createIntentFlowData, createStoryFlowData, getStatusColor, getStatusIcon } from '../utils/flowUtils';
 
@@ -330,6 +334,7 @@ function PlanEditor() {
         loadWorkFileFromDisk,
         saveToFileSystem,
         pushToFile,
+        applyRemotePlanData,
         // Data source tracking
         dataSource,
         dataTimestamp,
@@ -417,10 +422,24 @@ function PlanEditor() {
     };
 
     const [sidePanelWidth, setSidePanelWidth] = useState(() => loadPreference('sidePanelWidth', 450));
+    const [isSidePanelOpen, setIsSidePanelOpen] = useState(() => loadPreference('sidePanelOpen', true));
     const [isResizing, setIsResizing] = useState(false);
     const [showStoryModal, setShowStoryModal] = useState(false);
+    const [showIntentModal, setShowIntentModal] = useState(false);
+    const [showImportModal, setShowImportModal] = useState(false);
+    const [isSubmittingPlan, setIsSubmittingPlan] = useState(false);
+    const [submissionMessage, setSubmissionMessage] = useState(null);
+
+    useEffect(() => {
+        if (!submissionMessage) {
+            return;
+        }
+        const timer = setTimeout(() => setSubmissionMessage(null), 6000);
+        return () => clearTimeout(timer);
+    }, [submissionMessage]);
     const [showMiniMap, setShowMiniMap] = useState(() => loadPreference('showMiniMap', false));
     const [layoutDirection, setLayoutDirection] = useState(() => loadPreference('layoutDirection', 'TB'));
+    const [isToolbarOpen, setIsToolbarOpen] = useState(() => loadPreference('toolbarOpen', false)); // collapsed by default
     const [forceRefresh, setForceRefresh] = useState(0); // Force refresh counter
 
     // Context menu state
@@ -884,7 +903,8 @@ function PlanEditor() {
             savePreference('sidePanelWidth', sidePanelWidth);
             savePreference('showMiniMap', showMiniMap);
             savePreference('layoutDirection', layoutDirection);
-
+            savePreference('sidePanelOpen', isSidePanelOpen);
+            savePreference('toolbarOpen', isToolbarOpen);
             // Warn user about unapplied changes
             if (hasUnsavedChanges) {
                 e.preventDefault();
@@ -901,13 +921,144 @@ function PlanEditor() {
             savePreference('sidePanelWidth', sidePanelWidth);
             savePreference('showMiniMap', showMiniMap);
             savePreference('layoutDirection', layoutDirection);
+            savePreference('sidePanelOpen', isSidePanelOpen);
+            savePreference('toolbarOpen', isToolbarOpen);
         };
-    }, [sidePanelWidth, showMiniMap, layoutDirection, hasUnsavedChanges]);
+    }, [sidePanelWidth, showMiniMap, layoutDirection, isSidePanelOpen, isToolbarOpen, hasUnsavedChanges]);
 
     // Toolbar handlers
     const handleToggleExecutionView = useCallback(() => {
         dispatch({ type: 'SET_EXECUTION_VIEW', payload: !executionView });
     }, [dispatch, executionView]);
+
+    const handleCreateIntent = useCallback(({ intent, checkpoints }) => {
+        dispatch({ type: 'ADD_INTENT', payload: { intent, checkpoints } });
+        navigateToIntentView();
+    }, [dispatch, navigateToIntentView]);
+
+    const handlePlanImport = useCallback((plan) => {
+        const timestamp = new Date().toISOString();
+        let importedPlan = plan;
+
+        if (!plan?.project && Array.isArray(plan?.intents)) {
+            importedPlan = submissionPlanToPlanData(plan);
+        }
+
+        if (!importedPlan) {
+            alert('Unable to import plan. The file format is not supported.');
+            return;
+        }
+
+        applyRemotePlanData(importedPlan, {
+            source: 'imported',
+            dataTimestamp: timestamp,
+            markAsChanged: true
+        });
+    }, [applyRemotePlanData]);
+
+    const buildSubmitPayload = useCallback(() => {
+        if (!planData) {
+            return null;
+        }
+
+        const payload = planDataToApiPlan(planData, {
+            autoApprove: false,
+            baseRepoUrl: planData.project?.repo_url || '',
+            baseBranch: planData.project?.repo_branch || 'main',
+            defaultRunMode: planData.project?.default_run_mode || 'shadow'
+        });
+
+        if (!payload || !payload.intents?.length) {
+            return null;
+        }
+
+        return payload;
+    }, [planData]);
+
+    const refreshFromBackend = useCallback(async () => {
+        try {
+            const result = await apiService.getProjectDataTransformed();
+            if (result?.success) {
+                applyRemotePlanData(result.data, {
+                    source: 'api',
+                    dataTimestamp: new Date().toISOString()
+                });
+            }
+        } catch (error) {
+            console.warn('Failed to refresh plan after submission:', error);
+        }
+    }, [applyRemotePlanData]);
+
+    const handleSubmitPlanToBackend = useCallback(async (execute = false) => {
+        if (isSubmittingPlan) {
+            return;
+        }
+
+        const connection = apiService.getConnectionStatus();
+        if (!connection.isConnected) {
+            alert('Connect to the backend before submitting the plan.');
+            return;
+        }
+
+        const payload = buildSubmitPayload();
+        if (!payload) {
+            alert('Plan is empty or malformed. Please add intents and stories before submitting.');
+            return;
+        }
+
+        setIsSubmittingPlan(true);
+        setSubmissionMessage(null);
+
+        try {
+            const submission = await apiService.submitPlan(
+                { intents: payload.intents },
+                {
+                    auto_approve: payload.auto_approve,
+                    base_repo_url: payload.base_repo_url,
+                    base_branch: payload.base_branch,
+                    default_run_mode: payload.default_run_mode
+                }
+            );
+
+            if (!submission?.success) {
+                throw new Error(submission?.error || 'Plan submission failed');
+            }
+
+            let intentIds = [];
+            if (submission.data?.intents) {
+                intentIds = submission.data.intents
+                    .map((intent) => intent.id)
+                    .filter(Boolean);
+            }
+
+            if (execute) {
+                if (!intentIds.length) {
+                    const intentsResponse = await apiService.getIntents();
+                    if (intentsResponse?.success) {
+                        intentIds = intentsResponse.data
+                            .map((intent) => intent.id)
+                            .filter(Boolean);
+                    }
+                }
+
+                if (intentIds.length) {
+                    await apiService.approvePlan(intentIds, 'shadow');
+                    setSubmissionMessage('Plan submitted and execution triggered.');
+                } else {
+                    setSubmissionMessage('Plan submitted, but no intents were found to approve.');
+                }
+            } else {
+                setSubmissionMessage('Plan submitted to backend.');
+            }
+
+            await refreshFromBackend();
+        } catch (error) {
+            console.error('Plan submission error:', error);
+            setSubmissionMessage(`Submission failed: ${error.message}`);
+        } finally {
+            setIsSubmittingPlan(false);
+        }
+    }, [buildSubmitPayload, isSubmittingPlan, refreshFromBackend]);
 
     const handleToggleMiniMap = useCallback(() => {
         setShowMiniMap(prev => {
@@ -1207,27 +1358,55 @@ function PlanEditor() {
                         />
                     )}
                     <Panel position="top-left">
-                        <ToolbarPanel
-                            executionView={executionView}
-                            onToggleExecutionView={handleToggleExecutionView}
-                            showMiniMap={showMiniMap}
-                            onToggleMiniMap={handleToggleMiniMap}
-                            layoutDirection={layoutDirection}
-                            onChangeLayout={handleChangeLayout}
-                            selectedNode={selectedNode}
-                            onAddStory={() => setShowStoryModal(true)}
-                            canUndo={canUndo}
-                            canRedo={canRedo}
-                            onUndo={undo}
-                            onRedo={redo}
-                            undoHistory={undoHistory}
-                            onReset={resetToOriginal}
-                            onClearStorage={handleClearStorage}
-                            getStorageInfo={getStorageInfo}
-                            dataSource={dataSource}
-                            dataTimestamp={dataTimestamp}
-                            sessionTimestamp={sessionTimestamp}
-                        />
+                        {isToolbarOpen ? (
+                            <div style={{ background: 'white', border: '1px solid #e5e7eb', borderRadius: 8, padding: 8, boxShadow: '0 2px 8px rgba(0,0,0,0.1)' }}>
+                                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 }}>
+                                    <div style={{ fontWeight: 600, color: '#374151', fontSize: 12 }}>Tools</div>
+                                    <button
+                                        onClick={() => { setIsToolbarOpen(false); savePreference('toolbarOpen', false); }}
+                                        title="Collapse tools"
+                                        style={{ background: 'white', border: '1px solid #d1d5db', borderRadius: 6, padding: '2px 6px', cursor: 'pointer', fontSize: 12 }}
+                                    >
+                                        ⬅️
+                                    </button>
+                                </div>
+                                <ToolbarPanel
+                                    executionView={executionView}
+                                    onToggleExecutionView={handleToggleExecutionView}
+                                    showMiniMap={showMiniMap}
+                                    onToggleMiniMap={handleToggleMiniMap}
+                                    layoutDirection={layoutDirection}
+                                    onChangeLayout={handleChangeLayout}
+                                    selectedNode={selectedNode}
+                                    onAddStory={() => setShowStoryModal(true)}
+                                    onAddIntent={() => setShowIntentModal(true)}
+                                    onImportPlan={() => setShowImportModal(true)}
+                                    onSubmitPlan={() => handleSubmitPlanToBackend(false)}
+                                    onSubmitAndExecute={() => handleSubmitPlanToBackend(true)}
+                                    isSubmittingPlan={isSubmittingPlan}
+                                    submissionMessage={submissionMessage}
+                                    canUndo={canUndo}
+                                    canRedo={canRedo}
+                                    onUndo={undo}
+                                    onRedo={redo}
+                                    undoHistory={undoHistory}
+                                    onReset={resetToOriginal}
+                                    onClearStorage={handleClearStorage}
+                                    getStorageInfo={getStorageInfo}
+                                    dataSource={dataSource}
+                                    dataTimestamp={dataTimestamp}
+                                    sessionTimestamp={sessionTimestamp}
+                                />
+                            </div>
+                        ) : (
+                            <button
+                                onClick={() => { setIsToolbarOpen(true); savePreference('toolbarOpen', true); }}
+                                title="Show tools"
+                                style={{ background: 'white', border: '1px solid #e5e7eb', borderRadius: 16, padding: '6px 10px', boxShadow: '0 2px 8px rgba(0,0,0,0.1)', cursor: 'pointer', fontSize: 12 }}
+                            >
+                                ⚙️ Tools
+                            </button>
+                        )}
                     </Panel>
                 </ReactFlow>
 
@@ -1280,6 +1459,16 @@ function PlanEditor() {
                 onCreateStory={handleCreateStory}
                 intents={planData?.project?.roadmap?.intents || []}
                 checkpoints={planData?.project?.checkpoints || []}
+            />
+            <IntentCreationModal
+                isOpen={showIntentModal}
+                onClose={() => setShowIntentModal(false)}
+                onCreate={handleCreateIntent}
+            />
+            <PlanImportModal
+                isOpen={showImportModal}
+                onClose={() => setShowImportModal(false)}
+                onImport={handlePlanImport}
             />
 
             {/* Global Save Indicator */}
