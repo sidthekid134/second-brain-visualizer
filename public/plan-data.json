@@ -1,336 +1,166 @@
 {
-    "project": {
-        "id": "proj-001",
-        "name": "Todo App with Auth",
-        "description": "A simple todo application featuring user authentication and CRUD operations on todos.",
-        "status": "executing",
-        "created_at": "2025-07-01T10:00:00Z",
-        "updated_at": "2025-07-26T16:00:00Z",
-        "progress": {
-            "completion_percentage": 42.5
-        },
-        "budget": {
-            "limit": 20000,
-            "used": 8500
-        },
-        "roadmap": {
-            "intents": [
-                {
-                    "id": "intent-auth",
-                    "name": "User Authentication",
-                    "description": "Enable sign-up, login, and session management for secure user access.",
-                    "dependencies": [],
-                    "status": "in_progress"
-                },
-                {
-                    "id": "intent-todo",
-                    "name": "Todo Management",
-                    "description": "Full CRUD operations for todos with user-specific data access.",
-                    "dependencies": [
-                        {
-                            "type": "intent",
-                            "id": "intent-auth"
-                        }
-                    ],
-                    "status": "planned"
-                }
-            ]
-        }
+  "project": {
+    "id": "proj-001",
+    "name": "Todo App with Auth",
+    "description": "A simple todo application featuring user authentication and CRUD operations on todos.",
+    "status": "executing",
+    "created_at": "2025-07-01T10:00:00Z",
+    "updated_at": "2025-07-26T16:00:00Z",
+    "progress": {
+      "completion_percentage": 42.5
     },
-    "stories": [
+    "budget": {
+      "limit": 20000,
+      "used": 8500
+    },
+    "roadmap": {
+      "intents": [
         {
-            "id": "story-001",
-            "objective": "Implement JWT middleware",
-            "intent_id": "intent-auth",
-            "workstream_id": "auth-backend",
-            "acceptance_criteria": [
+          "id": "intent-auth",
+          "name": "User Authentication",
+          "description": "Enable sign-up, login, and session management for secure user access.",
+          "dependencies": [],
+          "status": "in_progress",
+          "stories": [
+            {
+              "id": "story-001",
+              "objective": "Implement JWT middleware",
+              "workstream_id": "auth-backend",
+              "acceptance_criteria": [
                 "Middleware issues JWT on valid login",
                 "Protected routes reject invalid tokens"
-            ],
-            "dependencies": [],
-            "implementation_notes": [
+              ],
+              "dependencies": [],
+              "implementation_notes": [
                 "Use jsonwebtoken@8",
                 "Read secret from ENV.JWT_SECRET"
-            ],
-            "estimated_tokens": 200,
-            "complexity_score": 3,
-            "created_at": "2025-07-02T09:00:00Z",
-            "updated_at": "2025-07-04T14:30:00Z",
-            "preferences": {
+              ],
+              "estimated_tokens": 200,
+              "complexity_score": 3,
+              "created_at": "2025-07-02T09:00:00Z",
+              "updated_at": "2025-07-04T14:30:00Z",
+              "preferences": {
                 "preferred_agents": [
-                    "agent-claude-code",
-                    "agent-human-review"
+                  "agent-claude-code",
+                  "agent-human-review"
                 ],
                 "execution_overrides": {
-                    "max_runtime_seconds": 1800,
-                    "require_manual_approval": false
+                  "max_runtime_seconds": 1800,
+                  "require_manual_approval": false
                 }
-            },
-            "execution": {
+              },
+              "execution": {
                 "current": {
-                    "status": "done",
-                    "started_at": "2025-07-02T09:15:00Z",
-                    "ended_at": "2025-07-03T10:00:00Z",
-                    "duration_seconds": 88200,
-                    "agent_id": "agent-claude-code",
-                    "branch": "feature/jwt-middleware",
-                    "commit_sha": "a1b2c3d4",
-                    "pr_number": 101,
-                    "pr_url": "https://github.com/org/repo/pull/101",
-                    "result": "All JWT middleware tests passed",
-                    "messages_count": 25
+                  "status": "done",
+                  "started_at": "2025-07-02T09:15:00Z",
+                  "ended_at": "2025-07-03T10:00:00Z",
+                  "duration_seconds": 88200,
+                  "agent_id": "agent-claude-code",
+                  "branch": "feature/jwt-middleware",
+                  "commit_sha": "a1b2c3d4",
+                  "pr_number": 101,
+                  "pr_url": "https://github.com/org/repo/pull/101",
+                  "result": "All JWT middleware tests passed",
+                  "messages_count": 25
                 },
                 "history": []
-            }
-        },
-        {
-            "id": "story-002",
-            "objective": "Build signup endpoint",
-            "intent_id": "intent-auth",
-            "workstream_id": "auth-backend",
-            "acceptance_criteria": [
+              }
+            },
+            {
+              "id": "story-002",
+              "objective": "Build signup endpoint",
+              "workstream_id": "auth-backend",
+              "acceptance_criteria": [
                 "POST /signup creates new user",
                 "Passwords hashed with bcrypt"
-            ],
-            "dependencies": [
+              ],
+              "dependencies": [
                 {
-                    "type": "story",
-                    "id": "story-001"
+                  "type": "story",
+                  "id": "story-001"
                 }
-            ],
-            "implementation_notes": [
+              ],
+              "implementation_notes": [
                 "Use bcrypt with saltRounds=10",
                 "Validate email format"
-            ],
-            "estimated_tokens": 250,
-            "complexity_score": 4,
-            "created_at": "2025-07-03T11:00:00Z",
-            "updated_at": "2025-07-05T15:20:00Z",
-            "preferences": {
+              ],
+              "estimated_tokens": 250,
+              "complexity_score": 4,
+              "created_at": "2025-07-03T11:00:00Z",
+              "updated_at": "2025-07-05T15:20:00Z",
+              "preferences": {
                 "preferred_agents": [
-                    "agent-claude-code"
+                  "agent-claude-code"
                 ],
                 "execution_overrides": {
-                    "max_runtime_seconds": 2400,
-                    "require_manual_approval": true
+                  "max_runtime_seconds": 2400,
+                  "require_manual_approval": true
                 }
-            },
-            "execution": {
+              },
+              "execution": {
                 "current": {
-                    "status": "done",
-                    "started_at": "2025-07-03T11:10:00Z",
-                    "ended_at": "2025-07-05T14:45:00Z",
-                    "duration_seconds": 174300,
-                    "agent_id": "agent-claude-code",
-                    "branch": "feature/signup-endpoint",
-                    "commit_sha": "f6e5d4c3",
-                    "pr_number": 102,
-                    "pr_url": "https://github.com/org/repo/pull/102",
-                    "result": "Signup endpoint tests passed",
-                    "messages_count": 30
+                  "status": "done",
+                  "started_at": "2025-07-03T11:10:00Z",
+                  "ended_at": "2025-07-05T14:45:00Z",
+                  "duration_seconds": 174300,
+                  "agent_id": "agent-claude-code",
+                  "branch": "feature/signup-endpoint",
+                  "commit_sha": "f6e5d4c3",
+                  "pr_number": 102,
+                  "pr_url": "https://github.com/org/repo/pull/102",
+                  "result": "Signup endpoint tests passed",
+                  "messages_count": 30
                 },
                 "history": []
-            }
-        },
-        {
-            "id": "story-003",
-            "objective": "Design login page UI",
-            "intent_id": "intent-auth",
-            "workstream_id": "auth-frontend",
-            "acceptance_criteria": [
+              }
+            },
+            {
+              "id": "story-003",
+              "objective": "Design login page UI",
+              "workstream_id": "auth-frontend",
+              "acceptance_criteria": [
                 "UI matches provided mockups",
                 "Form submits credentials to /login"
-            ],
-            "dependencies": [
+              ],
+              "dependencies": [
                 {
-                    "type": "story",
-                    "id": "story-002"
+                  "type": "story",
+                  "id": "story-002"
                 }
-            ],
-            "implementation_notes": [
+              ],
+              "implementation_notes": [
                 "Use React Hook Form",
                 "Apply Tailwind based on design system"
-            ],
-            "estimated_tokens": 180,
-            "complexity_score": 2.5,
-            "created_at": "2025-07-06T08:00:00Z",
-            "updated_at": "2025-07-07T09:15:00Z",
-            "preferences": {
+              ],
+              "estimated_tokens": 180,
+              "complexity_score": 2.5,
+              "created_at": "2025-07-06T08:00:00Z",
+              "updated_at": "2025-07-07T09:15:00Z",
+              "preferences": {
                 "preferred_agents": [
-                    "agent-human-review"
+                  "agent-human-review"
                 ],
                 "execution_overrides": {
-                    "max_runtime_seconds": 1200,
-                    "require_manual_approval": true
+                  "max_runtime_seconds": 1200,
+                  "require_manual_approval": true
                 }
-            },
-            "execution": {
+              },
+              "execution": {
                 "current": {
-                    "status": "done",
-                    "started_at": "2025-07-07T09:30:00Z",
-                    "ended_at": "2025-07-07T11:00:00Z",
-                    "duration_seconds": 5400,
-                    "agent_id": "agent-human-review",
-                    "branch": "feature/login-ui",
-                    "commit_sha": "d4c3b2a1",
-                    "pr_number": 103,
-                    "pr_url": "https://github.com/org/repo/pull/103",
-                    "result": "Login UI matches mockups",
-                    "messages_count": 18
+                  "status": "done",
+                  "started_at": "2025-07-07T09:30:00Z",
+                  "ended_at": "2025-07-07T11:00:00Z",
+                  "duration_seconds": 5400,
+                  "agent_id": "agent-human-review",
+                  "branch": "feature/login-ui",
+                  "commit_sha": "d4c3b2a1",
+                  "pr_number": 103,
+                  "pr_url": "https://github.com/org/repo/pull/103",
+                  "result": "Login UI matches mockups",
+                  "messages_count": 18
                 },
                 "history": [
-                    {
-                        "status": "planned",
-                        "started_at": null,
-                        "ended_at": null,
-                        "duration_seconds": null,
-                        "agent_id": null,
-                        "branch": null,
-                        "commit_sha": null,
-                        "pr_number": null,
-                        "pr_url": null,
-                        "result": null,
-                        "messages_count": 0
-                    }
-                ]
-            }
-        },
-        {
-            "id": "story-004",
-            "objective": "Build login endpoint",
-            "intent_id": "intent-auth",
-            "workstream_id": "auth-backend",
-            "acceptance_criteria": [
-                "POST /login validates credentials",
-                "Returns JWT token on successful login",
-                "Proper error handling for invalid credentials"
-            ],
-            "dependencies": [
-                {
-                    "type": "story",
-                    "id": "story-002"
-                }
-            ],
-            "implementation_notes": [
-                "Validate against hashed passwords",
-                "Return JWT with user info"
-            ],
-            "estimated_tokens": 200,
-            "complexity_score": 3,
-            "created_at": "2025-07-05T14:00:00Z",
-            "updated_at": "2025-07-06T10:00:00Z",
-            "preferences": {
-                "preferred_agents": [
-                    "agent-claude-code"
-                ],
-                "execution_overrides": {
-                    "max_runtime_seconds": 1800,
-                    "require_manual_approval": false
-                }
-            },
-            "execution": {
-                "current": {
-                    "status": "done",
-                    "started_at": "2025-07-05T14:30:00Z",
-                    "ended_at": "2025-07-06T09:30:00Z",
-                    "duration_seconds": 68400,
-                    "agent_id": "agent-claude-code",
-                    "branch": "feature/login-endpoint",
-                    "commit_sha": "e5f4d3c2",
-                    "pr_number": 104,
-                    "pr_url": "https://github.com/org/repo/pull/104",
-                    "result": "Login endpoint working with JWT",
-                    "messages_count": 22
-                },
-                "history": []
-            }
-        },
-        {
-            "id": "story-005",
-            "objective": "Integrate login UI with backend",
-            "intent_id": "intent-auth",
-            "workstream_id": "auth-frontend",
-            "acceptance_criteria": [
-                "Login form connects to backend API",
-                "User can successfully log in",
-                "JWT token stored in localStorage",
-                "Redirect to dashboard on successful login"
-            ],
-            "dependencies": [
-                {
-                    "type": "story",
-                    "id": "story-003"
-                },
-                {
-                    "type": "story",
-                    "id": "story-004"
-                }
-            ],
-            "implementation_notes": [
-                "Handle API responses properly",
-                "Add loading states and error handling"
-            ],
-            "estimated_tokens": 150,
-            "complexity_score": 2,
-            "created_at": "2025-07-07T12:00:00Z",
-            "updated_at": "2025-07-08T09:00:00Z",
-            "preferences": {
-                "preferred_agents": [
-                    "agent-human-review"
-                ],
-                "execution_overrides": {
-                    "max_runtime_seconds": 1500,
-                    "require_manual_approval": true
-                }
-            },
-            "execution": {
-                "current": {
-                    "status": "in_progress",
-                    "started_at": "2025-07-08T09:15:00Z",
-                    "ended_at": null,
-                    "duration_seconds": null,
-                    "agent_id": "agent-human-review",
-                    "branch": "feature/login-integration",
-                    "commit_sha": null,
-                    "pr_number": null,
-                    "pr_url": null,
-                    "result": null,
-                    "messages_count": 8
-                },
-                "history": []
-            }
-        },
-        {
-            "id": "story-006",
-            "objective": "Create todo CRUD API",
-            "intent_id": "intent-todo",
-            "workstream_id": "todo-backend",
-            "acceptance_criteria": [
-                "GET/POST/PUT/DELETE /todos work correctly",
-                "Responses conform to JSON:API spec",
-                "Proper authentication required for all endpoints"
-            ],
-            "dependencies": [],
-            "implementation_notes": [
-                "Use Express router",
-                "Validate inputs with Joi",
-                "Protect with JWT middleware"
-            ],
-            "estimated_tokens": 300,
-            "complexity_score": 4.5,
-            "created_at": "2025-07-08T10:00:00Z",
-            "updated_at": "2025-07-08T10:00:00Z",
-            "preferences": {
-                "preferred_agents": [
-                    "agent-claude-code"
-                ],
-                "execution_overrides": {
-                    "max_runtime_seconds": 3600,
-                    "require_manual_approval": false
-                }
-            },
-            "execution": {
-                "current": {
+                  {
                     "status": "planned",
                     "started_at": null,
                     "ended_at": null,
@@ -342,146 +172,311 @@
                     "pr_url": null,
                     "result": null,
                     "messages_count": 0
+                  }
+                ]
+              }
+            },
+            {
+              "id": "story-004",
+              "objective": "Build login endpoint",
+              "workstream_id": "auth-backend",
+              "acceptance_criteria": [
+                "POST /login validates credentials",
+                "Returns JWT token on successful login",
+                "Proper error handling for invalid credentials"
+              ],
+              "dependencies": [
+                {
+                  "type": "story",
+                  "id": "story-002"
+                }
+              ],
+              "implementation_notes": [
+                "Validate against hashed passwords",
+                "Return JWT with user info"
+              ],
+              "estimated_tokens": 200,
+              "complexity_score": 3,
+              "created_at": "2025-07-05T14:00:00Z",
+              "updated_at": "2025-07-06T10:00:00Z",
+              "preferences": {
+                "preferred_agents": [
+                  "agent-claude-code"
+                ],
+                "execution_overrides": {
+                  "max_runtime_seconds": 1800,
+                  "require_manual_approval": false
+                }
+              },
+              "execution": {
+                "current": {
+                  "status": "done",
+                  "started_at": "2025-07-05T14:30:00Z",
+                  "ended_at": "2025-07-06T09:30:00Z",
+                  "duration_seconds": 68400,
+                  "agent_id": "agent-claude-code",
+                  "branch": "feature/login-endpoint",
+                  "commit_sha": "e5f4d3c2",
+                  "pr_number": 104,
+                  "pr_url": "https://github.com/org/repo/pull/104",
+                  "result": "Login endpoint working with JWT",
+                  "messages_count": 22
                 },
                 "history": []
+              }
+            },
+            {
+              "id": "story-005",
+              "objective": "Integrate login UI with backend",
+              "workstream_id": "auth-frontend",
+              "acceptance_criteria": [
+                "Login form connects to backend API",
+                "User can successfully log in",
+                "JWT token stored in localStorage",
+                "Redirect to dashboard on successful login"
+              ],
+              "dependencies": [
+                {
+                  "type": "story",
+                  "id": "story-003"
+                },
+                {
+                  "type": "story",
+                  "id": "story-004"
+                }
+              ],
+              "implementation_notes": [
+                "Handle API responses properly",
+                "Add loading states and error handling"
+              ],
+              "estimated_tokens": 150,
+              "complexity_score": 2,
+              "created_at": "2025-07-07T12:00:00Z",
+              "updated_at": "2025-07-08T09:00:00Z",
+              "preferences": {
+                "preferred_agents": [
+                  "agent-human-review"
+                ],
+                "execution_overrides": {
+                  "max_runtime_seconds": 1500,
+                  "require_manual_approval": true
+                }
+              },
+              "execution": {
+                "current": {
+                  "status": "in_progress",
+                  "started_at": "2025-07-08T09:15:00Z",
+                  "ended_at": null,
+                  "duration_seconds": null,
+                  "agent_id": "agent-human-review",
+                  "branch": "feature/login-integration",
+                  "commit_sha": null,
+                  "pr_number": null,
+                  "pr_url": null,
+                  "result": null,
+                  "messages_count": 8
+                },
+                "history": []
+              }
             }
+          ]
         },
         {
-            "id": "story-007",
-            "objective": "Build todo management UI",
-            "intent_id": "intent-todo",
-            "workstream_id": "todo-frontend",
-            "acceptance_criteria": [
+          "id": "intent-todo",
+          "name": "Todo Management",
+          "description": "Full CRUD operations for todos with user-specific data access.",
+          "dependencies": [
+            {
+              "type": "intent",
+              "id": "intent-auth"
+            }
+          ],
+          "status": "planned",
+          "stories": [
+            {
+              "id": "story-006",
+              "objective": "Create todo CRUD API",
+              "workstream_id": "todo-backend",
+              "acceptance_criteria": [
+                "GET/POST/PUT/DELETE /todos work correctly",
+                "Responses conform to JSON:API spec",
+                "Proper authentication required for all endpoints"
+              ],
+              "dependencies": [],
+              "implementation_notes": [
+                "Use Express router",
+                "Validate inputs with Joi",
+                "Protect with JWT middleware"
+              ],
+              "estimated_tokens": 300,
+              "complexity_score": 4.5,
+              "created_at": "2025-07-08T10:00:00Z",
+              "updated_at": "2025-07-08T10:00:00Z",
+              "preferences": {
+                "preferred_agents": [
+                  "agent-claude-code"
+                ],
+                "execution_overrides": {
+                  "max_runtime_seconds": 3600,
+                  "require_manual_approval": false
+                }
+              },
+              "execution": {
+                "current": {
+                  "status": "planned",
+                  "started_at": null,
+                  "ended_at": null,
+                  "duration_seconds": null,
+                  "agent_id": null,
+                  "branch": null,
+                  "commit_sha": null,
+                  "pr_number": null,
+                  "pr_url": null,
+                  "result": null,
+                  "messages_count": 0
+                },
+                "history": []
+              }
+            },
+            {
+              "id": "story-007",
+              "objective": "Build todo management UI",
+              "workstream_id": "todo-frontend",
+              "acceptance_criteria": [
                 "Users can view their todo list",
                 "Users can add new todos",
                 "Users can edit existing todos",
                 "Users can delete todos",
                 "Users can mark todos as complete/incomplete"
-            ],
-            "dependencies": [
+              ],
+              "dependencies": [
                 {
-                    "type": "story",
-                    "id": "story-006"
+                  "type": "story",
+                  "id": "story-006"
                 }
-            ],
-            "implementation_notes": [
+              ],
+              "implementation_notes": [
                 "Use React hooks for state management",
                 "Implement optimistic updates",
                 "Add proper error handling"
-            ],
-            "estimated_tokens": 400,
-            "complexity_score": 5,
-            "created_at": "2025-07-09T10:00:00Z",
-            "updated_at": "2025-07-09T10:00:00Z",
-            "preferences": {
+              ],
+              "estimated_tokens": 400,
+              "complexity_score": 5,
+              "created_at": "2025-07-09T10:00:00Z",
+              "updated_at": "2025-07-09T10:00:00Z",
+              "preferences": {
                 "preferred_agents": [
-                    "agent-human-review"
+                  "agent-human-review"
                 ],
                 "execution_overrides": {
-                    "max_runtime_seconds": 4200,
-                    "require_manual_approval": true
+                  "max_runtime_seconds": 4200,
+                  "require_manual_approval": true
                 }
-            },
-            "execution": {
+              },
+              "execution": {
                 "current": {
-                    "status": "planned",
-                    "started_at": null,
-                    "ended_at": null,
-                    "duration_seconds": null,
-                    "agent_id": null,
-                    "branch": null,
-                    "commit_sha": null,
-                    "pr_number": null,
-                    "pr_url": null,
-                    "result": null,
-                    "messages_count": 0
+                  "status": "planned",
+                  "started_at": null,
+                  "ended_at": null,
+                  "duration_seconds": null,
+                  "agent_id": null,
+                  "branch": null,
+                  "commit_sha": null,
+                  "pr_number": null,
+                  "pr_url": null,
+                  "result": null,
+                  "messages_count": 0
                 },
                 "history": []
+              }
             }
+          ]
         }
-    ],
-    "agents": [
-        {
-            "id": "mgr-1",
-            "name": "Bob Manager",
-            "role": "manager",
-            "manager_id": null,
-            "reports": [
-                "eng-alice",
-                "eng-bob",
-                "eng-charlie",
-                "eng-dana"
-            ],
-            "assigned_story_ids": []
-        },
-        {
-            "id": "eng-alice",
-            "name": "Alice Engineer",
-            "role": "engineer",
-            "manager_id": "mgr-1",
-            "reports": [],
-            "assigned_story_ids": [
-                "story-001",
-                "story-003"
-            ]
-        },
-        {
-            "id": "eng-charlie",
-            "name": "Charlie Engineer",
-            "role": "engineer",
-            "manager_id": "mgr-1",
-            "reports": [],
-            "assigned_story_ids": [
-                "story-002",
-                "story-004"
-            ]
-        },
-        {
-            "id": "eng-bob",
-            "name": "Bob Frontend",
-            "role": "engineer",
-            "manager_id": "mgr-1",
-            "reports": [],
-            "assigned_story_ids": [
-                "story-003",
-                "story-005",
-                "story-007"
-            ]
-        },
-        {
-            "id": "eng-dana",
-            "name": "Dana Backend",
-            "role": "engineer",
-            "manager_id": "mgr-1",
-            "reports": [],
-            "assigned_story_ids": [
-                "story-006"
-            ]
-        },
-        {
-            "id": "agent-claude-code",
-            "name": "Claude Code Agent",
-            "role": "conductor",
-            "manager_id": null,
-            "reports": [],
-            "assigned_story_ids": [
-                "story-001",
-                "story-002",
-                "story-004",
-                "story-006"
-            ]
-        },
-        {
-            "id": "agent-human-review",
-            "name": "Human Review Agent",
-            "role": "engineer",
-            "manager_id": "mgr-1",
-            "reports": [],
-            "assigned_story_ids": [
-                "story-003",
-                "story-005",
-                "story-007"
-            ]
-        }
-    ]
+      ]
+    }
+  },
+  "agents": [
+    {
+      "id": "mgr-1",
+      "name": "Bob Manager",
+      "role": "manager",
+      "manager_id": null,
+      "reports": [
+        "eng-alice",
+        "eng-bob",
+        "eng-charlie",
+        "eng-dana"
+      ],
+      "assigned_story_ids": []
+    },
+    {
+      "id": "eng-alice",
+      "name": "Alice Engineer",
+      "role": "engineer",
+      "manager_id": "mgr-1",
+      "reports": [],
+      "assigned_story_ids": [
+        "story-001",
+        "story-003"
+      ]
+    },
+    {
+      "id": "eng-charlie",
+      "name": "Charlie Engineer",
+      "role": "engineer",
+      "manager_id": "mgr-1",
+      "reports": [],
+      "assigned_story_ids": [
+        "story-002",
+        "story-004"
+      ]
+    },
+    {
+      "id": "eng-bob",
+      "name": "Bob Frontend",
+      "role": "engineer",
+      "manager_id": "mgr-1",
+      "reports": [],
+      "assigned_story_ids": [
+        "story-003",
+        "story-005",
+        "story-007"
+      ]
+    },
+    {
+      "id": "eng-dana",
+      "name": "Dana Backend",
+      "role": "engineer",
+      "manager_id": "mgr-1",
+      "reports": [],
+      "assigned_story_ids": [
+        "story-006"
+      ]
+    },
+    {
+      "id": "agent-claude-code",
+      "name": "Claude Code Agent",
+      "role": "conductor",
+      "manager_id": null,
+      "reports": [],
+      "assigned_story_ids": [
+        "story-001",
+        "story-002",
+        "story-004",
+        "story-006"
+      ]
+    },
+    {
+      "id": "agent-human-review",
+      "name": "Human Review Agent",
+      "role": "engineer",
+      "manager_id": "mgr-1",
+      "reports": [],
+      "assigned_story_ids": [
+        "story-003",
+        "story-005",
+        "story-007"
+      ]
+    }
+  ]
 }

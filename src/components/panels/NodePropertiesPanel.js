@@ -647,7 +647,20 @@ function NodePropertiesPanel({ selectedNode }) {
             };
             setExpandedSections(hasContent);
         }
-    }, [selectedNode, getDependentsForStory, getEntityWithPendingChanges]);
+    }, [selectedNode?.data?.id, selectedNode?.data?.type]);
+
+    // Sync pending changes to editData when not actively editing
+    // This ensures that external changes (like undo/redo) update the edit form
+    useEffect(() => {
+        if (selectedNode && !isEditing) {
+            const entityWithChanges = getEntityWithPendingChanges(
+                selectedNode.data.type,
+                selectedNode.data.id
+            ) || selectedNode.data;
+
+            setEditData(entityWithChanges);
+        }
+    }, [selectedNode, isEditing, getEntityWithPendingChanges]);
 
     // Exit editing mode when global edit mode is disabled
     useEffect(() => {
@@ -750,15 +763,37 @@ function NodePropertiesPanel({ selectedNode }) {
     };
 
     const getStoryById = (storyId) => {
-        return planData?.stories?.find(story => story.id === storyId);
+        if (!planData?.project?.roadmap?.intents) return null;
+
+        for (const intent of planData.project.roadmap.intents) {
+            if (intent.stories) {
+                const story = intent.stories.find(story => story.id === storyId);
+                if (story) return story;
+            }
+        }
+        return null;
     };
 
     const getAvailableStories = (fieldKey, currentDependencies = []) => {
         const currentStoryId = data.id;
-        return planData?.stories?.filter(story =>
+        if (!planData?.project?.roadmap?.intents) return [];
+
+        const allStories = [];
+        planData.project.roadmap.intents.forEach(intent => {
+            if (intent.stories) {
+                intent.stories.forEach(story => {
+                    allStories.push({
+                        ...story,
+                        intent_id: intent.id
+                    });
+                });
+            }
+        });
+
+        return allStories.filter(story =>
             story.id !== currentStoryId &&
             !currentDependencies.includes(story.id)
-        ) || [];
+        );
     };
 
 

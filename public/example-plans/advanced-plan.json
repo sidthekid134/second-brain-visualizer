@@ -1,0 +1,325 @@
+{
+  "project": {
+    "id": "plan-cross-platform-sync-001",
+    "name": "Cross-platform Sync Release",
+    "description": "Comprehensive plan coordinating backend, frontend, and deployment improvements.",
+    "status": "planned",
+    "created_at": "2025-01-15T00:00:00Z",
+    "updated_at": "2025-01-15T00:00:00Z",
+    "progress": {
+      "completion_percentage": 0
+    },
+    "budget": {
+      "limit": 50000,
+      "used": 0
+    },
+    "roadmap": {
+      "intents": [
+        {
+          "id": "intent-realtime-sync-backend-001",
+          "name": "Realtime Sync Backend",
+          "description": "Build robust real-time synchronization infrastructure",
+          "dependencies": [],
+          "stories": [
+            {
+              "id": "story-design-sync-protocol-001",
+              "objective": "Design sync protocol",
+              "workstream_id": "workstream-architecture-001",
+              "acceptance_criteria": [
+                "Protocol RFC approved with versioning and conflict resolution"
+              ],
+              "dependencies": [],
+              "implementation_notes": [
+                "Coordinate with mobile team"
+              ],
+              "estimated_tokens": 12000,
+              "complexity_score": 5,
+              "created_at": "2025-01-15T00:00:00Z",
+              "updated_at": "2025-01-15T00:00:00Z",
+              "execution": {
+                "current": {
+                  "status": "planned"
+                },
+                "history": []
+              },
+              "preferences": {
+                "preferred_agents": [],
+                "execution_overrides": {
+                  "max_runtime_seconds": 3600,
+                  "require_manual_approval": false
+                }
+              }
+            },
+            {
+              "id": "story-implement-delta-api-001",
+              "objective": "Implement delta API",
+              "workstream_id": "workstream-backend-001",
+              "acceptance_criteria": [
+                "/sync/delta endpoint returns changeset filtered by device cursor"
+              ],
+              "dependencies": [
+                {
+                  "type": "story",
+                  "id": "story-design-sync-protocol-001"
+                }
+              ],
+              "implementation_notes": [
+                "Use streaming responses when payload > 5MB"
+              ],
+              "estimated_tokens": 15000,
+              "complexity_score": 6,
+              "created_at": "2025-01-15T00:00:00Z",
+              "updated_at": "2025-01-15T00:00:00Z",
+              "execution": {
+                "current": {
+                  "status": "planned"
+                },
+                "history": []
+              },
+              "preferences": {
+                "preferred_agents": [],
+                "execution_overrides": {
+                  "max_runtime_seconds": 3600,
+                  "require_manual_approval": false
+                }
+              }
+            },
+            {
+              "id": "story-load-testing-001",
+              "objective": "Load testing",
+              "workstream_id": "workstream-sre-001",
+              "acceptance_criteria": [
+                "Sync API sustains 2k RPS with <200ms p95 latency"
+              ],
+              "dependencies": [
+                {
+                  "type": "story",
+                  "id": "story-implement-delta-api-001"
+                }
+              ],
+              "implementation_notes": [],
+              "estimated_tokens": 8000,
+              "complexity_score": 4,
+              "created_at": "2025-01-15T00:00:00Z",
+              "updated_at": "2025-01-15T00:00:00Z",
+              "execution": {
+                "current": {
+                  "status": "planned"
+                },
+                "history": []
+              },
+              "preferences": {
+                "preferred_agents": [],
+                "execution_overrides": {
+                  "max_runtime_seconds": 3600,
+                  "require_manual_approval": false
+                }
+              }
+            }
+          ]
+        },
+        {
+          "id": "intent-offline-first-ui-001",
+          "name": "Offline-first UI",
+          "description": "Create user interface that works seamlessly offline and online",
+          "dependencies": [],
+          "stories": [
+            {
+              "id": "story-state-cache-abstraction-001",
+              "objective": "State cache abstraction",
+              "workstream_id": "workstream-frontend-001",
+              "acceptance_criteria": [
+                "Shared cache layer writes to IndexedDB and LocalStorage"
+              ],
+              "dependencies": [],
+              "implementation_notes": [
+                "Expose hooks for optimistic updates"
+              ],
+              "estimated_tokens": 10000,
+              "complexity_score": 5,
+              "created_at": "2025-01-15T00:00:00Z",
+              "updated_at": "2025-01-15T00:00:00Z",
+              "execution": {
+                "current": {
+                  "status": "planned"
+                },
+                "history": []
+              },
+              "preferences": {
+                "preferred_agents": [],
+                "execution_overrides": {
+                  "max_runtime_seconds": 3600,
+                  "require_manual_approval": false
+                }
+              }
+            },
+            {
+              "id": "story-sync-status-indicator-001",
+              "objective": "Sync status indicator",
+              "workstream_id": "workstream-frontend-001",
+              "acceptance_criteria": [
+                "UI badge reflects syncing, offline, and conflict states"
+              ],
+              "dependencies": [
+                {
+                  "type": "story",
+                  "id": "story-state-cache-abstraction-001"
+                },
+                {
+                  "type": "story",
+                  "id": "story-implement-delta-api-001"
+                }
+              ],
+              "implementation_notes": [
+                "Follow design spec Figma link"
+              ],
+              "estimated_tokens": 6000,
+              "complexity_score": 3,
+              "created_at": "2025-01-15T00:00:00Z",
+              "updated_at": "2025-01-15T00:00:00Z",
+              "execution": {
+                "current": {
+                  "status": "planned"
+                },
+                "history": []
+              },
+              "preferences": {
+                "preferred_agents": [],
+                "execution_overrides": {
+                  "max_runtime_seconds": 3600,
+                  "require_manual_approval": false
+                }
+              }
+            }
+          ]
+        },
+        {
+          "id": "intent-deployment-hardening-001",
+          "name": "Deployment Hardening",
+          "description": "Implement production-ready deployment and monitoring",
+          "dependencies": [],
+          "stories": [
+            {
+              "id": "story-blue-green-rollout-001",
+              "objective": "Blue/green rollout",
+              "workstream_id": "workstream-devops-001",
+              "acceptance_criteria": [
+                "CI pipeline promotes sync service with automated rollback"
+              ],
+              "dependencies": [
+                {
+                  "type": "story",
+                  "id": "story-implement-delta-api-001"
+                }
+              ],
+              "implementation_notes": [
+                "Integrate with ArgoCD"
+              ],
+              "estimated_tokens": 12000,
+              "complexity_score": 6,
+              "created_at": "2025-01-15T00:00:00Z",
+              "updated_at": "2025-01-15T00:00:00Z",
+              "execution": {
+                "current": {
+                  "status": "planned"
+                },
+                "history": []
+              },
+              "preferences": {
+                "preferred_agents": [],
+                "execution_overrides": {
+                  "max_runtime_seconds": 3600,
+                  "require_manual_approval": false
+                }
+              }
+            },
+            {
+              "id": "story-observability-dashboards-001",
+              "objective": "Observability dashboards",
+              "workstream_id": "workstream-devops-001",
+              "acceptance_criteria": [
+                "Grafana boards track sync latency, error rate, retries"
+              ],
+              "dependencies": [],
+              "implementation_notes": [
+                "Reuse metrics library"
+              ],
+              "estimated_tokens": 7000,
+              "complexity_score": 3,
+              "created_at": "2025-01-15T00:00:00Z",
+              "updated_at": "2025-01-15T00:00:00Z",
+              "execution": {
+                "current": {
+                  "status": "planned"
+                },
+                "history": []
+              },
+              "preferences": {
+                "preferred_agents": [],
+                "execution_overrides": {
+                  "max_runtime_seconds": 3600,
+                  "require_manual_approval": false
+                }
+              }
+            }
+          ]
+        }
+      ]
+    },
+    "checkpoints": []
+  },
+  "agents": [
+    {
+      "id": "agent-eng-ravi-001",
+      "name": "Ravi Engineer",
+      "role": "engineer",
+      "manager_id": null,
+      "reports": [],
+      "assigned_story_ids": [
+        "story-design-sync-protocol-001",
+        "story-implement-delta-api-001"
+      ]
+    },
+    {
+      "id": "agent-sre-jules-001",
+      "name": "Jules SRE",
+      "role": "engineer",
+      "manager_id": null,
+      "reports": [],
+      "assigned_story_ids": [
+        "story-load-testing-001",
+        "story-blue-green-rollout-001"
+      ]
+    },
+    {
+      "id": "agent-eng-mia-001",
+      "name": "Mia Engineer",
+      "role": "engineer",
+      "manager_id": null,
+      "reports": [],
+      "assigned_story_ids": [
+        "story-state-cache-abstraction-001"
+      ]
+    },
+    {
+      "id": "agent-eng-luis-001",
+      "name": "Luis Engineer",
+      "role": "engineer",
+      "manager_id": null,
+      "reports": [],
+      "assigned_story_ids": [
+        "story-sync-status-indicator-001"
+      ]
+    },
+    {
+      "id": "agent-sre-ana-001",
+      "name": "Ana SRE",
+      "role": "engineer",
+      "manager_id": null,
+      "reports": [],
+      "assigned_story_ids": [
+        "story-observability-dashboards-001"
+      ]
+    }
+  ]
+}

@@ -113,6 +113,38 @@ function computeDependents(stories) {
     return Array.from(storyMap.values());
 }
 
+// Helper function to get all stories from intents in the new schema
+function getAllStoriesFromIntents(planData) {
+    if (!planData?.project?.roadmap?.intents) return [];
+
+    const allStories = [];
+    planData.project.roadmap.intents.forEach(intent => {
+        if (intent.stories && Array.isArray(intent.stories)) {
+            // Add intent_id to each story for backward compatibility
+            intent.stories.forEach(story => {
+                allStories.push({
+                    ...story,
+                    intent_id: intent.id
+                });
+            });
+        }
+    });
+    return allStories;
+}
+
+// Helper function to get stories for a specific intent
+function getStoriesForIntent(planData, intentId) {
+    if (!planData?.project?.roadmap?.intents) return [];
+
+    const intent = planData.project.roadmap.intents.find(i => i.id === intentId);
+    if (!intent || !intent.stories) return [];
+
+    return intent.stories.map(story => ({
+        ...story,
+        intent_id: intentId
+    }));
+}
+
 // Helper function to ensure dependency integrity across the plan
 function ensureDependencyIntegrity(stories) {
     if (!stories || !Array.isArray(stories)) return [];
@@ -217,34 +249,96 @@ function planReducer(state, action) {
         case 'SET_PLAN_DATA':
             return { ...state, planData: action.payload, loading: false, error: null };
 
+        case 'REPLACE_PLAN_DATA':
+            clearHistoryFromSession();
+            return {
+                ...state,
+                planData: action.payload.planData,
+                loading: false,
+                error: null,
+                pendingChanges: action.payload.markAsChanged ? {
+                    '__plan_import__': {
+                        entityType: 'plan',
+                        entityId: 'root',
+                        changes: action.payload.planData,
+                        originalData: null
+                    }
+                } : {},
+                hasUnsavedChanges: !!action.payload.markAsChanged,
+                dependencyAffected: {},
+                editedNodes: {},
+                newNodes: {},
+                deletedNodes: {},
+                undoHistory: [],
+                redoHistory: [],
+                canUndo: false,
+                canRedo: false,
+                selectedNode: null,
+                dataSource: action.payload.dataSource ?? state.dataSource,
+                dataTimestamp: action.payload.dataTimestamp ?? new Date().toISOString(),
+                sessionTimestamp: action.payload.sessionTimestamp ?? null
+            };
+
         case 'UPDATE_STORY':
             if (!state.planData) return state;
 
-            const storyToUpdate = (state.planData.stories || []).find(s => s.id === action.payload.id);
-            const updatedStories = (state.planData.stories || []).map(story =>
-                story.id === action.payload.id ? {
-                    ...story,
-                    ...action.payload.updates,
-                    updated_at: new Date().toISOString()
-                } : story
-            );
+            // Find the story in the new schema (within intents)
+            let storyToUpdate = null;
+            let updatedPlanData = { ...state.planData };
+
+            // Find the story in intents
+            for (const intent of (state.planData.project?.roadmap?.intents || [])) {
+                if (intent.stories) {
+                    const story = intent.stories.find(s => s.id === action.payload.id);
+                    if (story) {
+                        storyToUpdate = { ...story };
+                        break;
+                    }
+                }
+            }
+
+            // Update the story in the intent
+            updatedPlanData.project.roadmap.intents = updatedPlanData.project.roadmap.intents.map(intent => {
+                if (intent.stories) {
+                    return {
+                        ...intent,
+                        stories: intent.stories.map(story =>
+                            story.id === action.payload.id ? {
+                                ...story,
+                                ...action.payload.updates,
+                                updated_at: new Date().toISOString()
+                            } : story
+                        )
+                    };
+                }
+                return intent;
+            });
 
             const baseState = {
                 ...state,
-                planData: {
-                    ...state.planData,
-                    stories: ensureDependencyIntegrity(updatedStories)
-                }
+                planData: updatedPlanData
             };
 
             // Track operation for undo/redo
             if (storyToUpdate) {
+                // Find the updated story in the new plan data
+                let updatedStory = null;
+                for (const intent of updatedPlanData.project?.roadmap?.intents || []) {
+                    if (intent.stories) {
+                        const story = intent.stories.find(s => s.id === action.payload.id);
+                        if (story) {
+                            updatedStory = story;
+                            break;
+                        }
+                    }
+                }
+
                 const operation = createOperationDiff(
                     'update',
                     'story',
                     action.payload.id,
                     storyToUpdate,
-                    updatedStories.find(s => s.id === action.payload.id)
+                    updatedStory
                 );
 
                 const stateWithHistory = {
@@ -252,7 +346,8 @@ function planReducer(state, action) {
                     undoHistory: [...state.undoHistory, operation],
                     redoHistory: [], // Clear redo history when new operation is performed
                     canUndo: true,
-                    canRedo: false
+                    canRedo: false,
+                    hasUnsavedChanges: true
                 };
 
                 // Save to sessionStorage
@@ -260,18 +355,99 @@ function planReducer(state, action) {
                 return stateWithHistory;
             }
 
-            return baseState;
+            return {
+                ...baseState,
+                hasUnsavedChanges: true
+            };
+
+        case 'ADD_INTENT':
+            if (!state.planData) return state;
+
+            const newIntent = action.payload.intent;
+            const checkpointsToAppend = action.payload.checkpoints || [];
+
+            const currentIntents = state.planData.project?.roadmap?.intents || [];
+            const currentCheckpoints = state.planData.project?.checkpoints || [];
+
+            const baseIntentState = {
+                ...state,
+                planData: {
+                    ...state.planData,
+                    project: {
+                        ...state.planData.project,
+                        roadmap: {
+                            ...state.planData.project.roadmap,
+                            intents: [...currentIntents, newIntent]
+                        },
+                        checkpoints: [...currentCheckpoints, ...checkpointsToAppend]
+                    }
+                }
+            };
+
+            {
+                const operation = createOperationDiff(
+                    'create',
+                    'intent',
+                    newIntent.id,
+                    null,
+                    newIntent
+                );
+
+                const stateWithHistory = {
+                    ...baseIntentState,
+                    undoHistory: [...state.undoHistory, operation],
+                    redoHistory: [],
+                    canUndo: true,
+                    canRedo: false,
+                    newNodes: {
+                        ...state.newNodes,
+                        [`intent:${newIntent.id}`]: true
+                    },
+                    pendingChanges: {
+                        ...state.pendingChanges,
+                        [`intent:${newIntent.id}`]: {
+                            entityType: 'intent',
+                            entityId: newIntent.id,
+                            changes: newIntent,
+                            originalData: null
+                        }
+                    },
+                    hasUnsavedChanges: true
+                };
+
+                saveHistoryToSession(stateWithHistory.undoHistory, stateWithHistory.redoHistory);
+                return stateWithHistory;
+            }
 
         case 'ADD_STORY':
             if (!state.planData) return state;
 
             const newStory = action.payload;
+            const intentId = newStory.intent_id;
+
+            // Add the story to the appropriate intent
+            const addStoryPlanData = {
+                ...state.planData,
+                project: {
+                    ...state.planData.project,
+                    roadmap: {
+                        ...state.planData.project.roadmap,
+                        intents: state.planData.project.roadmap.intents.map(intent => {
+                            if (intent.id === intentId) {
+                                return {
+                                    ...intent,
+                                    stories: [...(intent.stories || []), newStory]
+                                };
+                            }
+                            return intent;
+                        })
+                    }
+                }
+            };
+
             const baseAddState = {
                 ...state,
-                planData: {
-                    ...state.planData,
-                    stories: ensureDependencyIntegrity([...(state.planData.stories || []), newStory])
-                }
+                planData: addStoryPlanData
             };
 
             // Track operation for undo/redo and mark as new
@@ -294,7 +470,8 @@ function planReducer(state, action) {
                     newNodes: {
                         ...state.newNodes,
                         [`story:${newStory.id}`]: true
-                    }
+                    },
+                    hasUnsavedChanges: true
                 };
 
                 // Save to sessionStorage
@@ -302,13 +479,27 @@ function planReducer(state, action) {
                 return stateWithCreateHistory;
             }
 
-            return baseAddState;
+            return {
+                ...baseAddState,
+                hasUnsavedChanges: true
+            };
 
         case 'DELETE_STORY':
             if (!state.planData) return state;
 
             const storyIdToDelete = action.payload;
-            const storyToDelete = (state.planData.stories || []).find(s => s.id === storyIdToDelete);
+            let storyToDelete = null;
+
+            // Find the story in intents
+            for (const intent of (state.planData.project?.roadmap?.intents || [])) {
+                if (intent.stories) {
+                    const story = intent.stories.find(s => s.id === storyIdToDelete);
+                    if (story) {
+                        storyToDelete = { ...story };
+                        break;
+                    }
+                }
+            }
 
             if (!storyToDelete) return state;
 
@@ -381,7 +572,8 @@ function planReducer(state, action) {
                             } : checkpoint
                         )
                     }
-                }
+                },
+                hasUnsavedChanges: true
             };
 
         case 'ADD_CHECKPOINT':
@@ -394,54 +586,73 @@ function planReducer(state, action) {
                         ...state.planData.project,
                         checkpoints: [...(state.planData.project?.checkpoints || []), action.payload]
                     }
-                }
+                },
+                hasUnsavedChanges: true
             };
 
         case 'DELETE_CHECKPOINT':
             if (!state.planData) return state;
 
             const checkpointIdToDelete = action.payload;
-            const updatedCheckpointsAfterDelete = (state.planData.project?.checkpoints || []).filter(
-                checkpoint => checkpoint.id !== checkpointIdToDelete
+            const checkpointToDelete = (state.planData.project?.checkpoints || []).find(
+                checkpoint => checkpoint.id === checkpointIdToDelete
             );
 
-            // Remove dependencies on the deleted checkpoint from all entities
-            const storiesWithCleanedDeps = (state.planData.stories || []).map(story => ({
-                ...story,
-                dependencies: (story.dependencies || []).filter(dep =>
-                    !(dep.type === 'checkpoint' && dep.id === checkpointIdToDelete)
-                )
-            }));
+            if (!checkpointToDelete) return state;
 
-            const checkpointsWithCleanedDeps = updatedCheckpointsAfterDelete.map(checkpoint => ({
-                ...checkpoint,
-                dependencies: (checkpoint.dependencies || []).filter(dep =>
-                    !(dep.type === 'checkpoint' && dep.id === checkpointIdToDelete)
-                )
-            }));
+            // Stage the deletion instead of immediately deleting
+            const deleteCheckpointChangeKey = `checkpoint:${checkpointIdToDelete}`;
 
-            const intentsWithCleanedDeps = (state.planData.project?.roadmap?.intents || []).map(intent => ({
-                ...intent,
-                dependencies: (intent.dependencies || []).filter(dep =>
-                    !(dep.type === 'checkpoint' && dep.id === checkpointIdToDelete)
-                )
-            }));
+            // Track operation for undo/redo and mark as deleted
+            const deleteCheckpointOperation = createOperationDiff(
+                'delete',
+                'checkpoint',
+                checkpointIdToDelete,
+                checkpointToDelete, // Store the checkpoint data for potential restoration
+                null // No after data for deletion
+            );
 
-            return {
+            // Find all dependent nodes that will be affected
+            const deleteCheckpointDependents = findAllDependents(state.planData, 'checkpoint', checkpointIdToDelete);
+            const deleteCheckpointDependencyAffected = { ...state.dependencyAffected };
+            deleteCheckpointDependents.forEach(depKey => {
+                deleteCheckpointDependencyAffected[depKey] = true;
+            });
+
+            const stateWithDeleteCheckpointStaging = {
                 ...state,
-                planData: {
-                    ...state.planData,
-                    stories: ensureDependencyIntegrity(storiesWithCleanedDeps),
-                    project: {
-                        ...state.planData.project,
-                        checkpoints: checkpointsWithCleanedDeps,
-                        roadmap: {
-                            ...state.planData.project.roadmap,
-                            intents: intentsWithCleanedDeps
-                        }
+                undoHistory: [...state.undoHistory, deleteCheckpointOperation],
+                redoHistory: [], // Clear redo history when new operation is performed
+                canUndo: true,
+                canRedo: false,
+                // Mark as deleted node (staged for deletion)
+                deletedNodes: {
+                    ...state.deletedNodes,
+                    [deleteCheckpointChangeKey]: true
+                },
+                // Remove from new nodes if it was newly created
+                newNodes: {
+                    ...state.newNodes,
+                    [deleteCheckpointChangeKey]: undefined
+                },
+                // Mark dependent nodes as affected
+                dependencyAffected: deleteCheckpointDependencyAffected,
+                // Track the pending deletion
+                pendingChanges: {
+                    ...state.pendingChanges,
+                    [deleteCheckpointChangeKey]: {
+                        entityType: 'checkpoint',
+                        entityId: checkpointIdToDelete,
+                        changes: { _deleted: true }, // Special marker for deletion
+                        originalData: checkpointToDelete
                     }
-                }
+                },
+                hasUnsavedChanges: true
             };
+
+            // Save to sessionStorage
+            saveHistoryToSession(stateWithDeleteCheckpointStaging.undoHistory, stateWithDeleteCheckpointStaging.redoHistory);
+            return stateWithDeleteCheckpointStaging;
 
         case 'UPDATE_INTENT':
             if (!state.planData) return state;
@@ -461,56 +672,73 @@ function planReducer(state, action) {
                             )
                         }
                     }
-                }
+                },
+                hasUnsavedChanges: true
             };
 
         case 'DELETE_INTENT':
             if (!state.planData) return state;
 
             const intentIdToDelete = action.payload;
-            const remainingIntents = (state.planData.project?.roadmap?.intents || []).filter(
-                intent => intent.id !== intentIdToDelete
+            const intentToDelete = (state.planData.project?.roadmap?.intents || []).find(
+                intent => intent.id === intentIdToDelete
             );
 
-            // Remove dependencies on the deleted intent from all entities
-            const storiesWithCleanedIntentDeps = (state.planData.stories || []).map(story => ({
-                ...story,
-                dependencies: (story.dependencies || []).filter(dep =>
-                    !(dep.type === 'intent' && dep.id === intentIdToDelete)
-                ),
-                // Also clear intent_id if this story was assigned to the deleted intent
-                intent_id: story.intent_id === intentIdToDelete ? '' : story.intent_id
-            }));
+            if (!intentToDelete) return state;
 
-            const checkpointsWithCleanedIntentDeps = (state.planData.project?.checkpoints || []).map(checkpoint => ({
-                ...checkpoint,
-                dependencies: (checkpoint.dependencies || []).filter(dep =>
-                    !(dep.type === 'intent' && dep.id === intentIdToDelete)
-                )
-            }));
+            // Stage the deletion instead of immediately deleting
+            const deleteIntentChangeKey = `intent:${intentIdToDelete}`;
 
-            const intentsWithCleanedIntentDeps = remainingIntents.map(intent => ({
-                ...intent,
-                dependencies: (intent.dependencies || []).filter(dep =>
-                    !(dep.type === 'intent' && dep.id === intentIdToDelete)
-                )
-            }));
+            // Track operation for undo/redo and mark as deleted
+            const deleteIntentOperation = createOperationDiff(
+                'delete',
+                'intent',
+                intentIdToDelete,
+                intentToDelete, // Store the intent data for potential restoration
+                null // No after data for deletion
+            );
 
-            return {
+            // Find all dependent nodes that will be affected
+            const deleteIntentDependents = findAllDependents(state.planData, 'intent', intentIdToDelete);
+            const deleteIntentDependencyAffected = { ...state.dependencyAffected };
+            deleteIntentDependents.forEach(depKey => {
+                deleteIntentDependencyAffected[depKey] = true;
+            });
+
+            const stateWithDeleteIntentStaging = {
                 ...state,
-                planData: {
-                    ...state.planData,
-                    stories: ensureDependencyIntegrity(storiesWithCleanedIntentDeps),
-                    project: {
-                        ...state.planData.project,
-                        checkpoints: checkpointsWithCleanedIntentDeps,
-                        roadmap: {
-                            ...state.planData.project.roadmap,
-                            intents: intentsWithCleanedIntentDeps
-                        }
+                undoHistory: [...state.undoHistory, deleteIntentOperation],
+                redoHistory: [], // Clear redo history when new operation is performed
+                canUndo: true,
+                canRedo: false,
+                // Mark as deleted node (staged for deletion)
+                deletedNodes: {
+                    ...state.deletedNodes,
+                    [deleteIntentChangeKey]: true
+                },
+                // Remove from new nodes if it was newly created
+                newNodes: {
+                    ...state.newNodes,
+                    [deleteIntentChangeKey]: undefined
+                },
+                // Mark dependent nodes as affected
+                dependencyAffected: deleteIntentDependencyAffected,
+                // Track the pending deletion
+                pendingChanges: {
+                    ...state.pendingChanges,
+                    [deleteIntentChangeKey]: {
+                        entityType: 'intent',
+                        entityId: intentIdToDelete,
+                        changes: { _deleted: true }, // Special marker for deletion
+                        originalData: intentToDelete
                     }
-                }
+                },
+                hasUnsavedChanges: true
             };
+
+            // Save to sessionStorage
+            saveHistoryToSession(stateWithDeleteIntentStaging.undoHistory, stateWithDeleteIntentStaging.redoHistory);
+            return stateWithDeleteIntentStaging;
 
         case 'UPDATE_DEPENDENCIES':
             if (!state.planData) return state;
@@ -531,7 +759,8 @@ function planReducer(state, action) {
                 planData: {
                     ...state.planData,
                     stories: ensureDependencyIntegrity(updatedStoriesWithDeps)
-                }
+                },
+                hasUnsavedChanges: true
             };
 
         case 'SET_SELECTED_NODE':
@@ -570,6 +799,9 @@ function planReducer(state, action) {
             const { entityType, entityId, changes } = action.payload;
             const changeKey = `${entityType}:${entityId}`;
             const newPendingChanges = { ...state.pendingChanges };
+            if (newPendingChanges['__plan_import__']) {
+                delete newPendingChanges['__plan_import__'];
+            }
             let newEditedNodes = { ...state.editedNodes };
             let newDependencyAffected = { ...state.dependencyAffected };
 
@@ -614,56 +846,94 @@ function planReducer(state, action) {
             };
 
         case 'SAVE_ALL_CHANGES':
-            let updatedPlanData = { ...state.planData };
+            let saveChangesPlanData = { ...state.planData };
 
             // Apply all pending changes directly to the plan data
             Object.values(state.pendingChanges).forEach(pendingChange => {
                 const { entityType, entityId, changes } = pendingChange;
 
+                if (entityType === 'plan') {
+                    return;
+                }
+
                 if (entityType === 'story') {
                     if (changes._deleted) {
-                        // Actually delete the story
-                        updatedPlanData.stories = updatedPlanData.stories.filter(story => story.id !== entityId);
+                        // Actually delete the story from its intent
+                        saveChangesPlanData.project.roadmap.intents = saveChangesPlanData.project.roadmap.intents.map(intent => {
+                            if (intent.stories) {
+                                return {
+                                    ...intent,
+                                    stories: intent.stories.filter(story => story.id !== entityId)
+                                };
+                            }
+                            return intent;
+                        });
+
                         // Remove dependencies on the deleted story from all remaining stories
-                        updatedPlanData.stories = updatedPlanData.stories.map(story => ({
-                            ...story,
-                            dependencies: (story.dependencies || []).filter(dep =>
-                                !(dep.type === 'story' && dep.id === entityId)
-                            )
-                        }));
+                        saveChangesPlanData.project.roadmap.intents = saveChangesPlanData.project.roadmap.intents.map(intent => {
+                            if (intent.stories) {
+                                return {
+                                    ...intent,
+                                    stories: intent.stories.map(story => ({
+                                        ...story,
+                                        dependencies: (story.dependencies || []).filter(dep =>
+                                            !(dep.type === 'story' && dep.id === entityId)
+                                        )
+                                    }))
+                                };
+                            }
+                            return intent;
+                        });
+
                         // Also clean up checkpoint story_ids
-                        if (updatedPlanData.project?.checkpoints) {
-                            updatedPlanData.project.checkpoints = updatedPlanData.project.checkpoints.map(checkpoint => ({
+                        if (saveChangesPlanData.project?.checkpoints) {
+                            saveChangesPlanData.project.checkpoints = saveChangesPlanData.project.checkpoints.map(checkpoint => ({
                                 ...checkpoint,
                                 story_ids: (checkpoint.story_ids || []).filter(id => id !== entityId)
                             }));
                         }
                     } else {
-                        // Regular update
-                        updatedPlanData.stories = updatedPlanData.stories.map(story =>
-                            story.id === entityId ? {
-                                ...story,
-                                ...changes,
-                                updated_at: new Date().toISOString()
-                            } : story
-                        );
+                        // Regular update - find and update the story in its intent
+                        saveChangesPlanData.project.roadmap.intents = saveChangesPlanData.project.roadmap.intents.map(intent => {
+                            if (intent.stories) {
+                                return {
+                                    ...intent,
+                                    stories: intent.stories.map(story =>
+                                        story.id === entityId ? {
+                                            ...story,
+                                            ...changes,
+                                            updated_at: new Date().toISOString()
+                                        } : story
+                                    )
+                                };
+                            }
+                            return intent;
+                        });
                     }
                 } else if (entityType === 'checkpoint') {
                     if (changes._deleted) {
                         // Actually delete the checkpoint
-                        updatedPlanData.project.checkpoints = updatedPlanData.project.checkpoints.filter(
+                        saveChangesPlanData.project.checkpoints = saveChangesPlanData.project.checkpoints.filter(
                             checkpoint => checkpoint.id !== entityId
                         );
-                        // Remove dependencies on the deleted checkpoint
-                        updatedPlanData.stories = updatedPlanData.stories.map(story => ({
-                            ...story,
-                            dependencies: (story.dependencies || []).filter(dep =>
-                                !(dep.type === 'checkpoint' && dep.id === entityId)
-                            )
-                        }));
+                        // Remove dependencies on the deleted checkpoint from all stories
+                        saveChangesPlanData.project.roadmap.intents = saveChangesPlanData.project.roadmap.intents.map(intent => {
+                            if (intent.stories) {
+                                return {
+                                    ...intent,
+                                    stories: intent.stories.map(story => ({
+                                        ...story,
+                                        dependencies: (story.dependencies || []).filter(dep =>
+                                            !(dep.type === 'checkpoint' && dep.id === entityId)
+                                        )
+                                    }))
+                                };
+                            }
+                            return intent;
+                        });
                     } else {
                         // Regular update
-                        updatedPlanData.project.checkpoints = updatedPlanData.project.checkpoints.map(checkpoint =>
+                        saveChangesPlanData.project.checkpoints = saveChangesPlanData.project.checkpoints.map(checkpoint =>
                             checkpoint.id === entityId ? {
                                 ...checkpoint,
                                 ...changes
@@ -673,20 +943,27 @@ function planReducer(state, action) {
                 } else if (entityType === 'intent') {
                     if (changes._deleted) {
                         // Actually delete the intent
-                        updatedPlanData.project.roadmap.intents = updatedPlanData.project.roadmap.intents.filter(
+                        saveChangesPlanData.project.roadmap.intents = saveChangesPlanData.project.roadmap.intents.filter(
                             intent => intent.id !== entityId
                         );
-                        // Remove dependencies and clear intent_id from stories
-                        updatedPlanData.stories = updatedPlanData.stories.map(story => ({
-                            ...story,
-                            dependencies: (story.dependencies || []).filter(dep =>
-                                !(dep.type === 'intent' && dep.id === entityId)
-                            ),
-                            intent_id: story.intent_id === entityId ? '' : story.intent_id
-                        }));
+                        // Remove dependencies on the deleted intent from all stories
+                        saveChangesPlanData.project.roadmap.intents = saveChangesPlanData.project.roadmap.intents.map(intent => {
+                            if (intent.stories) {
+                                return {
+                                    ...intent,
+                                    stories: intent.stories.map(story => ({
+                                        ...story,
+                                        dependencies: (story.dependencies || []).filter(dep =>
+                                            !(dep.type === 'intent' && dep.id === entityId)
+                                        )
+                                    }))
+                                };
+                            }
+                            return intent;
+                        });
                     } else {
                         // Regular update
-                        updatedPlanData.project.roadmap.intents = updatedPlanData.project.roadmap.intents.map(intent =>
+                        saveChangesPlanData.project.roadmap.intents = saveChangesPlanData.project.roadmap.intents.map(intent =>
                             intent.id === entityId ? {
                                 ...intent,
                                 ...changes
@@ -696,10 +973,29 @@ function planReducer(state, action) {
                 }
             });
 
+            // Sanitize all stories across all intents
+            const allStories = getAllStoriesFromIntents(saveChangesPlanData);
+            const sanitizedStories = ensureDependencyIntegrity(allStories);
+
+            // Update the plan data with sanitized stories
+            saveChangesPlanData.project.roadmap.intents = saveChangesPlanData.project.roadmap.intents.map(intent => {
+                if (intent.stories) {
+                    const intentStories = intent.stories.map(story => {
+                        const sanitizedStory = sanitizedStories.find(s => s.id === story.id);
+                        return sanitizedStory || story;
+                    });
+                    return {
+                        ...intent,
+                        stories: intentStories
+                    };
+                }
+                return intent;
+            });
+
             // Clear all pending changes and UI indicators
             return {
                 ...state,
-                planData: ensureDependencyIntegrity(updatedPlanData.stories ? { ...updatedPlanData, stories: updatedPlanData.stories } : updatedPlanData),
+                planData: saveChangesPlanData,
                 pendingChanges: {},
                 hasUnsavedChanges: false,
                 editedNodes: {},
@@ -811,12 +1107,49 @@ function planReducer(state, action) {
                     };
                 }
             } else if (operationToUndo.operationType === 'create') {
-                // For undo of create, remove the entity
+                const changeKey = `${operationToUndo.entityType}:${operationToUndo.entityId}`;
+
                 if (operationToUndo.entityType === 'story') {
                     undoState.planData = {
                         ...undoState.planData,
                         stories: undoState.planData.stories.filter(story => story.id !== operationToUndo.entityId)
                     };
+                } else if (operationToUndo.entityType === 'intent') {
+                    const checkpointId = `checkpoint-${operationToUndo.entityId}`;
+                    const updatedIntents = (undoState.planData.project?.roadmap?.intents || []).filter(
+                        intent => intent.id !== operationToUndo.entityId
+                    );
+                    const updatedCheckpoints = (undoState.planData.project?.checkpoints || []).filter(
+                        checkpoint => checkpoint.id !== checkpointId
+                    );
+
+                    undoState.planData = {
+                        ...undoState.planData,
+                        project: {
+                            ...undoState.planData.project,
+                            roadmap: {
+                                ...undoState.planData.project.roadmap,
+                                intents: updatedIntents
+                            },
+                            checkpoints: updatedCheckpoints
+                        }
+                    };
+                }
+
+                if (operationToUndo.entityType === 'intent') {
+                    const updatedPending = { ...undoState.pendingChanges };
+                    if (updatedPending[changeKey]) {
+                        delete updatedPending[changeKey];
+                        undoState.pendingChanges = updatedPending;
+                    }
+
+                    const updatedNewNodes = { ...undoState.newNodes };
+                    if (updatedNewNodes[changeKey]) {
+                        delete updatedNewNodes[changeKey];
+                        undoState.newNodes = updatedNewNodes;
+                    }
+
+                    undoState.hasUnsavedChanges = Object.keys(undoState.pendingChanges).length > 0;
                 }
             } else if (operationToUndo.operationType === 'delete' && operationToUndo.beforeData) {
                 // For undo of delete, restore the entity
@@ -888,12 +1221,60 @@ function planReducer(state, action) {
                     };
                 }
             } else if (operationToRedo.operationType === 'create' && operationToRedo.afterData) {
-                // For redo of create, add the entity
+                const changeKey = `${operationToRedo.entityType}:${operationToRedo.entityId}`;
+
                 if (operationToRedo.entityType === 'story') {
                     redoState.planData = {
                         ...redoState.planData,
                         stories: [...redoState.planData.stories, operationToRedo.afterData]
                     };
+                } else if (operationToRedo.entityType === 'intent') {
+                    const checkpointId = `checkpoint-${operationToRedo.entityId}`;
+                    const timestamp = operationToRedo.afterData?.created_at || new Date().toISOString();
+                    const checkpoint = {
+                        id: checkpointId,
+                        name: `${operationToRedo.afterData.name} Checkpoint`,
+                        description: `Completion checkpoint for ${operationToRedo.afterData.name}`,
+                        status: 'planned',
+                        story_ids: [],
+                        dependencies: [],
+                        created_at: timestamp,
+                        updated_at: timestamp
+                    };
+
+                    const existingIntents = redoState.planData.project?.roadmap?.intents || [];
+                    const existingCheckpoints = redoState.planData.project?.checkpoints || [];
+
+                    redoState.planData = {
+                        ...redoState.planData,
+                        project: {
+                            ...redoState.planData.project,
+                            roadmap: {
+                                ...redoState.planData.project.roadmap,
+                                intents: [...existingIntents.filter(intent => intent.id !== operationToRedo.entityId), operationToRedo.afterData]
+                            },
+                            checkpoints: [...existingCheckpoints.filter(checkpoint => checkpoint.id !== checkpointId), checkpoint]
+                        }
+                    };
+                }
+
+                if (operationToRedo.entityType === 'intent') {
+                    redoState.pendingChanges = {
+                        ...redoState.pendingChanges,
+                        [changeKey]: {
+                            entityType: operationToRedo.entityType,
+                            entityId: operationToRedo.entityId,
+                            changes: operationToRedo.afterData,
+                            originalData: null
+                        }
+                    };
+
+                    redoState.newNodes = {
+                        ...redoState.newNodes,
+                        [changeKey]: true
+                    };
+
+                    redoState.hasUnsavedChanges = true;
                 }
             } else if (operationToRedo.operationType === 'delete') {
                 // For redo of delete, remove the entity
@@ -933,6 +1314,19 @@ function planReducer(state, action) {
                 dataSource: action.payload.source,
                 dataTimestamp: action.payload.dataTimestamp,
                 sessionTimestamp: action.payload.sessionTimestamp
+            };
+
+        case 'SET_RUN_MODE':
+            if (!state.planData) return state;
+            return {
+                ...state,
+                planData: {
+                    ...state.planData,
+                    project: {
+                        ...state.planData.project,
+                        default_run_mode: action.payload
+                    }
+                }
             };
 
         default:
@@ -1136,15 +1530,52 @@ export function PlanProvider({ children }) {
                 localStorage.removeItem('plan-data-work_saveMethod');
             }
 
-            // Load original file
-            const response = await fetch('/plan-data.json');
-            if (!response.ok) {
+            // Load original file with caching safeguards for 304 responses
+            const response = await fetch('/plan-data.json', { cache: 'no-cache' });
+            if (!response.ok && response.status !== 304) {
                 throw new Error(`Failed to load plan data: ${response.status}`);
             }
-            const originalData = await response.json();
 
-            // Get file modification time (use current time as fallback)
-            const originalTimestamp = Date.now(); // In a real app, this would come from file stats
+            let originalData = null;
+            let usedCachedOriginal = false;
+
+            if (response.status === 304) {
+                const cachedOriginal = localStorage.getItem('plan-data-original.json');
+                if (cachedOriginal) {
+                    try {
+                        originalData = JSON.parse(cachedOriginal);
+                        usedCachedOriginal = true;
+                    } catch (parseError) {
+                        console.warn('Failed to parse cached original, fetching fresh copy:', parseError);
+                        localStorage.removeItem('plan-data-original.json');
+                        localStorage.removeItem('plan-data-original_timestamp');
+                    }
+                }
+
+                if (!originalData) {
+                    const retryResponse = await fetch(`/plan-data.json?cb=${Date.now()}`, { cache: 'no-store' });
+                    if (!retryResponse.ok) {
+                        throw new Error(`Failed to load plan data after cache validation: ${retryResponse.status}`);
+                    }
+                    originalData = await retryResponse.json();
+                }
+            } else {
+                originalData = await response.json();
+            }
+
+            if (!originalData) {
+                throw new Error('Plan data is unavailable');
+            }
+
+            if (!usedCachedOriginal) {
+                localStorage.setItem('plan-data-original.json', JSON.stringify(originalData));
+                localStorage.setItem('plan-data-original_timestamp', new Date().toISOString());
+            } else if (!localStorage.getItem('plan-data-original_timestamp')) {
+                localStorage.setItem('plan-data-original_timestamp', new Date().toISOString());
+            }
+
+            const cachedTimestamp = localStorage.getItem('plan-data-original_timestamp');
+            const originalTimestamp = cachedTimestamp ? new Date(cachedTimestamp).getTime() : Date.now();
 
             dataSources.push({
                 data: originalData,
@@ -1152,11 +1583,6 @@ export function PlanProvider({ children }) {
                 source: 'default',
                 description: 'Original plan file'
             });
-
-            // Cache the original data for reset functionality
-            localStorage.setItem('plan-data-original.json', JSON.stringify(originalData));
-            localStorage.setItem('plan-data-original_timestamp', new Date().toISOString());
-
             // Choose the most recent data source (between work file and original file)
             const mostRecent = dataSources.reduce((latest, current) =>
                 current.timestamp > latest.timestamp ? current : latest
@@ -1214,16 +1640,18 @@ export function PlanProvider({ children }) {
 
     // Helper function to get computed dependents for a story
     const getDependentsForStory = (storyId) => {
-        if (!state.planData?.stories) return [];
+        const allStories = getAllStoriesFromIntents(state.planData);
+        if (!allStories.length) return [];
 
-        return state.planData.stories
+        return allStories
             .filter(story => story.dependencies.some(dep => dep.type === 'story' && dep.id === storyId))
             .map(story => story.id);
     };
 
     // Helper function to get story with computed dependents
     const getStoryWithDependents = (storyId) => {
-        const story = state.planData?.stories.find(s => s.id === storyId);
+        const allStories = getAllStoriesFromIntents(state.planData);
+        const story = allStories.find(s => s.id === storyId);
         if (!story) return null;
 
         return {
@@ -1234,16 +1662,17 @@ export function PlanProvider({ children }) {
 
     // Helper function to get all stories with computed dependents
     const getStoriesWithDependents = () => {
-        if (!state.planData?.stories) return [];
-        return computeDependents(state.planData.stories);
+        const allStories = getAllStoriesFromIntents(state.planData);
+        return computeDependents(allStories);
     };
 
     // Helper function to get stories by workstream
     const getStoriesByWorkstream = () => {
-        if (!state.planData?.stories) return {};
+        const allStories = getAllStoriesFromIntents(state.planData);
+        if (!allStories.length) return {};
 
         const workstreams = {};
-        state.planData.stories.forEach(story => {
+        allStories.forEach(story => {
             if (story.workstream_id) {
                 if (!workstreams[story.workstream_id]) {
                     workstreams[story.workstream_id] = [];
@@ -1257,15 +1686,17 @@ export function PlanProvider({ children }) {
 
     // Helper function to get stories by intent
     const getStoriesByIntent = () => {
-        if (!state.planData?.stories) return {};
+        if (!state.planData?.project?.roadmap?.intents) return {};
 
         const intents = {};
-        state.planData.stories.forEach(story => {
-            if (story.intent_id) {
-                if (!intents[story.intent_id]) {
-                    intents[story.intent_id] = [];
-                }
-                intents[story.intent_id].push(story);
+        state.planData.project.roadmap.intents.forEach(intent => {
+            if (intent.stories && Array.isArray(intent.stories)) {
+                intents[intent.id] = intent.stories.map(story => ({
+                    ...story,
+                    intent_id: intent.id
+                }));
+            } else {
+                intents[intent.id] = [];
             }
         });
 
@@ -1277,14 +1708,15 @@ export function PlanProvider({ children }) {
         if (!state.planData) return { valid: true, errors: [] };
 
         const errors = [];
+        const allStories = getAllStoriesFromIntents(state.planData);
 
         // Validate story dependencies
-        state.planData.stories.forEach(story => {
+        allStories.forEach(story => {
             story.dependencies.forEach(dep => {
                 let found = false;
                 switch (dep.type) {
                     case 'story':
-                        found = state.planData.stories.some(s => s.id === dep.id);
+                        found = allStories.some(s => s.id === dep.id);
                         break;
                     case 'checkpoint':
                         found = state.planData.project.checkpoints.some(c => c.id === dep.id);
@@ -1306,7 +1738,7 @@ export function PlanProvider({ children }) {
                 let found = false;
                 switch (dep.type) {
                     case 'story':
-                        found = state.planData.stories.some(s => s.id === dep.id);
+                        found = allStories.some(s => s.id === dep.id);
                         break;
                     case 'checkpoint':
                         found = state.planData.project.checkpoints.some(c => c.id === dep.id);
@@ -1384,12 +1816,23 @@ export function PlanProvider({ children }) {
         return state.pendingChanges[changeKey]?.changes || {};
     };
 
-    const getEntityWithPendingChanges = (entityType, entityId) => {
+    const getEntityWithPendingChanges = React.useCallback((entityType, entityId) => {
         let originalEntity = null;
 
         // Find the original entity
         if (entityType === 'story') {
-            originalEntity = state.planData?.stories?.find(s => s.id === entityId);
+            // Stories are now nested within intents
+            if (state.planData?.project?.roadmap?.intents) {
+                for (const intent of state.planData.project.roadmap.intents) {
+                    if (intent.stories) {
+                        const story = intent.stories.find(s => s.id === entityId);
+                        if (story) {
+                            originalEntity = { ...story, intent_id: intent.id };
+                            break;
+                        }
+                    }
+                }
+            }
         } else if (entityType === 'checkpoint') {
             originalEntity = state.planData?.project?.checkpoints?.find(c => c.id === entityId);
         } else if (entityType === 'intent') {
@@ -1401,7 +1844,7 @@ export function PlanProvider({ children }) {
         // Apply pending changes if they exist
         const pendingChanges = getPendingChangesForEntity(entityType, entityId);
         return { ...originalEntity, ...pendingChanges };
-    };
+    }, [state.planData, state.pendingChanges]);
 
     const hasChangesForEntity = (entityType, entityId) => {
         const changeKey = `${entityType}:${entityId}`;
@@ -1488,11 +1931,24 @@ export function PlanProvider({ children }) {
             // If no cached original or parsing failed, fetch fresh
             if (!planData) {
                 dispatch({ type: 'SET_LOADING', payload: true });
-                const response = await fetch('/plan-data.json');
-                if (!response.ok) {
+                const response = await fetch('/plan-data.json', { cache: 'no-cache' });
+                if (!response.ok && response.status !== 304) {
                     throw new Error(`Failed to load plan data: ${response.status}`);
                 }
-                planData = await response.json();
+
+                if (response.status === 304) {
+                    const retryResponse = await fetch(`/plan-data.json?cb=${Date.now()}`, { cache: 'no-store' });
+                    if (!retryResponse.ok) {
+                        throw new Error(`Failed to load plan data after cache validation: ${retryResponse.status}`);
+                    }
+                    planData = await retryResponse.json();
+                } else {
+                    planData = await response.json();
+                }
+
+                if (!planData) {
+                    throw new Error('Plan data is unavailable');
+                }
 
                 // Update the cached original
                 localStorage.setItem('plan-data-original.json', JSON.stringify(planData));
@@ -1585,10 +2041,43 @@ export function PlanProvider({ children }) {
         return parseFloat((bytes / Math.pow(k, i)).toFixed(1)) + ' ' + sizes[i];
     }
 
+    const applyRemotePlanData = React.useCallback((planData, options = {}) => {
+        if (!planData) {
+            console.warn('applyRemotePlanData called without plan data');
+            return;
+        }
+
+        const {
+            source = 'api',
+            dataTimestamp = new Date().toISOString(),
+            sessionTimestamp = null,
+            markAsChanged = false
+        } = options;
+
+        dispatch({
+            type: 'REPLACE_PLAN_DATA',
+            payload: {
+                planData,
+                dataSource: source,
+                dataTimestamp,
+                sessionTimestamp,
+                markAsChanged
+            }
+        });
+    }, [dispatch]);
+
+    const setRunMode = React.useCallback((runMode) => {
+        dispatch({
+            type: 'SET_RUN_MODE',
+            payload: runMode
+        });
+    }, []);
+
     const value = {
         ...state,
         dispatch,
         loadPlanData,
+        applyRemotePlanData,
         getDependentsForStory,
         getStoryWithDependents,
         getStoriesWithDependents,
@@ -1629,7 +2118,9 @@ export function PlanProvider({ children }) {
         // Data source tracking
         dataSource: state.dataSource,
         dataTimestamp: state.dataTimestamp,
-        sessionTimestamp: state.sessionTimestamp
+        sessionTimestamp: state.sessionTimestamp,
+        // Run mode management
+        setRunMode
     };
 
     return (

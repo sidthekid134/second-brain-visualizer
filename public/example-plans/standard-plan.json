@@ -1,0 +1,199 @@
+{
+  "project": {
+    "id": "plan-team-onboarding-portal-001",
+    "name": "Team Onboarding Portal",
+    "description": "Moderate complexity plan for building a self-service onboarding portal with analytics.",
+    "status": "planned",
+    "created_at": "2025-01-15T00:00:00Z",
+    "updated_at": "2025-01-15T00:00:00Z",
+    "progress": {
+      "completion_percentage": 0
+    },
+    "budget": {
+      "limit": 25000,
+      "used": 0
+    },
+    "roadmap": {
+      "intents": [
+        {
+          "id": "intent-core-onboarding-flows-001",
+          "name": "Core Onboarding Flows",
+          "description": "Build the essential onboarding workflows and user experience",
+          "dependencies": [],
+          "stories": [
+            {
+              "id": "story-welcome-checklist-001",
+              "objective": "Create welcome checklist",
+              "workstream_id": "workstream-product-001",
+              "acceptance_criteria": [
+                "Checklist includes account setup, security training, and first-week goals"
+              ],
+              "dependencies": [],
+              "implementation_notes": [],
+              "estimated_tokens": 4000,
+              "complexity_score": 2,
+              "created_at": "2025-01-15T00:00:00Z",
+              "updated_at": "2025-01-15T00:00:00Z",
+              "execution": {
+                "current": {
+                  "status": "planned"
+                },
+                "history": []
+              },
+              "preferences": {
+                "preferred_agents": [],
+                "execution_overrides": {
+                  "max_runtime_seconds": 3600,
+                  "require_manual_approval": false
+                }
+              }
+            },
+            {
+              "id": "story-progress-tracking-api-001",
+              "objective": "Implement progress tracking API",
+              "workstream_id": "workstream-backend-001",
+              "acceptance_criteria": [
+                "POST /progress records daily status and returns aggregate completion"
+              ],
+              "dependencies": [
+                {
+                  "type": "story",
+                  "id": "story-welcome-checklist-001"
+                }
+              ],
+              "implementation_notes": [
+                "Persist using onboarding_progress table"
+              ],
+              "estimated_tokens": 8000,
+              "complexity_score": 4,
+              "created_at": "2025-01-15T00:00:00Z",
+              "updated_at": "2025-01-15T00:00:00Z",
+              "execution": {
+                "current": {
+                  "status": "planned"
+                },
+                "history": []
+              },
+              "preferences": {
+                "preferred_agents": [],
+                "execution_overrides": {
+                  "max_runtime_seconds": 3600,
+                  "require_manual_approval": false
+                }
+              }
+            }
+          ]
+        },
+        {
+          "id": "intent-people-analytics-001",
+          "name": "People Analytics",
+          "description": "Implement analytics and reporting for onboarding effectiveness",
+          "dependencies": [],
+          "stories": [
+            {
+              "id": "story-define-kpis-001",
+              "objective": "Define KPIs",
+              "workstream_id": "workstream-analytics-001",
+              "acceptance_criteria": [
+                "Metrics documented for retention, productivity, sentiment"
+              ],
+              "dependencies": [],
+              "implementation_notes": [
+                "Align with HR leadership"
+              ],
+              "estimated_tokens": 3000,
+              "complexity_score": 2,
+              "created_at": "2025-01-15T00:00:00Z",
+              "updated_at": "2025-01-15T00:00:00Z",
+              "execution": {
+                "current": {
+                  "status": "planned"
+                },
+                "history": []
+              },
+              "preferences": {
+                "preferred_agents": [],
+                "execution_overrides": {
+                  "max_runtime_seconds": 3600,
+                  "require_manual_approval": false
+                }
+              }
+            },
+            {
+              "id": "story-dashboard-mvp-001",
+              "objective": "Dashboard MVP",
+              "workstream_id": "workstream-data-001",
+              "acceptance_criteria": [
+                "Grafana dashboard shows KPIs filtered by cohort"
+              ],
+              "dependencies": [
+                {
+                  "type": "story",
+                  "id": "story-define-kpis-001"
+                },
+                {
+                  "type": "story",
+                  "id": "story-progress-tracking-api-001"
+                }
+              ],
+              "implementation_notes": [],
+              "estimated_tokens": 6000,
+              "complexity_score": 3,
+              "created_at": "2025-01-15T00:00:00Z",
+              "updated_at": "2025-01-15T00:00:00Z",
+              "execution": {
+                "current": {
+                  "status": "planned"
+                },
+                "history": []
+              },
+              "preferences": {
+                "preferred_agents": [],
+                "execution_overrides": {
+                  "max_runtime_seconds": 3600,
+                  "require_manual_approval": false
+                }
+              }
+            }
+          ]
+        }
+      ]
+    },
+    "checkpoints": []
+  },
+  "agents": [
+    {
+      "id": "agent-pm-lee-001",
+      "name": "Lee Product Manager",
+      "role": "manager",
+      "manager_id": null,
+      "reports": [
+        "agent-dev-jordan-001"
+      ],
+      "assigned_story_ids": [
+        "story-welcome-checklist-001"
+      ]
+    },
+    {
+      "id": "agent-dev-jordan-001",
+      "name": "Jordan Developer",
+      "role": "engineer",
+      "manager_id": "agent-pm-lee-001",
+      "reports": [],
+      "assigned_story_ids": [
+        "story-progress-tracking-api-001"
+      ]
+    },
+    {
+      "id": "agent-data-ada-001",
+      "name": "Ada Data Analyst",
+      "role": "engineer",
+      "manager_id": null,
+      "reports": [],
+      "assigned_story_ids": [
+        "story-define-kpis-001",
+        "story-dashboard-mvp-001"
+      ]
+    }
+  ]
+}

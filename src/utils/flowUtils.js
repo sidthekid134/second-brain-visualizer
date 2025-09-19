@@ -318,7 +318,8 @@ export function createIntentFlowData(planData, options = {}) {
         isDirectlyEdited,
         isNewNode,
         isDeletedNode,
-        getNodeState
+        getNodeState,
+        getEntityWithPendingChanges
     } = options;
     const nodes = [];
     const edges = [];
@@ -331,8 +332,15 @@ export function createIntentFlowData(planData, options = {}) {
         });
 
         filteredIntents.forEach((intent, index) => {
-            // Calculate story count for this intent
-            const story_count = planData.stories ? planData.stories.filter(story => story.intent_id === intent.id).length : 0;
+            // Get intent with pending changes applied
+            const intentWithChanges = getEntityWithPendingChanges ?
+                getEntityWithPendingChanges('intent', intent.id) : intent;
+
+            // Use the updated intent data (with pending changes)
+            const finalIntentData = intentWithChanges || intent;
+
+            // Calculate story count for this intent from the new schema
+            const story_count = finalIntentData.stories ? finalIntentData.stories.length : 0;
 
             // Check if this intent has pending changes
             const hasChanges = pendingChanges[`intent:${intent.id}`] !== undefined;
@@ -351,17 +359,14 @@ export function createIntentFlowData(planData, options = {}) {
             const directlyEdited = isDirectlyEdited ? isDirectlyEdited('intent', intent.id) : nodeState.isEdited;
 
             // Get execution status if in execution view
-            const executionStatus = executionView ? (intent.execution?.current?.status || 'planned') : null;
+            const executionStatus = executionView ? (finalIntentData.execution?.current?.status || 'planned') : null;
 
             nodes.push({
-                id: intent.id,
+                id: finalIntentData.id,
                 type: 'intent',
                 position: { x: 0, y: 0 }, // Will be positioned by layout algorithm
                 data: {
-                    id: intent.id,
-                    name: intent.name,
-                    description: intent.description,
-                    dependencies: intent.dependencies || [],
+                    ...finalIntentData, // Use the data with pending changes applied
                     story_count: story_count,
                     type: 'intent',
                     hasChanges: hasChanges,
@@ -373,7 +378,7 @@ export function createIntentFlowData(planData, options = {}) {
                     nodeState: nodeState,
                     executionView: executionView,
                     executionStatus: executionStatus,
-                    execution: executionView ? intent.execution : null
+                    execution: executionView ? finalIntentData.execution : null
                 }
             });
         });
@@ -528,19 +533,36 @@ export function createStoryFlowData(planData, intentId, options = {}) {
         isDirectlyEdited,
         isNewNode,
         isDeletedNode,
-        getNodeState
+        getNodeState,
+        getEntityWithPendingChanges
     } = options;
     const nodes = [];
     const edges = [];
 
+    // Get stories from the intent in the new schema
+    const intent = planData.project?.roadmap?.intents?.find(i => i.id === intentId);
+    if (!intent || !intent.stories) {
+        return { nodes: [], edges: [] };
+    }
+
     // Filter stories for this intent, excluding deleted ones
-    const storiesInIntent = planData.stories.filter(story => {
+    const storiesInIntent = intent.stories.filter(story => {
         const isDeleted = isDeletedNode ? isDeletedNode('story', story.id) : false;
-        return story.intent_id === intentId && !isDeleted;
-    });
+        return !isDeleted;
+    }).map(story => ({
+        ...story,
+        intent_id: intentId // Ensure intent_id is set for backward compatibility
+    }));
 
     // Create story nodes
     storiesInIntent.forEach(story => {
+        // Get story with pending changes applied
+        const storyWithChanges = getEntityWithPendingChanges ?
+            getEntityWithPendingChanges('story', story.id) : story;
+
+        // Use the updated story data (with pending changes)
+        const finalStoryData = storyWithChanges || story;
+
         // Check if this story has pending changes
         const hasChanges = pendingChanges[`story:${story.id}`] !== undefined;
 
@@ -558,23 +580,14 @@ export function createStoryFlowData(planData, intentId, options = {}) {
         const directlyEdited = isDirectlyEdited ? isDirectlyEdited('story', story.id) : nodeState.isEdited;
 
         // Get execution status if in execution view
-        const executionStatus = executionView ? (story.execution?.current?.status || 'planned') : null;
+        const executionStatus = executionView ? (finalStoryData.execution?.current?.status || 'planned') : null;
 
         nodes.push({
-            id: story.id,
+            id: finalStoryData.id,
             type: 'story',
             position: { x: 0, y: 0 }, // Will be positioned later
             data: {
-                id: story.id,
-                objective: story.objective,
-                intent_id: story.intent_id,
-                workstream_id: story.workstream_id,
-                complexity_score: story.complexity_score,
-                estimated_tokens: story.estimated_tokens,
-                dependencies: story.dependencies || [],
-                preferences: story.preferences,
-                acceptance_criteria: story.acceptance_criteria || [],
-                implementation_notes: story.implementation_notes || [],
+                ...finalStoryData, // Use the data with pending changes applied
                 type: 'story',
                 hasChanges: hasChanges,
                 dependencyAffected: dependencyAffected,
@@ -585,7 +598,7 @@ export function createStoryFlowData(planData, intentId, options = {}) {
                 nodeState: nodeState,
                 executionView: executionView,
                 executionStatus: executionStatus,
-                execution: executionView ? story.execution : null
+                execution: executionView ? finalStoryData.execution : null
             }
         });
     });
@@ -704,7 +717,17 @@ export function createStoryFlowData(planData, intentId, options = {}) {
         const startX = -totalWidth / 2;
 
         nodesAtLevel.forEach((node, index) => {
-            const story = planData.stories.find(s => s.id === node.id);
+            // Find the story in the new schema (within intents)
+            let story = null;
+            for (const intent of (planData.project?.roadmap?.intents || [])) {
+                if (intent.stories) {
+                    const foundStory = intent.stories.find(s => s.id === node.id);
+                    if (foundStory) {
+                        story = foundStory;
+                        break;
+                    }
+                }
+            }
 
             // Priority order for positioning:
             // 1. New temporary position (from context menu)
@@ -777,8 +800,23 @@ export function createWorkstreamLayout(planData) {
     const nodes = [];
     const edges = [];
 
+    // Get all stories from intents
+    const allStories = [];
+    if (planData.project?.roadmap?.intents) {
+        planData.project.roadmap.intents.forEach(intent => {
+            if (intent.stories) {
+                intent.stories.forEach(story => {
+                    allStories.push({
+                        ...story,
+                        intent_id: intent.id
+                    });
+                });
+            }
+        });
+    }
+
     // Group stories by workstream
-    planData.stories.forEach(story => {
+    allStories.forEach(story => {
         const workstreamId = story.workstream_id || 'unassigned';
         if (!workstreams[workstreamId]) {
             workstreams[workstreamId] = [];
@@ -852,14 +890,19 @@ export function createIntentLayout(planData) {
     const nodes = [];
     const edges = [];
 
-    // Group stories by intent
-    planData.stories.forEach(story => {
-        const intentId = story.intent_id || 'unassigned';
-        if (!intents[intentId]) {
-            intents[intentId] = [];
-        }
-        intents[intentId].push(story);
-    });
+    // Group stories by intent from the new schema
+    if (planData.project?.roadmap?.intents) {
+        planData.project.roadmap.intents.forEach(intent => {
+            if (intent.stories) {
+                intents[intent.id] = intent.stories.map(story => ({
+                    ...story,
+                    intent_id: intent.id
+                }));
+            } else {
+                intents[intent.id] = [];
+            }
+        });
+    }
 
     // Create intent nodes
     if (planData.project?.roadmap?.intents) {

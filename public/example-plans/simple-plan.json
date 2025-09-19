@@ -1,0 +1,106 @@
+{
+  "project": {
+    "id": "plan-starter-onboarding-001",
+    "name": "Starter Onboarding Flow",
+    "description": "Simple plan with a single intent covering basic onboarding tasks.",
+    "status": "planned",
+    "created_at": "2025-01-15T00:00:00Z",
+    "updated_at": "2025-01-15T00:00:00Z",
+    "progress": {
+      "completion_percentage": 0
+    },
+    "budget": {
+      "limit": 10000,
+      "used": 0
+    },
+    "roadmap": {
+      "intents": [
+        {
+          "id": "intent-bootstrap-project-001",
+          "name": "Bootstrap Project",
+          "description": "Set up the foundational project structure and development workflow",
+          "dependencies": [],
+          "stories": [
+            {
+              "id": "story-init-repo-structure-001",
+              "objective": "Initialize repository structure",
+              "workstream_id": "workstream-development-001",
+              "acceptance_criteria": [
+                "Repo contains src/, tests/, and docs/ directories with starter README"
+              ],
+              "dependencies": [],
+              "implementation_notes": [
+                "Use project scaffold CLI"
+              ],
+              "estimated_tokens": 5000,
+              "complexity_score": 3,
+              "created_at": "2025-01-15T00:00:00Z",
+              "updated_at": "2025-01-15T00:00:00Z",
+              "preferences": {
+                "preferred_agents": [],
+                "execution_overrides": {
+                  "max_runtime_seconds": 3600,
+                  "require_manual_approval": false
+                }
+              },
+              "execution": {
+                "current": {
+                  "status": "planned"
+                },
+                "history": []
+              }
+            },
+            {
+              "id": "story-setup-ci-001",
+              "objective": "Set up continuous integration",
+              "workstream_id": "workstream-development-001",
+              "acceptance_criteria": [
+                "CI workflow runs lint and unit tests on push to main"
+              ],
+              "dependencies": [
+                {
+                  "type": "story",
+                  "id": "story-init-repo-structure-001"
+                }
+              ],
+              "implementation_notes": [
+                "Use existing CI template"
+              ],
+              "estimated_tokens": 3000,
+              "complexity_score": 2,
+              "created_at": "2025-01-15T00:00:00Z",
+              "updated_at": "2025-01-15T00:00:00Z",
+              "preferences": {
+                "preferred_agents": [],
+                "execution_overrides": {
+                  "max_runtime_seconds": 3600,
+                  "require_manual_approval": false
+                }
+              },
+              "execution": {
+                "current": {
+                  "status": "planned"
+                },
+                "history": []
+              }
+            }
+          ]
+        }
+      ]
+    },
+    "checkpoints": []
+  },
+  "agents": [
+    {
+      "id": "agent-dev-alex-001",
+      "name": "Alex Developer",
+      "role": "engineer",
+      "manager_id": null,
+      "reports": [],
+      "assigned_story_ids": [
+        "story-init-repo-structure-001",
+        "story-setup-ci-001"
+      ]
+    }
+  ]
+}

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useEffect } from 'react';
 import styled from 'styled-components';
 
 const ContextMenuContainer = styled.div`
@@ -63,6 +63,7 @@ function ContextMenu({
     contextType, // 'canvas' or 'node'
     nodeData,
     onCreateStory,
+    onCreateIntent,
     onEditNode,
     onDeleteNode,
     onClose
@@ -96,8 +97,17 @@ function ContextMenu({
     };
 
     const handleCreateStory = () => {
-        onCreateStory();
-        onClose();
+        if (onCreateStory) {
+            onCreateStory();
+            onClose();
+        }
+    };
+
+    const handleCreateIntent = () => {
+        if (onCreateIntent) {
+            onCreateIntent();
+            onClose();
+        }
     };
 
     const handleEditNode = () => {
@@ -119,10 +129,18 @@ function ContextMenu({
         >
             {contextType === 'canvas' && (
                 <>
-                    <MenuItem onClick={handleCreateStory}>
-                        <span>➕</span>
-                        Create New Story
-                    </MenuItem>
+                    {onCreateIntent && (
+                        <MenuItem onClick={handleCreateIntent}>
+                            <span>🎯</span>
+                            Add Intent
+                        </MenuItem>
+                    )}
+                    {onCreateStory && (
+                        <MenuItem onClick={handleCreateStory}>
+                            <span>➕</span>
+                            Create New Story
+                        </MenuItem>
+                    )}
                 </>
             )}
 

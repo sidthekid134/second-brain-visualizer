@@ -98,12 +98,6 @@
             ],
             "additionalProperties": false
         },
-        "stories": {
-            "type": "array",
-            "items": {
-                "$ref": "#/definitions/story"
-            }
-        },
         "agents": {
             "type": "array",
             "items": {
@@ -113,7 +107,6 @@
     },
     "required": [
         "project",
-        "stories",
         "agents"
     ],
     "additionalProperties": false,
@@ -157,12 +150,20 @@
                     "items": {
                         "$ref": "#/definitions/dependency"
                     }
+                },
+                "stories": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/story"
+                    },
+                    "minItems": 1
                 }
             },
             "required": [
                 "id",
                 "name",
-                "description"
+                "description",
+                "stories"
             ],
             "additionalProperties": false
         },
@@ -206,9 +207,6 @@
                     "type": "string"
                 },
                 "objective": {
-                    "type": "string"
-                },
-                "intent_id": {
                     "type": "string"
                 },
                 "workstream_id": {
@@ -281,7 +279,6 @@
             "required": [
                 "id",
                 "objective",
-                "intent_id",
                 "workstream_id",
                 "acceptance_criteria",
                 "dependencies",

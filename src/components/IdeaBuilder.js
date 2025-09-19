@@ -1,6 +1,8 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import styled, { keyframes } from 'styled-components';
 import { usePlan } from '../context/PlanContext';
+import PlanImportModal from './modals/PlanImportModal';
+import { submissionPlanToPlanData } from '../utils/planExport';
 
 // Animations
 const fadeIn = keyframes`
@@ -25,7 +27,7 @@ const BuilderContainer = styled.div`
   flex-direction: column;
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   position: relative;
-  overflow: hidden;
+  overflow: auto;
 `;
 
 const Header = styled.div`
@@ -79,6 +81,49 @@ const RightPanel = styled.div`
   display: flex;
   flex-direction: column;
   gap: 20px;
+`;
+
+const StatusBanner = styled.div`
+  position: absolute;
+  top: 24px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: ${props => props.$type === 'error' ? 'rgba(220, 38, 38, 0.92)' : 'rgba(5, 150, 105, 0.92)'};
+  color: white;
+  padding: 12px 18px;
+  border-radius: 999px;
+  box-shadow: 0 16px 40px rgba(15, 23, 42, 0.25);
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  z-index: 1200;
+`;
+
+const StatusClose = styled.button`
+  border: none;
+  background: rgba(255, 255, 255, 0.2);
+  color: white;
+  width: 24px;
+  height: 24px;
+  border-radius: 999px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  font-size: 0.9rem;
+
+  &:hover {
+    background: rgba(255, 255, 255, 0.35);
+  }
+`;
+
+const ImportHelperText = styled.p`
+  margin: 0 0 12px 0;
+  font-size: 0.85rem;
+  color: #64748b;
+  line-height: 1.5;
 `;
 
 const Section = styled.div`
@@ -598,8 +643,8 @@ const suggestionsByField = {
   ]
 };
 
-function IdeaBuilder() {
-  const { planData, dispatch } = usePlan();
+function IdeaBuilder({ onNavigateToPlanEditor }) {
+  const { applyRemotePlanData } = usePlan();
   const [currentStep, setCurrentStep] = useState(1);
   const [selectedTemplate, setSelectedTemplate] = useState(null);
   const [idea, setIdea] = useState({
@@ -616,6 +661,8 @@ function IdeaBuilder() {
   const [savedIdeas, setSavedIdeas] = useState([]);
   const [validation, setValidation] = useState({});
   const [isGenerating, setIsGenerating] = useState(false);
+  const [isImportModalOpen, setIsImportModalOpen] = useState(false);
+  const [status, setStatus] = useState(null);
 
   useEffect(() => {
     // Load saved ideas from localStorage
@@ -624,6 +671,14 @@ function IdeaBuilder() {
       setSavedIdeas(JSON.parse(stored));
     }
   }, []);
+
+  useEffect(() => {
+    if (!status) {
+      return;
+    }
+    const timer = setTimeout(() => setStatus(null), 6000);
+    return () => clearTimeout(timer);
+  }, [status]);
 
   const validateStep = (step) => {
     const errors = {};
@@ -638,6 +693,9 @@ function IdeaBuilder() {
         break;
       case 4:
         if (!idea.estimatedTime.trim()) errors.estimatedTime = 'Timeline estimate is required';
+        break;
+      default:
+        // No validation needed for other steps
         break;
     }
 
@@ -755,6 +813,44 @@ function IdeaBuilder() {
     setSelectedTemplate(null);
   };
 
+  const handlePlanImport = useCallback((plan) => {
+    const timestamp = new Date().toISOString();
+
+    try {
+      let importedPlan = plan;
+
+      if (!plan?.project && Array.isArray(plan?.intents)) {
+        importedPlan = submissionPlanToPlanData(plan);
+      }
+
+      if (!importedPlan) {
+        throw new Error('Unsupported plan format.');
+      }
+
+      applyRemotePlanData(importedPlan, {
+        source: 'imported',
+        dataTimestamp: timestamp,
+        markAsChanged: true
+      });
+
+      setStatus({
+        type: 'success',
+        message: 'Plan imported successfully. Opening Plan Editor...'
+      });
+      setIsImportModalOpen(false);
+
+      if (typeof onNavigateToPlanEditor === 'function') {
+        onNavigateToPlanEditor('editor');
+      }
+    } catch (error) {
+      console.error('Plan import error:', error);
+      setStatus({
+        type: 'error',
+        message: error.message || 'Failed to import plan. Please validate the JSON file.'
+      });
+    }
+  }, [applyRemotePlanData, onNavigateToPlanEditor]);
+
   const handleGeneratePlan = async () => {
     if (!idea.title.trim()) return;
 
@@ -830,17 +926,31 @@ function IdeaBuilder() {
         }]
       };
 
-      // Update the plan context
-      dispatch({ type: 'SET_PLAN_DATA', payload: newProject });
+      // Update the plan context and stage the data for editing
+      applyRemotePlanData(newProject, {
+        source: 'idea-builder',
+        dataTimestamp: new Date().toISOString(),
+        markAsChanged: true
+      });
 
       // Save the idea as well
       handleSaveIdea();
 
-      alert('🎉 Plan generated successfully! Check the Plan Editor tab to see your project structure.');
+      setStatus({
+        type: 'success',
+        message: 'Plan generated and staged in Plan Editor. Switching you over now.'
+      });
+
+      if (typeof onNavigateToPlanEditor === 'function') {
+        onNavigateToPlanEditor('editor');
+      }
 
     } catch (error) {
       console.error('Error generating plan:', error);
-      alert('Error generating plan. Please try again.');
+      setStatus({
+        type: 'error',
+        message: 'Error generating plan. Please try again.'
+      });
     } finally {
       setIsGenerating(false);
     }
@@ -850,6 +960,32 @@ function IdeaBuilder() {
     setIdea(savedIdea);
     setSelectedTemplate(templates.find(t => t.id === savedIdea.template) || null);
     setCurrentStep(5); // Go to review step
+  };
+
+  const handleLoadExamplePlan = async () => {
+    try {
+      // Load the simple plan as an example
+      const response = await fetch('/example-plans/simple-plan.json');
+      if (!response.ok) {
+        throw new Error('Failed to load example plan');
+      }
+
+      const examplePlan = await response.json();
+
+      // Use the same import logic as the modal
+      handlePlanImport(examplePlan);
+
+      setStatus({
+        type: 'success',
+        message: 'Example plan loaded successfully! Opening Plan Editor...'
+      });
+    } catch (error) {
+      console.error('Error loading example plan:', error);
+      setStatus({
+        type: 'error',
+        message: 'Failed to load example plan. Please try again.'
+      });
+    }
   };
 
   const renderStepContent = () => {
@@ -1118,6 +1254,15 @@ function IdeaBuilder() {
 
   return (
     <BuilderContainer>
+      {status && (
+        <StatusBanner $type={status.type}>
+          <span>{status.type === 'error' ? '⚠️' : '✅'}</span>
+          <span>{status.message}</span>
+          <StatusClose onClick={() => setStatus(null)} aria-label="Dismiss status">
+            ×
+          </StatusClose>
+        </StatusBanner>
+      )}
       <Header>
         <Title>💡 Idea Builder</Title>
         <Subtitle>
@@ -1174,6 +1319,21 @@ function IdeaBuilder() {
         </LeftPanel>
 
         <RightPanel>
+          <Section>
+            <SectionTitle>📥 Import Existing Plan</SectionTitle>
+            <ImportHelperText>
+              Already working on a plan elsewhere? Import the JSON to stage it instantly in the Plan Editor.
+            </ImportHelperText>
+            <ButtonGroup style={{ marginTop: '16px' }}>
+              <Button variant="secondary" onClick={() => setIsImportModalOpen(true)}>
+                Upload Plan JSON
+              </Button>
+              <Button variant="success" onClick={handleLoadExamplePlan}>
+                📋 Load Example Plan
+              </Button>
+            </ButtonGroup>
+          </Section>
+
           <Section>
             <SectionTitle>
               💾 Saved Ideas ({savedIdeas.length})
@@ -1250,6 +1410,12 @@ function IdeaBuilder() {
           </Section>
         </RightPanel>
       </MainContent>
+
+      <PlanImportModal
+        isOpen={isImportModalOpen}
+        onClose={() => setIsImportModalOpen(false)}
+        onImport={handlePlanImport}
+      />
     </BuilderContainer>
   );
 }

@@ -25,7 +25,7 @@ const IntentContainer = styled.div`
   color: white;
   position: relative;
   transition: all 0.2s ease;
-  cursor: ${props => props.$hasStories ? 'pointer' : 'default'};
+  cursor: pointer;
 
   ${props => props.$hasChanges && `
     box-shadow: 0 4px 16px rgba(245, 158, 11, 0.4);
@@ -239,6 +239,7 @@ function IntentNode({ data, selected, onExplore, onDoubleClick }) {
     name,
     description,
     story_count = 0,
+    stories = [], // Stories array from new schema
     hasChanges = false,
     dependencyAffected = false,
     directlyEdited = false,
@@ -251,9 +252,12 @@ function IntentNode({ data, selected, onExplore, onDoubleClick }) {
     execution = null
   } = data;
 
+  // Calculate actual story count from stories array
+  const actualStoryCount = stories ? stories.length : story_count;
+
   const handleDoubleClick = (e) => {
     e.stopPropagation();
-    if (story_count > 0 && onDoubleClick) {
+    if (onDoubleClick) {
       onDoubleClick(id);
     }
   };
@@ -272,12 +276,12 @@ function IntentNode({ data, selected, onExplore, onDoubleClick }) {
   return (
     <IntentContainer
       $selected={selected}
-      $hasStories={story_count > 0}
+      $hasStories={actualStoryCount > 0}
       $hasChanges={hasChanges}
       $executionView={executionView}
       $executionStatus={executionStatus}
       onDoubleClick={handleDoubleClick}
-      title={story_count > 0 ? "Double-click to explore stories" : "No stories available"}
+      title={actualStoryCount > 0 ? "Double-click to explore stories" : "Double-click to add the first story"}
     >
       <IntentBadge>Intent</IntentBadge>
 
@@ -318,13 +322,13 @@ function IntentNode({ data, selected, onExplore, onDoubleClick }) {
 
       <ExploreButton
         onClick={() => onExplore && onExplore(id)}
-        disabled={story_count === 0}
+        disabled={actualStoryCount === 0}
         style={{
-          opacity: story_count === 0 ? 0.5 : 1,
-          cursor: story_count === 0 ? 'not-allowed' : 'pointer'
+          opacity: actualStoryCount === 0 ? 0.5 : 1,
+          cursor: actualStoryCount === 0 ? 'not-allowed' : 'pointer'
         }}
       >
-        📖 Explore Stories
+        📖 Explore Stories ({actualStoryCount})
         <span>→</span>
       </ExploreButton>
 

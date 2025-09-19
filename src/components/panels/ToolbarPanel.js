@@ -156,6 +156,7 @@ const DataSourceIndicator = styled.div`
     switch (props.$source) {
       case 'session_storage': return 'rgba(245, 158, 11, 0.1)';
       case 'work_file': return 'rgba(139, 92, 246, 0.1)';
+      case 'imported': return 'rgba(5, 150, 105, 0.12)';
       case 'default': return 'rgba(107, 114, 128, 0.1)';
       default: return 'rgba(107, 114, 128, 0.1)';
     }
@@ -164,6 +165,7 @@ const DataSourceIndicator = styled.div`
     switch (props.$source) {
       case 'session_storage': return '#f59e0b';
       case 'work_file': return '#8b5cf6';
+      case 'imported': return '#059669';
       case 'default': return '#6b7280';
       default: return '#6b7280';
     }
@@ -182,6 +184,7 @@ const DataSourceIcon = styled.span`
     switch (props.$source) {
       case 'session_storage': return '#f59e0b';
       case 'work_file': return '#8b5cf6';
+      case 'imported': return '#059669';
       case 'default': return '#6b7280';
       default: return '#6b7280';
     }
@@ -208,6 +211,12 @@ function ToolbarPanel({
   onChangeLayout,
   selectedNode,
   onAddStory,
+  onAddIntent,
+  onImportPlan,
+  onSubmitPlan,
+  onSubmitAndExecute,
+  isSubmittingPlan,
+  submissionMessage,
   // Undo/Redo props
   canUndo,
   canRedo,
@@ -256,6 +265,7 @@ function ToolbarPanel({
       switch (source) {
         case 'session_storage': return '🔄';
         case 'work_file': return '💾';
+        case 'imported': return '📥';
         case 'default': return '📄';
         default: return '📄';
       }
@@ -265,6 +275,7 @@ function ToolbarPanel({
       switch (source) {
         case 'session_storage': return 'Session Storage';
         case 'work_file': return 'Work File';
+        case 'imported': return 'Imported Plan';
         case 'default': return 'Original File';
         default: return 'Unknown';
       }
@@ -340,12 +351,37 @@ function ToolbarPanel({
       </ToolbarSection>
 
       <ToolbarSection>
-        <SectionTitle>Story Management</SectionTitle>
+        <SectionTitle>Plan Management</SectionTitle>
         <ButtonGroup>
-          <AddButton onClick={onAddStory}>
-            ➕ Add Story
+          <AddButton onClick={onAddIntent} disabled={!onAddIntent}>
+            🎯 Add Intent
           </AddButton>
+          <AddButton onClick={onAddStory} disabled={!onAddStory}>
+            📝 Add Story
+          </AddButton>
+          <LoadButton onClick={onImportPlan} disabled={!onImportPlan}>
+            📥 Import Plan
+          </LoadButton>
+          <ToolbarButton
+            onClick={onSubmitPlan}
+            disabled={!onSubmitPlan || isSubmittingPlan}
+            title="Submit plan to backend"
+          >
+            🚀 Submit Plan
+          </ToolbarButton>
+          <ToolbarButton
+            onClick={onSubmitAndExecute}
+            disabled={!onSubmitAndExecute || isSubmittingPlan}
+            title="Submit plan and approve all intents"
+          >
+            ⚡ Submit & Execute
+          </ToolbarButton>
         </ButtonGroup>
+        {submissionMessage && (
+          <div style={{ fontSize: '0.7rem', color: '#2563eb' }}>
+            {submissionMessage}
+          </div>
+        )}
       </ToolbarSection>
 
       <ToolbarSection>
