@@ -31,6 +31,33 @@ The API now supports a comprehensive project execution and roadmap schema with *
 - **Checkpoint System**: Milestone-based project tracking with story grouping
 - **Simplified API**: Single endpoint for plan operations with historical execution tracking
 
+### ⚠️ IMPORTANT: API Usage Pattern
+
+**For listing projects:** Use `/api/v1/projects` (returns summaries with counts)
+**For plan operations:** Use `/api/v1/plans` (create/update/get individual plans)
+
+**All `/api/v1/plans` requests must have `project` and `agents` at the root level:**
+
+✅ **CORRECT:**
+```json
+{
+  "project": { ... },
+  "agents": [ ... ]
+}
+```
+
+❌ **INCORRECT:**
+```json
+{
+  "plan": {
+    "project": { ... },
+    "agents": [ ... ]
+  }
+}
+```
+
+The backend validation expects `project` and `agents` as top-level fields in the request body.
+
 ### Schema Structure
 
 The new schema follows this hierarchical structure:
@@ -509,46 +536,54 @@ Create a new checkpoint.
 
 The new API uses a single endpoint for all plan operations with automatic create/update detection and historical execution tracking.
 
+**Endpoint Usage:**
+- **Listing projects**: `GET /api/v1/projects` (returns project summaries with agent_count, checkpoint_count)
+- **Plan operations**: `POST /api/v1/plans` (create/update), `GET /api/v1/plans/{project_id}` (get plan)
+
+**Critical Note:** All plan requests must send `project` and `agents` at the root level of the request body, not nested within a `plan` wrapper.
+
 ##### Create or Update Plan
 **POST** `/api/v1/plans`
 
 Create or update a complete plan with project, intents (containing stories), and agents. The API automatically detects whether to create or update based on project existence.
 
-**Request Body:**
+**Request Body Format:**
+The request body must have `project` and `agents` at the top level (not nested in a `plan` wrapper):
+
 ```json
 {
-  "plan": {
-    "project": {
-      "id": "string",
-      "name": "string",
-      "description": "string",
-      "status": "planned|executing|completed|on_hold|cancelled",
-      "created_at": "ISO 8601 datetime",
-      "updated_at": "ISO 8601 datetime",
-      "progress": {
-        "completion_percentage": 0-100
-      },
-      "budget": {
-        "limit": 0,
-        "used": 0
-      },
-      "roadmap": {
-        "intents": [
-          {
-            "id": "string",
-            "name": "string",
-            "description": "string",
-            "dependencies": [...],
-            "stories": [...]
-          }
-        ]
-      },
-      "checkpoints": [...]
+  "project": {
+    "id": "string",
+    "name": "string",
+    "description": "string",
+    "status": "planned|executing|completed|on_hold|cancelled",
+    "created_at": "ISO 8601 datetime",
+    "updated_at": "ISO 8601 datetime",
+    "progress": {
+      "completion_percentage": 0-100
     },
-    "agents": [...]
-  }
+    "budget": {
+      "limit": 0,
+      "used": 0
+    },
+    "roadmap": {
+      "intents": [
+        {
+          "id": "string",
+          "name": "string",
+          "description": "string",
+          "dependencies": [...],
+          "stories": [...]
+        }
+      ]
+    },
+    "checkpoints": [...]
+  },
+  "agents": [...]
 }
 ```
+
+**Important:** Do NOT wrap the request in a `plan` object. The `project` and `agents` fields must be at the root level of the request body.
 
 **Response:**
 ```json
@@ -572,7 +607,9 @@ Create or update a complete plan with project, intents (containing stories), and
 
 Get complete plan data for a project with stories nested within intents.
 
-**Response:**
+**Response Format:**
+The response returns the plan data with `project` and `agents` at the root level:
+
 ```json
 {
   "project": {
@@ -1281,55 +1318,53 @@ The system supports two integration patterns that work with both execution modes
    ```bash
    POST /api/v1/plans
    {
-     "plan": {
-       "project": {
-         "id": "proj-123",
-         "name": "My Project",
-         "description": "A sample project",
-         "status": "planned",
-         "created_at": "2024-01-01T00:00:00Z",
-         "updated_at": "2024-01-01T00:00:00Z",
-         "progress": {"completion_percentage": 0},
-         "budget": {"limit": 10000, "used": 0},
-         "roadmap": {
-           "intents": [
-             {
-               "id": "intent-1",
-               "name": "Backend Setup",
-               "description": "Set up backend infrastructure",
-               "dependencies": [],
-               "stories": [
-                 {
-                   "id": "story-1",
-                   "objective": "Create database schema",
-                   "workstream_id": "backend",
-                   "acceptance_criteria": ["Database tables created"],
-                   "dependencies": [],
-                   "implementation_notes": ["Use SQLAlchemy"],
-                   "estimated_tokens": 1000,
-                   "complexity_score": 3,
-                   "created_at": "2024-01-01T00:00:00Z",
-                   "updated_at": "2024-01-01T00:00:00Z",
-                   "preferences": {"preferred_agents": [], "execution_overrides": {}},
-                   "execution": {"current": {"status": "planned"}, "history": []}
-                 }
-               ]
-             }
-           ]
-         },
-         "checkpoints": []
+     "project": {
+       "id": "proj-123",
+       "name": "My Project",
+       "description": "A sample project",
+       "status": "planned",
+       "created_at": "2024-01-01T00:00:00Z",
+       "updated_at": "2024-01-01T00:00:00Z",
+       "progress": {"completion_percentage": 0},
+       "budget": {"limit": 10000, "used": 0},
+       "roadmap": {
+         "intents": [
+           {
+             "id": "intent-1",
+             "name": "Backend Setup",
+             "description": "Set up backend infrastructure",
+             "dependencies": [],
+             "stories": [
+               {
+                 "id": "story-1",
+                 "objective": "Create database schema",
+                 "workstream_id": "backend",
+                 "acceptance_criteria": ["Database tables created"],
+                 "dependencies": [],
+                 "implementation_notes": ["Use SQLAlchemy"],
+                 "estimated_tokens": 1000,
+                 "complexity_score": 3,
+                 "created_at": "2024-01-01T00:00:00Z",
+                 "updated_at": "2024-01-01T00:00:00Z",
+                 "preferences": {"preferred_agents": [], "execution_overrides": {}},
+                 "execution": {"current": {"status": "planned"}, "history": []}
+               }
+             ]
+           }
+         ]
        },
-       "agents": [
-         {
-           "id": "agent-1",
-           "name": "Backend Engineer",
-           "role": "engineer",
-           "manager_id": null,
-           "reports": [],
-           "assigned_story_ids": ["story-1"]
-         }
-       ]
-     }
+       "checkpoints": []
+     },
+     "agents": [
+       {
+         "id": "agent-1",
+         "name": "Backend Engineer",
+         "role": "engineer",
+         "manager_id": null,
+         "reports": [],
+         "assigned_story_ids": ["story-1"]
+       }
+     ]
    }
    ```
 
@@ -1406,14 +1441,12 @@ The system supports two integration patterns that work with both execution modes
    ```bash
    POST /api/v1/plans
    {
-     "plan": {
-       "project": {
-         "id": "proj-123",  # Same project ID
-         "name": "Updated Project Name",
-         // ... rest of updated plan data
-       },
-       "agents": [...]
-     }
+     "project": {
+       "id": "proj-123",  # Same project ID
+       "name": "Updated Project Name",
+       // ... rest of updated plan data
+     },
+     "agents": [...]
    }
    ```
 

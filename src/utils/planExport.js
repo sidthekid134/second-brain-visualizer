@@ -86,7 +86,9 @@ export function planDataToApiPlan(planData = {}, options = {}) {
         roadmap: {
           intents: intentsPayload
         },
-        checkpoints: planData.project?.checkpoints || []
+        checkpoints: planData.project?.checkpoints || [],
+        base_repo_url: baseRepoUrl || planData.project?.base_repo_url || null,
+        base_branch: baseBranch || planData.project?.base_branch || 'main'
       },
       agents: planData.agents || []
     }

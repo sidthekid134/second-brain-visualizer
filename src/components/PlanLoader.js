@@ -463,6 +463,13 @@ function PlanLoader({ onPlanSubmitted }) {
 
         try {
             const plan = JSON.parse(jsonInput);
+
+            // Merge GitHub configuration into the plan's project object
+            if (plan.project && (config.base_repo_url || config.base_branch)) {
+                plan.project.base_repo_url = config.base_repo_url || null;
+                plan.project.base_branch = config.base_branch || 'main';
+            }
+
             const validation = apiService.validatePlanStructure(plan);
 
             if (!validation.valid) {
@@ -478,7 +485,6 @@ function PlanLoader({ onPlanSubmitted }) {
             setSubmitResult(null);
 
             const result = await apiService.submitPlan(plan, {
-                ...config,
                 preserve_existing_ids: true
             });
 

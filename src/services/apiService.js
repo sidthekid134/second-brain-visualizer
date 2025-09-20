@@ -25,7 +25,7 @@ class APIService {
         this.pollingInterval = null;
         this.pollingFrequency = parseInt(process.env.REACT_APP_API_POLLING_FREQUENCY) || 5000;
         this.retryCount = 0;
-        this.maxRetries = 3;
+        this.maxRetries = 1;
         this.shouldAutoReconnect = false;
         this.lastConnectedAt = null;
 
@@ -289,36 +289,39 @@ class APIService {
     async getProjectDataTransformed() {
         console.log('🔄 Getting project data transformed...');
 
-        // First get all projects to see what's available
-        const projectsResult = await this.getProjects();
+        // First get all projects to see what's available (use plans endpoint for listing)
+        const projectsResult = await this.getProjectsList();
         if (!projectsResult.success) {
             return projectsResult;
         }
 
         console.log('🔄 Projects list:', projectsResult.data);
 
+        // Extract plans array from the response
+        const plans = projectsResult.data.plans || [];
+
         // If no projects, return empty data
-        if (!Array.isArray(projectsResult.data) || projectsResult.data.length === 0) {
+        if (!Array.isArray(plans) || plans.length === 0) {
             console.log('🔄 No projects found');
             return { success: true, data: { project: null, agents: [] } };
         }
 
         // If multiple projects, use the first one (or implement project selection logic)
-        const firstProject = projectsResult.data[0];
+        const firstProject = plans[0];
         const projectId = firstProject.id;
 
         console.log('🔄 Loading full data for project:', projectId);
 
-        // Get the full project data
-        const fullProjectResult = await this.getPlan(projectId);
-        if (!fullProjectResult.success) {
-            return fullProjectResult;
+        // Get the full plan data using plans endpoint
+        const fullPlanResult = await this.getPlan(projectId);
+        if (!fullPlanResult.success) {
+            return fullPlanResult;
         }
 
         // Validate the data is in the correct new API format
-        if (this.validateNewSchemaData(fullProjectResult.data)) {
-            console.log('🔄 Successfully loaded and validated project data');
-            return { success: true, data: fullProjectResult.data };
+        if (this.validateNewSchemaData(fullPlanResult.data)) {
+            console.log('🔄 Successfully loaded and validated plan data');
+            return { success: true, data: fullPlanResult.data };
         } else {
             return { success: false, error: 'Invalid data format received from API' };
         }
@@ -532,8 +535,24 @@ class APIService {
             };
         }
 
-        // For new API format, submit as-is (plan already contains the nested structure)
-        const payload = plan;
+        // Extract project and agents from nested plan structure for API
+        let payload;
+        if (plan.plan && plan.plan.project && plan.plan.agents) {
+            // New nested format - extract to top level for API
+            payload = {
+                project: plan.plan.project,
+                agents: plan.plan.agents
+            };
+        } else if (plan.project && plan.agents) {
+            // Already in correct format
+            payload = {
+                project: plan.project,
+                agents: plan.agents
+            };
+        } else {
+            // Legacy format - submit as-is
+            payload = plan;
+        }
 
         const result = await this.retryFetch(`${this.baseURL}/api/v1/plans`, {
             method: 'POST',
@@ -607,9 +626,48 @@ class APIService {
         }
     }
 
-    // Get all projects (New Schema)
+    // Plan execution method
+    async executePlan(projectId, mode = 'shadow') {
+        const result = await this.retryFetch(`${this.baseURL}/api/v1/plans/${projectId}/execute?mode=${mode}`, {
+            method: 'POST'
+        });
+
+        if (!result.success) {
+            return result;
+        }
+
+        try {
+            const data = await result.response.json();
+            return { success: true, data };
+        } catch (error) {
+            return { success: false, error: `Failed to parse response: ${error.message}` };
+        }
+    }
+
+    // Get all projects list (uses plans endpoint for listing)
+    async getProjectsList() {
+        const result = await this.retryFetch(`${this.baseURL}/api/v1/plans`);
+
+        if (!result.success) {
+            return result;
+        }
+
+        try {
+            const data = await result.response.json();
+            return { success: true, data };
+        } catch (error) {
+            return { success: false, error: `Failed to parse response: ${error.message}` };
+        }
+    }
+
+    // Legacy method for backward compatibility
     async getProjects() {
-        const result = await this.retryFetch(`${this.baseURL}/api/v1/projects`);
+        return this.getProjectsList();
+    }
+
+    // Get all plans (if implemented by backend)
+    async getAllPlans() {
+        const result = await this.retryFetch(`${this.baseURL}/api/v1/plans`);
 
         if (!result.success) {
             return result;
@@ -625,72 +683,61 @@ class APIService {
 
     // New Schema Endpoints
 
-    // Project Management
+    // Project Management - now uses plans endpoint
     async createProject(projectData) {
-        const result = await this.retryFetch(`${this.baseURL}/api/v1/projects`, {
-            method: 'POST',
-            body: JSON.stringify(projectData)
-        });
-
-        if (!result.success) {
-            return result;
-        }
-
-        try {
-            const data = await result.response.json();
-            return { success: true, data };
-        } catch (error) {
-            return { success: false, error: `Failed to parse response: ${error.message}` };
-        }
+        // Convert project data to plan format
+        const planData = {
+            project: {
+                ...projectData,
+                roadmap: { intents: [] },
+                checkpoints: []
+            },
+            agents: []
+        };
+        return this.submitPlan(planData);
     }
 
+    // Legacy method - now uses plans endpoint for listing
     async getAllProjects() {
-        const result = await this.retryFetch(`${this.baseURL}/api/v1/projects`);
-
-        if (!result.success) {
-            return result;
-        }
-
-        try {
-            const data = await result.response.json();
-            return { success: true, data };
-        } catch (error) {
-            return { success: false, error: `Failed to parse response: ${error.message}` };
-        }
+        return this.getProjectsList();
     }
 
+    // Legacy method - now uses plans endpoint
     async getProjectDetails(projectId) {
-        const result = await this.retryFetch(`${this.baseURL}/api/v1/projects/${projectId}`);
-
-        if (!result.success) {
-            return result;
-        }
-
-        try {
-            const data = await result.response.json();
-            return { success: true, data };
-        } catch (error) {
-            return { success: false, error: `Failed to parse response: ${error.message}` };
-        }
+        return this.getPlan(projectId);
     }
 
-    // Intent Management (New Schema)
+    // Intent Management (New Schema) - now updates plan
     async createIntent(projectId, intentData) {
-        const result = await this.retryFetch(`${this.baseURL}/api/v1/projects/${projectId}/intents`, {
-            method: 'POST',
-            body: JSON.stringify(intentData)
-        });
-
-        if (!result.success) {
-            return result;
+        // Get current plan
+        const currentPlan = await this.getPlan(projectId);
+        if (!currentPlan.success) {
+            return currentPlan;
         }
 
-        try {
-            const data = await result.response.json();
-            return { success: true, data };
-        } catch (error) {
-            return { success: false, error: `Failed to parse response: ${error.message}` };
+        // Add new intent to the plan
+        const updatedPlan = { ...currentPlan.data };
+        if (!updatedPlan.project.roadmap) {
+            updatedPlan.project.roadmap = { intents: [] };
         }
+
+        const newIntent = {
+            id: intentData.id || `intent-${Date.now()}`,
+            name: intentData.name,
+            description: intentData.description || '',
+            dependencies: intentData.dependencies || [],
+            stories: []
+        };
+
+        updatedPlan.project.roadmap.intents.push(newIntent);
+        updatedPlan.project.updated_at = new Date().toISOString();
+
+        // Update the plan
+        const result = await this.submitPlan(updatedPlan);
+        if (result.success) {
+            return { success: true, data: { id: newIntent.id, name: newIntent.name, project_id: projectId } };
+        }
+        return result;
     }
 
     // Story Management

@@ -12,7 +12,7 @@ import { usePlan } from '../context/PlanContext';
 import StoryNode from './nodes/StoryNode';
 import MilestoneNode from './nodes/MilestoneNode';
 import IntentNode from './nodes/IntentNode';
-import { createIntentFlowData, getStatusColor, getStatusIcon } from '../utils/flowUtils';
+import { createIntentFlowData, getStatusIcon } from '../utils/flowUtils';
 import apiService from '../services/apiService';
 
 const ExecutionContainer = styled.div`
@@ -193,6 +193,115 @@ const EventError = styled.div`
   padding: 8px 0;
 `;
 
+const ExecutionControls = styled.div`
+  position: absolute;
+  top: 24px;
+  left: 24px;
+  background: rgba(255, 255, 255, 0.95);
+  border: 1px solid #e5e7eb;
+  border-radius: 16px;
+  box-shadow: 0 20px 45px rgba(15, 23, 42, 0.2);
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  min-width: 280px;
+  z-index: 1100;
+  backdrop-filter: blur(6px);
+`;
+
+const ControlsHeader = styled.div`
+  font-weight: 600;
+  color: #0f172a;
+  font-size: 0.9rem;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+`;
+
+const ModeSelector = styled.div`
+  display: flex;
+  gap: 8px;
+  align-items: center;
+`;
+
+const ModeButton = styled.button`
+  padding: 6px 12px;
+  border-radius: 8px;
+  border: 1px solid #d1d5db;
+  background: ${props => props.$selected ? '#3b82f6' : 'white'};
+  color: ${props => props.$selected ? 'white' : '#374151'};
+  font-size: 0.75rem;
+  cursor: pointer;
+  transition: all 0.2s;
+  
+  &:hover {
+    background: ${props => props.$selected ? '#2563eb' : '#f3f4f6'};
+  }
+  
+  &:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+`;
+
+const ExecuteButton = styled.button`
+  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+  color: white;
+  border: none;
+  border-radius: 8px;
+  padding: 10px 16px;
+  font-weight: 600;
+  font-size: 0.85rem;
+  cursor: pointer;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  
+  &:hover:not(:disabled) {
+    background: linear-gradient(135deg, #059669 0%, #047857 100%);
+    transform: translateY(-1px);
+  }
+  
+  &:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+    transform: none;
+  }
+`;
+
+const StatusMessage = styled.div`
+  font-size: 0.75rem;
+  padding: 8px;
+  border-radius: 6px;
+  background: ${props => {
+        if (props.$type === 'error') return '#fef2f2';
+        if (props.$type === 'success') return '#f0fdf4';
+        return '#f8fafc';
+    }};
+  border: 1px solid ${props => {
+        if (props.$type === 'error') return '#fca5a5';
+        if (props.$type === 'success') return '#86efac';
+        return '#e2e8f0';
+    }};
+  color: ${props => {
+        if (props.$type === 'error') return '#b91c1c';
+        if (props.$type === 'success') return '#166534';
+        return '#475569';
+    }};
+`;
+
+const ProjectStatus = styled.div`
+  font-size: 0.75rem;
+  color: #6b7280;
+  padding: 8px;
+  background: #f8fafc;
+  border-radius: 6px;
+  border: 1px solid #e2e8f0;
+`;
+
 const Pulse = styled.div`
   width: 8px;
   height: 8px;
@@ -324,6 +433,19 @@ function LiveExecution() {
     const [eventsByRun, setEventsByRun] = useState({});
     const [eventsError, setEventsError] = useState(null);
     const [isFetchingEvents, setIsFetchingEvents] = useState(false);
+
+    // Execution controls state
+    const [executionMode, setExecutionMode] = useState(planData?.project?.default_run_mode || 'shadow');
+    const [isExecuting, setIsExecuting] = useState(false);
+    const [executionStatus, setExecutionStatus] = useState(null);
+    const [executionError, setExecutionError] = useState(null);
+
+    // Sync execution mode with plan data when it changes
+    React.useEffect(() => {
+        if (planData?.project?.default_run_mode) {
+            setExecutionMode(planData.project.default_run_mode);
+        }
+    }, [planData?.project?.default_run_mode]);
 
     // Create node types with navigation
     const nodeTypes = React.useMemo(() => createNodeTypes(navigateToStoryView), [navigateToStoryView]);
@@ -464,6 +586,63 @@ function LiveExecution() {
 
     const displayedEvents = React.useMemo(() => flattenedEvents.slice(0, 20), [flattenedEvents]);
 
+    // Execution handler
+    const handleExecutePlan = async () => {
+        if (!executionData?.project?.id) {
+            setExecutionError('No project ID found. Please ensure a plan is loaded.');
+            return;
+        }
+
+        const connectionStatus = apiService.getConnectionStatus();
+        if (!connectionStatus.isConnected) {
+            setExecutionError('Not connected to API. Please configure the connection first.');
+            return;
+        }
+
+        setIsExecuting(true);
+        setExecutionStatus(null);
+        setExecutionError(null);
+
+        try {
+            console.log(`🚀 Starting plan execution for project ${executionData.project.id} in ${executionMode} mode...`);
+            const result = await apiService.executePlan(executionData.project.id, executionMode);
+
+            if (result.success) {
+                const successMessage = result.data?.historical_plan_id
+                    ? `Plan execution started successfully! Historical ID: ${result.data.historical_plan_id}`
+                    : `Plan execution started in ${executionMode} mode!`;
+
+                setExecutionStatus({
+                    type: 'success',
+                    message: successMessage,
+                    data: result.data
+                });
+
+                // Clear any previous errors
+                setExecutionError(null);
+
+                console.log('✅ Plan execution started:', result.data);
+
+                // Auto-clear success message after 10 seconds
+                setTimeout(() => {
+                    setExecutionStatus(null);
+                }, 10000);
+            } else {
+                console.error('❌ Plan execution failed:', result.error);
+                setExecutionError(result.error || 'Failed to start execution');
+            }
+        } catch (error) {
+            console.error('❌ Plan execution error:', error);
+            setExecutionError(`Error: ${error.message || 'An unexpected error occurred'}`);
+        } finally {
+            setIsExecuting(false);
+        }
+    };
+
+    // Get connection status for UI
+    const connectionStatus = apiService.getConnectionStatus();
+    const isConnected = connectionStatus.isConnected;
+
     if (!executionData) {
         return (
             <ExecutionContainer>
@@ -499,7 +678,7 @@ function LiveExecution() {
     }
     const runningStories = allStories.filter(s => s.execution?.current?.status === 'in_progress');
 
-    const executionStatus = {
+    const projectMetrics = {
         completion_percentage: executionData?.project?.progress?.completion_percentage || 0,
         total_stories: allStories.length,
         total_agents: executionData?.agents?.length || 0
@@ -517,22 +696,103 @@ function LiveExecution() {
 
                 <CompactMetrics>
                     <Metric>
-                        📊 <MetricValue>{Math.round(executionStatus.completion_percentage || 0)}%</MetricValue>
+                        📊 <MetricValue>{Math.round(projectMetrics.completion_percentage || 0)}%</MetricValue>
                     </Metric>
                     <Metric>
                         🔄 <MetricValue>{runningStories.length}</MetricValue>
                     </Metric>
                     <Metric>
-                        📚 <MetricValue>{executionStatus.total_stories || 0}</MetricValue>
+                        📚 <MetricValue>{projectMetrics.total_stories || 0}</MetricValue>
                     </Metric>
                     <Metric>
-                        🤖 <MetricValue>{executionStatus.total_agents || 0}</MetricValue>
+                        🤖 <MetricValue>{projectMetrics.total_agents || 0}</MetricValue>
                     </Metric>
                 </CompactMetrics>
             </CompactHeader>
 
             <MainContent>
                 <FlowContainer>
+                    <ExecutionControls>
+                        <ControlsHeader>
+                            🚀 Execution Controls
+                        </ControlsHeader>
+
+                        {executionData?.project && (
+                            <ProjectStatus>
+                                <strong>Project:</strong> {executionData.project.name}<br />
+                                <strong>ID:</strong> {executionData.project.id}<br />
+                                <strong>Status:</strong> {executionData.project.status || 'planned'}
+                            </ProjectStatus>
+                        )}
+
+                        <div>
+                            <div style={{ fontSize: '0.8rem', fontWeight: 500, marginBottom: '6px' }}>
+                                Execution Mode:
+                            </div>
+                            <ModeSelector>
+                                <ModeButton
+                                    $selected={executionMode === 'shadow'}
+                                    onClick={() => setExecutionMode('shadow')}
+                                    disabled={isExecuting}
+                                >
+                                    🛡️ Shadow
+                                </ModeButton>
+                                <ModeButton
+                                    $selected={executionMode === 'merge'}
+                                    onClick={() => setExecutionMode('merge')}
+                                    disabled={isExecuting}
+                                >
+                                    🚀 Merge
+                                </ModeButton>
+                            </ModeSelector>
+                            <div style={{ fontSize: '0.7rem', color: '#6b7280', marginTop: '4px' }}>
+                                {executionMode === 'shadow'
+                                    ? '📄 Safe mode: Creates documentation files only'
+                                    : '⚡ Live mode: Generates and merges actual code'}
+                            </div>
+                            {executionMode === 'merge' && (
+                                <div style={{ fontSize: '0.65rem', color: '#f59e0b', marginTop: '2px', fontWeight: 500 }}>
+                                    ⚠️ Warning: This will modify your actual codebase
+                                </div>
+                            )}
+                        </div>
+
+                        {!isConnected && (
+                            <StatusMessage $type="error">
+                                ⚠️ Not connected to API. Please configure the connection first.
+                            </StatusMessage>
+                        )}
+
+                        {!executionData?.project?.id && isConnected && (
+                            <StatusMessage>
+                                📋 No project loaded. Please load a plan first.
+                            </StatusMessage>
+                        )}
+
+                        <ExecuteButton
+                            onClick={handleExecutePlan}
+                            disabled={isExecuting || !executionData?.project?.id || !isConnected}
+                        >
+                            {isExecuting ? (
+                                <>⏳ Starting Execution...</>
+                            ) : (
+                                <>🚀 Start Execution</>
+                            )}
+                        </ExecuteButton>
+
+                        {executionStatus && (
+                            <StatusMessage $type={executionStatus.type}>
+                                {executionStatus.message}
+                            </StatusMessage>
+                        )}
+
+                        {executionError && (
+                            <StatusMessage $type="error">
+                                {executionError}
+                            </StatusMessage>
+                        )}
+                    </ExecutionControls>
+
                     <ReactFlow
                         nodes={nodes}
                         edges={edges}
